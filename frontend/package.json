@@ -1,0 +1,104 @@
+{
+  "name": "ajh-frontend",
+  "version": "1.0.0",
+  "description": "Sistema de Gestão AJH - Frontend React com TypeScript",
+  "author": "Sistema AJH",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "typescript",
+    "material-ui",
+    "gestao",
+    "veiculos",
+    "estacionamento"
+  ],
+  "homepage": "https://github.com/seu-usuario/ajh-frontend",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seu-usuario/ajh-frontend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/seu-usuario/ajh-frontend/issues"
+  },
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx}\"",
+    "type-check": "tsc --noEmit"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@fontsource/inter": "^5.0.16",
+    "@hookform/resolvers": "^5.0.1",
+    "@mui/icons-material": "^5.15.10",
+    "@mui/material": "^5.15.10",
+    "@mui/x-date-pickers": "^6.19.5",
+    "@tanstack/react-query": "^5.79.0",
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^14.2.1",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/jest": "^29.5.12",
+    "@types/react": "^18.2.55",
+    "@types/react-dom": "^18.2.19",
+    "@types/yup": "^0.29.14",
+    "axios": "^1.9.0",
+    "date-fns": "^2.30.0",
+    "formik": "^2.4.6",
+    "framer-motion": "^11.0.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.50.1",
+    "react-router-dom": "^6.22.1",
+    "react-scripts": "5.0.1",
+    "remask": "^1.2.2",
+    "styled-components": "^6.1.8",
+    "web-vitals": "^3.5.2",
+    "yup": "^1.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@types/styled-components": "^5.1.34",
+    "@typescript-eslint/eslint-plugin": "^7.0.1",
+    "@typescript-eslint/parser": "^7.0.1",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.4.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.5.3",
+    "typescript": "^4.9.5"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
+}

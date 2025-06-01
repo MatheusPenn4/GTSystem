@@ -1,0 +1,153 @@
+# Planejamento de Desenvolvimento - Sistema de Gestão de Estacionamento
+
+## Situação Atual
+
+O projeto possui:
+- Backend Django modularizado (autenticação, empresa, estacionamento)
+- Frontend React moderno com Material-UI e tema personalizado
+- Ambiente de desenvolvimento configurado
+- Sistema de autenticação JWT implementado
+- Layout base responsivo com tema claro/escuro
+- Gerenciamento de estado com Context API
+- Hooks personalizados para operações CRUD
+- CRUDs de Filiais, Veículos e Motoristas implementados com responsividade
+
+### Estrutura do Banco de Dados
+- **Autenticação**: User (roles, empresa), Role, UserLog
+- **Empresa**: Company (multi-filial), Branch
+- **Estacionamento**: ParkingLot (vinculado explicitamente a Branch), ParkingSpot, ParkingRecord
+- **Configurações**: Settings (perfil_usuario, configuracoes_empresa, tema, idioma)
+
+## Etapas Concluídas
+
+### 1. Consolidação da Base (Sprint 1) ✅
+- [x] Revisão e documentação da estrutura do banco de dados
+- [x] Sistema de roles e logs de ações
+- [x] Migrations para alterações de modelo
+- [x] Autenticação JWT (login, refresh, reset de senha)
+- [x] Testes automatizados para autenticação, roles, permissões por filial
+- [x] Validações de negócio (CNPJ, email corporativo, telefone)
+- [x] APIs documentadas (Swagger/OpenAPI)
+- [x] CRUDs: Usuários, Filiais, Veículos, Motoristas, Configurações
+- [x] Suporte a multi-filial em Company, Vehicle, Driver
+
+### 2. Segurança e Acesso (Sprint 2) ✅
+- [x] Expiração e refresh de tokens JWT
+- [x] Blacklist de tokens
+- [x] Middleware de verificação de plano e filial
+- [x] Restrições e logs de acesso por filial
+
+### 3. Frontend Moderno (Sprint 3) - Em Andamento
+#### Setup e Estrutura Base ✅
+- [x] Configuração do projeto React com TypeScript
+- [x] Setup de Styled Components e Material-UI
+- [x] Configuração de ESLint, Prettier, Husky, lint-staged
+- [x] Configuração de rotas protegidas e públicas
+- [x] Implementação de tema claro/escuro (ThemeContext)
+- [x] Layout base responsivo (header, sidebar, content)
+- [x] Tela de Login moderna integrada ao backend
+- [x] Páginas básicas criadas para Dashboard, Filiais, Veículos, Motoristas, Configurações
+- [x] Integração real de login e dashboard
+- [x] Type-check e linter limpos
+- [x] Jest configurado para testes
+- [x] Documentação (README, LICENSE) completa
+
+#### Componentes e Telas (Em Andamento)
+- [x] Gerenciamento de Estado
+  - [x] Context API para estado global
+  - [x] Hooks personalizados para operações CRUD
+  - [x] Cache e otimização de requisições
+  - [x] Tratamento de erros centralizado
+- [ ] Integração real dos CRUDs principais
+  - [x] Filiais (listagem, criação, edição, exclusão)
+  - [x] Veículos (listagem, criação, edição, exclusão)
+  - [x] Motoristas (listagem, criação, edição, exclusão)
+  - [x] Configurações (perfil, empresa, usuários)
+- [ ] Listagens e Filtros
+  - [ ] Implementar DataGrid com paginação
+  - [ ] Filtros avançados por data, status, tipo
+  - [ ] Exportação para CSV/PDF
+  - [ ] Ordenação e busca
+- [ ] Microinterações e Feedback
+  - [x] Snackbars para feedback de ações
+  - [ ] Loading states e skeletons
+  - [ ] Animações de transição
+  - [ ] Tooltips e hints
+- [ ] Acessibilidade
+  - [ ] Implementar ARIA labels
+  - [ ] Navegação por teclado
+  - [ ] Contraste e legibilidade
+  - [ ] Screen reader support
+- [ ] Testes
+  - [x] Testes automatizados cobrindo login, dashboard, formulários e integrações de criação/listagem
+  - [ ] Testes de edição/exclusão nas tabelas
+  - [ ] Testes de navegação, acessibilidade e alternância de tema
+  - [ ] Testes de feedback visual (loading, erro, sucesso)
+  - [ ] Testes de componentes reutilizáveis
+  - [ ] Testes E2E com Cypress
+  - [ ] Cobertura mínima de 80%
+- [x] Responsividade
+  - [x] Mobile-first design
+  - [x] Breakpoints otimizados
+  - [x] Touch interactions
+  - [x] Layout adaptativo
+
+### 4. Cadastro e Operação (Sprint 4)
+- [ ] CRUD de Transportadoras
+  - [ ] Modelo e migrações
+  - [ ] APIs REST
+  - [ ] Validações de CNPJ
+  - [ ] Interface de cadastro
+- [ ] Registro de Veículos
+  - [ ] Validação de placas
+  - [ ] Integração com DETRAN
+  - [ ] Histórico de entradas/saídas
+  - [ ] Relatórios por veículo
+- [ ] Sistema de Entrada/Saída
+  - [ ] Registro de entrada
+  - [ ] Cálculo de tarifa
+  - [ ] Comprovante em PDF
+  - [ ] Dashboard em tempo real
+- [ ] Relatórios e Analytics
+  - [ ] Dashboard gerencial
+  - [ ] Relatórios personalizados
+  - [ ] Exportação de dados
+  - [ ] Gráficos e métricas
+
+## Próximos Passos Imediatos
+1. Finalizar testes de edição e exclusão nas tabelas
+2. Expandir testes de navegação, acessibilidade e tema
+3. Cobertura de feedback visual e cenários de erro
+4. Cobertura de componentes reutilizáveis
+5. Implementar DataGrid avançado nas listagens (paginação, filtros, ordenação, busca, exportação CSV/PDF)
+6. Documentação e Storybook
+7. Melhorias futuras: notificações, PWA, temas customizáveis
+
+## Métricas de Sucesso
+- Cobertura de testes > 80%
+- Tempo de resposta da API < 200ms
+- Lighthouse score > 90
+- Zero vulnerabilidades críticas
+- Performance do frontend (First Contentful Paint < 1.5s)
+- Responsividade em todos os dispositivos
+
+## Melhorias Futuras
+- Campos para controle de plano e status da empresa
+- Suporte a múltiplos idiomas
+- Sistema de notificações
+- Relatórios personalizados
+- Dashboard de métricas
+- Temas customizáveis
+- Modo offline
+- PWA (Progressive Web App)
+
+---
+
+**Resumo para próxima IA/dev:**
+- Projeto com base sólida, autenticação e layout implementados
+- Gerenciamento de estado com Context API e hooks personalizados
+- CRUDs de Filiais, Veículos e Motoristas implementados com responsividade
+- Testes automatizados cobrindo login, dashboard, formulários e integrações de criação/listagem
+- Início dos testes de edição/exclusão, navegação, acessibilidade e feedback visual
+- Próximos passos: finalizar cobertura de tabelas, navegação, feedbacks e DataGrid
+- Consulte o README e este planejamento para detalhes técnicos 
