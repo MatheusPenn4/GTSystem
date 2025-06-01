@@ -22,8 +22,8 @@ git --version      # Qualquer versão recente
 
 ### 1. Clone o repositório
 ```bash
-git clone https://github.com/seu-usuario/ajh-sistema.git
-cd ajh-sistema
+git clone https://github.com/MatheusPenn4/Ajh-Sistema.git
+cd Ajh-Sistema
 ```
 
 ### 2. Configure o Backend (Django)

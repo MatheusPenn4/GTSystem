@@ -31,10 +31,10 @@ Sistema completo de gestão empresarial com foco em controle de veículos, motor
 ### Instalação
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/ajh-frontend.git
+git clone https://github.com/MatheusPenn4/Ajh-Sistema.git
 
 # Entre no diretório
-cd ajh-frontend
+cd Ajh-Sistema/frontend
 
 # Instale as dependências
 npm install
@@ -91,9 +91,9 @@ const api = axios.create({
 
 ## 🎯 **Para usar no Lovable:**
 
-1. Fork este repositório
+1. Fork este repositório: https://github.com/MatheusPenn4/Ajh-Sistema
 2. No Lovable, conecte o repositório GitHub
-3. Configure as variáveis de ambiente se necessário
+3. Configure o diretório raiz como `frontend/`
 4. O Lovable detectará automaticamente que é um projeto React/Vite
 
 ## 🤝 **Contribuição**

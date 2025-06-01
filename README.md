@@ -88,8 +88,8 @@ AJH/
 
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/ajh-sistema.git
-cd ajh-sistema/backend
+git clone https://github.com/MatheusPenn4/Ajh-Sistema.git
+cd Ajh-Sistema/backend
 
 # Crie um ambiente virtual
 python -m venv venv
@@ -261,8 +261,8 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 Para dúvidas ou suporte:
 - 📧 Email: suporte@ajh-sistema.com
-- 🐛 Issues: [GitHub Issues](https://github.com/seu-usuario/ajh-sistema/issues)
-- 📖 Wiki: [GitHub Wiki](https://github.com/seu-usuario/ajh-sistema/wiki)
+- 🐛 Issues: [GitHub Issues](https://github.com/MatheusPenn4/Ajh-Sistema/issues)
+- 📖 Wiki: [GitHub Wiki](https://github.com/MatheusPenn4/Ajh-Sistema/wiki)
 
 ---
 
