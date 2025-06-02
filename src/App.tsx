@@ -12,6 +12,11 @@ import Layout from "@/components/Layout";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Empresas from "@/pages/Empresas";
+import Veiculos from "@/pages/Veiculos";
+import Motoristas from "@/pages/Motoristas";
+import Estacionamento from "@/pages/Estacionamento";
+import Relatorios from "@/pages/Relatorios";
+import Configuracoes from "@/pages/Configuracoes";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,7 +55,7 @@ const App = () => (
               element={
                 <PrivateRoute>
                   <Layout>
-                    <div className="text-white">Página de Veículos (Em construção)</div>
+                    <Veiculos />
                   </Layout>
                 </PrivateRoute>
               } 
@@ -60,7 +65,7 @@ const App = () => (
               element={
                 <PrivateRoute>
                   <Layout>
-                    <div className="text-white">Página de Motoristas (Em construção)</div>
+                    <Motoristas />
                   </Layout>
                 </PrivateRoute>
               } 
@@ -70,7 +75,7 @@ const App = () => (
               element={
                 <PrivateRoute>
                   <Layout>
-                    <div className="text-white">Página de Estacionamento (Em construção)</div>
+                    <Estacionamento />
                   </Layout>
                 </PrivateRoute>
               } 
@@ -80,7 +85,7 @@ const App = () => (
               element={
                 <PrivateRoute>
                   <Layout>
-                    <div className="text-white">Página de Relatórios (Em construção)</div>
+                    <Relatorios />
                   </Layout>
                 </PrivateRoute>
               } 
@@ -90,7 +95,7 @@ const App = () => (
               element={
                 <PrivateRoute>
                   <Layout>
-                    <div className="text-white">Página de Configurações (Em construção)</div>
+                    <Configuracoes />
                   </Layout>
                 </PrivateRoute>
               } 
