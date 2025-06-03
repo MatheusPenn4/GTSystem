@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { ParkingCircle, Search, Filter, Car, Clock, CheckCircle } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ParkingCircle, Search, Filter, Car, Clock, CheckCircle, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
 import ControleManualModal from '@/components/modals/ControleManualModal';
 
 interface Vaga {
@@ -16,17 +18,37 @@ interface Vaga {
   entrada?: string;
 }
 
+interface EstacionamentoInfo {
+  id: string;
+  nome: string;
+  endereco: string;
+  cidade: string;
+  totalVagas: number;
+}
+
 const Estacionamento: React.FC = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { isAdmin, isEstacionamento } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [setorFilter, setSetorFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [controleModalOpen, setControleModalOpen] = useState(false);
 
-  // Mock data - 50 vagas divididas em setores
-  const vagas: Vaga[] = Array.from({ length: 50 }, (_, i) => {
+  // Dados simulados do estacionamento específico
+  const estacionamentoInfo: EstacionamentoInfo = {
+    id: id || '1',
+    nome: id === '2' ? 'Parking Premium' : id === '3' ? 'Estacionamento Norte' : 'Estacionamento Central',
+    endereco: id === '2' ? 'Av. Paulista, 456' : id === '3' ? 'Rua do Norte, 789' : 'Rua das Flores, 123',
+    cidade: id === '3' ? 'Rio de Janeiro - RJ' : 'São Paulo - SP',
+    totalVagas: id === '2' ? 80 : id === '3' ? 60 : 120,
+  };
+
+  // Mock data - vagas baseadas no estacionamento
+  const vagas: Vaga[] = Array.from({ length: estacionamentoInfo.totalVagas }, (_, i) => {
     const numero = (i + 1).toString().padStart(2, '0');
     const setores = ['A', 'B', 'C'];
-    const setor = setores[Math.floor(i / 17)];
+    const setor = setores[Math.floor(i / Math.ceil(estacionamentoInfo.totalVagas / 3))];
     const statuses: Vaga['status'][] = ['livre', 'ocupada', 'reservada', 'manutencao'];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
     
@@ -90,22 +112,38 @@ const Estacionamento: React.FC = () => {
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Estacionamento</h1>
-          <p className="text-slate-400">Gerencie as vagas e ocupação do estacionamento</p>
+        <div className="flex items-center gap-4">
+          {isAdmin() && (
+            <Button
+              variant="outline"
+              onClick={() => navigate('/estacionamentos')}
+              className="ajh-button-secondary"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar
+            </Button>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">{estacionamentoInfo.nome}</h1>
+            <p className="text-slate-400">
+              {estacionamentoInfo.endereco} - {estacionamentoInfo.cidade}
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button className="ajh-button-secondary">
             <Filter className="w-4 h-4 mr-2" />
             Relatório
           </Button>
-          <Button 
-            className="ajh-button-primary"
-            onClick={() => setControleModalOpen(true)}
-          >
-            <ParkingCircle className="w-4 h-4 mr-2" />
-            Controle Manual
-          </Button>
+          {(isAdmin() || isEstacionamento()) && (
+            <Button 
+              className="ajh-button-primary"
+              onClick={() => setControleModalOpen(true)}
+            >
+              <ParkingCircle className="w-4 h-4 mr-2" />
+              Controle Manual
+            </Button>
+          )}
         </div>
       </div>
 

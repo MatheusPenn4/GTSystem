@@ -14,6 +14,7 @@ import Dashboard from "@/pages/Dashboard";
 import Empresas from "@/pages/Empresas";
 import Veiculos from "@/pages/Veiculos";
 import Motoristas from "@/pages/Motoristas";
+import EstacionamentosList from "@/pages/EstacionamentosList";
 import Estacionamento from "@/pages/Estacionamento";
 import Relatorios from "@/pages/Relatorios";
 import Configuracoes from "@/pages/Configuracoes";
@@ -71,7 +72,17 @@ const App = () => (
               } 
             />
             <Route 
-              path="/estacionamento" 
+              path="/estacionamentos" 
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <EstacionamentosList />
+                  </Layout>
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/estacionamento/:id?" 
               element={
                 <PrivateRoute>
                   <Layout>
