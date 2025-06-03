@@ -295,16 +295,16 @@ const Dashboard: React.FC = () => {
 
       {/* Modals */}
       <CadastroEmpresaModal 
-        isOpen={showEmpresaModal} 
-        onClose={() => setShowEmpresaModal(false)} 
+        open={showEmpresaModal} 
+        onOpenChange={setShowEmpresaModal} 
       />
       <CadastroVeiculoModal 
-        isOpen={showVeiculoModal} 
-        onClose={() => setShowVeiculoModal(false)} 
+        open={showVeiculoModal} 
+        onOpenChange={setShowVeiculoModal} 
       />
       <CadastroMotoristaModal 
-        isOpen={showMotoristaModal} 
-        onClose={() => setShowMotoristaModal(false)} 
+        open={showMotoristaModal} 
+        onOpenChange={setShowMotoristaModal} 
       />
     </div>
   );
