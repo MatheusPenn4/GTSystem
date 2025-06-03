@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -46,9 +45,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     if (isTransportadora()) {
       return [
         ...baseItems,
+        { icon: Building2, label: 'Filiais', path: '/empresas' },
         { icon: Car, label: 'Meus Veículos', path: '/veiculos' },
         { icon: Users, label: 'Meus Motoristas', path: '/motoristas' },
-        { icon: ParkingCircle, label: 'Estacionamentos', path: '/estacionamento' },
         { icon: BarChart3, label: 'Relatórios', path: '/relatorios' },
         { icon: Settings, label: 'Configurações', path: '/configuracoes' },
       ];
@@ -57,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     if (isEstacionamento()) {
       return [
         ...baseItems,
-        { icon: ParkingCircle, label: 'Meu Estacionamento', path: '/estacionamento' },
+        { icon: ParkingCircle, label: 'Meus Estacionamentos', path: '/estacionamento' },
         { icon: BarChart3, label: 'Relatórios', path: '/relatorios' },
         { icon: Settings, label: 'Configurações', path: '/configuracoes' },
       ];

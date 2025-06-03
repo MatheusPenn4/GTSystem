@@ -1,55 +1,40 @@
-import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import TransportadoraDashboard from './dashboards/TransportadoraDashboard';
-import EstacionamentoDashboard from './dashboards/EstacionamentoDashboard';
-import { useState } from 'react';
+
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Building2, 
   Car, 
   Users, 
-  ParkingCircle, 
   TrendingUp, 
   AlertTriangle,
   CheckCircle,
-  Clock
+  Clock,
+  BarChart3
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import CadastroEmpresaModal from '@/components/modals/CadastroEmpresaModal';
 import CadastroVeiculoModal from '@/components/modals/CadastroVeiculoModal';
 import CadastroMotoristaModal from '@/components/modals/CadastroMotoristaModal';
 
-const Dashboard: React.FC = () => {
-  const { isAdmin, isTransportadora, isEstacionamento } = useAuth();
-
-  if (isTransportadora()) {
-    return <TransportadoraDashboard />;
-  }
-
-  if (isEstacionamento()) {
-    return <EstacionamentoDashboard />;
-  }
-
+const TransportadoraDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [showEmpresaModal, setShowEmpresaModal] = useState(false);
   const [showVeiculoModal, setShowVeiculoModal] = useState(false);
   const [showMotoristaModal, setShowMotoristaModal] = useState(false);
 
   const stats = [
     {
-      title: 'Empresas Ativas',
-      value: '24',
-      change: '+12%',
+      title: 'Filiais Ativas',
+      value: '8',
+      change: '+2',
       trend: 'up',
       icon: Building2,
       color: 'text-ajh-primary',
       bgColor: 'bg-ajh-primary/10'
     },
     {
-      title: 'Veículos Cadastrados',
-      value: '156',
-      change: '+8%',
+      title: 'Frota Total',
+      value: '34',
+      change: '+3',
       trend: 'up',
       icon: Car,
       color: 'text-ajh-secondary',
@@ -57,19 +42,19 @@ const Dashboard: React.FC = () => {
     },
     {
       title: 'Motoristas Ativos',
-      value: '89',
-      change: '+5%',
+      value: '28',
+      change: '+1',
       trend: 'up',
       icon: Users,
       color: 'text-ajh-accent',
       bgColor: 'bg-ajh-accent/10'
     },
     {
-      title: 'Vagas Ocupadas',
-      value: '67/120',
-      change: '56%',
-      trend: 'neutral',
-      icon: ParkingCircle,
+      title: 'Viagens do Mês',
+      value: '156',
+      change: '+12%',
+      trend: 'up',
+      icon: BarChart3,
       color: 'text-ajh-success',
       bgColor: 'bg-ajh-success/10'
     }
@@ -79,30 +64,30 @@ const Dashboard: React.FC = () => {
     {
       id: 1,
       type: 'vehicle',
-      message: 'Novo veículo cadastrado - Placa ABC-1234',
-      time: '2 min atrás',
+      message: 'Veículo ABC-1234 realizou manutenção',
+      time: '1 hora atrás',
       status: 'success'
     },
     {
       id: 2,
       type: 'driver',
-      message: 'CNH do motorista João Silva expira em 15 dias',
-      time: '1 hora atrás',
+      message: 'CNH do motorista Carlos Silva expira em 15 dias',
+      time: '2 horas atrás',
       status: 'warning'
     },
     {
       id: 3,
-      type: 'company',
-      message: 'Empresa TechCorp Ltd. foi atualizada',
-      time: '2 horas atrás',
-      status: 'info'
+      type: 'trip',
+      message: 'Viagem SP-RJ finalizada com sucesso',
+      time: '3 horas atrás',
+      status: 'success'
     },
     {
       id: 4,
-      type: 'parking',
-      message: 'Vaga 15 foi liberada',
-      time: '3 horas atrás',
-      status: 'success'
+      type: 'maintenance',
+      message: 'Veículo XYZ-5678 agendado para revisão',
+      time: '4 horas atrás',
+      status: 'info'
     }
   ];
 
@@ -130,15 +115,17 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Welcome Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">
-          Dashboard Administrativo
+          Dashboard Transportadora
         </h1>
         <p className="text-slate-400">
-          Bem-vindo de volta! Aqui está um resumo das atividades do sistema.
+          Gerencie sua frota, motoristas e operações em tempo real.
         </p>
       </div>
-      
+
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
@@ -175,12 +162,14 @@ const Dashboard: React.FC = () => {
         })}
       </div>
 
+      {/* Content Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Recent Activity */}
         <Card className="ajh-card xl:col-span-2">
           <CardHeader>
             <CardTitle className="text-white">Atividade Recente</CardTitle>
             <CardDescription className="text-slate-400">
-              Últimas atualizações no sistema
+              Últimas atualizações da sua operação
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -205,6 +194,7 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* Quick Actions */}
         <Card className="ajh-card">
           <CardHeader>
             <CardTitle className="text-white">Ações Rápidas</CardTitle>
@@ -215,61 +205,62 @@ const Dashboard: React.FC = () => {
           <CardContent>
             <div className="space-y-3">
               <button 
-                onClick={() => setShowEmpresaModal(true)}
+                onClick={() => setShowVeiculoModal(true)}
                 className="w-full ajh-button-primary justify-start"
               >
-                <Building2 className="w-4 h-4 mr-2" />
-                Nova Empresa
-              </button>
-              <button 
-                onClick={() => setShowVeiculoModal(true)}
-                className="w-full ajh-button-secondary justify-start"
-              >
                 <Car className="w-4 h-4 mr-2" />
-                Novo Veículo
+                Cadastrar Veículo
               </button>
               <button 
                 onClick={() => setShowMotoristaModal(true)}
                 className="w-full ajh-button-secondary justify-start"
               >
                 <Users className="w-4 h-4 mr-2" />
-                Novo Motorista
+                Cadastrar Motorista
               </button>
               <button 
-                onClick={() => navigate('/estacionamento')}
+                onClick={() => navigate('/veiculos')}
                 className="w-full ajh-button-secondary justify-start"
               >
-                <ParkingCircle className="w-4 h-4 mr-2" />
-                Gerenciar Vagas
+                <Car className="w-4 h-4 mr-2" />
+                Gerenciar Frota
+              </button>
+              <button 
+                onClick={() => navigate('/relatorios')}
+                className="w-full ajh-button-secondary justify-start"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Ver Relatórios
               </button>
             </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Fleet Status */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="ajh-card">
           <CardHeader>
-            <CardTitle className="text-white">Status do Estacionamento</CardTitle>
+            <CardTitle className="text-white">Status da Frota</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-slate-400">Vagas Livres</span>
-                <Badge className="bg-green-500/20 text-green-400">53</Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400">Vagas Ocupadas</span>
-                <Badge className="bg-red-500/20 text-red-400">67</Badge>
+                <span className="text-slate-400">Em Operação</span>
+                <Badge className="bg-green-500/20 text-green-400">28</Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-400">Em Manutenção</span>
-                <Badge className="bg-yellow-500/20 text-yellow-400">0</Badge>
+                <Badge className="bg-yellow-500/20 text-yellow-400">4</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-400">Disponíveis</span>
+                <Badge className="bg-blue-500/20 text-blue-400">2</Badge>
               </div>
               <div className="w-full bg-slate-700 rounded-full h-2 mt-4">
                 <div 
                   className="bg-gradient-to-r from-ajh-primary to-ajh-secondary h-2 rounded-full"
-                  style={{ width: '56%' }}
+                  style={{ width: '82%' }}
                 ></div>
               </div>
             </div>
@@ -286,14 +277,14 @@ const Dashboard: React.FC = () => {
                 <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5" />
                 <div>
                   <p className="text-white text-sm font-medium">3 CNHs expirando</p>
-                  <p className="text-yellow-400 text-xs">Verificar em breve</p>
+                  <p className="text-yellow-400 text-xs">Renovar em breve</p>
                 </div>
               </div>
               <div className="flex items-start space-x-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                 <Clock className="w-5 h-5 text-blue-400 mt-0.5" />
                 <div>
-                  <p className="text-white text-sm font-medium">Backup automático</p>
-                  <p className="text-blue-400 text-xs">Hoje às 23:00</p>
+                  <p className="text-white text-sm font-medium">4 veículos em manutenção</p>
+                  <p className="text-blue-400 text-xs">Previsão: 2-3 dias</p>
                 </div>
               </div>
             </div>
@@ -301,10 +292,7 @@ const Dashboard: React.FC = () => {
         </Card>
       </div>
 
-      <CadastroEmpresaModal 
-        open={showEmpresaModal} 
-        onOpenChange={setShowEmpresaModal} 
-      />
+      {/* Modals */}
       <CadastroVeiculoModal 
         open={showVeiculoModal} 
         onOpenChange={setShowVeiculoModal} 
@@ -317,4 +305,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default TransportadoraDashboard;
