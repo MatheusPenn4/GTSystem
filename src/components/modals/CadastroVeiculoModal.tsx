@@ -240,7 +240,7 @@ const CadastroVeiculoModal: React.FC<CadastroVeiculoModalProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Nenhum motorista</SelectItem>
+                      <SelectItem value="none">Nenhum motorista</SelectItem>
                       {motoristas.map((motorista) => (
                         <SelectItem key={motorista} value={motorista}>
                           {motorista}
