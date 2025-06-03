@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Search, Edit, Trash2, Eye, Users, Car, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import CadastroMotoristaModal from '@/components/modals/CadastroMotoristaModal';
 
 interface Motorista {
   id: string;
@@ -32,6 +32,7 @@ interface Motorista {
 const Motoristas: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [cadastroModalOpen, setCadastroModalOpen] = useState(false);
 
   // Mock data
   const motoristas: Motorista[] = [
@@ -119,7 +120,10 @@ const Motoristas: React.FC = () => {
           <h1 className="text-3xl font-bold text-white mb-2">Motoristas</h1>
           <p className="text-slate-400">Gerencie todos os motoristas cadastrados no sistema</p>
         </div>
-        <Button className="ajh-button-primary">
+        <Button 
+          className="ajh-button-primary"
+          onClick={() => setCadastroModalOpen(true)}
+        >
           <Plus className="w-4 h-4 mr-2" />
           Novo Motorista
         </Button>
@@ -288,6 +292,11 @@ const Motoristas: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      <CadastroMotoristaModal 
+        open={cadastroModalOpen}
+        onOpenChange={setCadastroModalOpen}
+      />
     </div>
   );
 };

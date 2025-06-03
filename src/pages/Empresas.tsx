@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Eye, Building2, Users, Car } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import CadastroEmpresaModal from '@/components/modals/CadastroEmpresaModal';
 
 interface Empresa {
   id: string;
@@ -30,6 +30,7 @@ interface Empresa {
 const Empresas: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [cadastroModalOpen, setCadastroModalOpen] = useState(false);
 
   // Mock data - replace with API call
   const empresas: Empresa[] = [
@@ -116,7 +117,10 @@ const Empresas: React.FC = () => {
           <h1 className="text-3xl font-bold text-white mb-2">Empresas</h1>
           <p className="text-slate-400">Gerencie todas as empresas cadastradas no sistema</p>
         </div>
-        <Button className="ajh-button-primary">
+        <Button 
+          className="ajh-button-primary"
+          onClick={() => setCadastroModalOpen(true)}
+        >
           <Plus className="w-4 h-4 mr-2" />
           Nova Empresa
         </Button>
@@ -277,6 +281,11 @@ const Empresas: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      <CadastroEmpresaModal 
+        open={cadastroModalOpen}
+        onOpenChange={setCadastroModalOpen}
+      />
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Eye, Car, Building2, User } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import CadastroVeiculoModal from '@/components/modals/CadastroVeiculoModal';
 
 interface Veiculo {
   id: string;
@@ -30,6 +30,7 @@ interface Veiculo {
 const Veiculos: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [cadastroModalOpen, setCadastroModalOpen] = useState(false);
 
   // Mock data
   const veiculos: Veiculo[] = [
@@ -103,7 +104,10 @@ const Veiculos: React.FC = () => {
           <h1 className="text-3xl font-bold text-white mb-2">Veículos</h1>
           <p className="text-slate-400">Gerencie todos os veículos cadastrados no sistema</p>
         </div>
-        <Button className="ajh-button-primary">
+        <Button 
+          className="ajh-button-primary"
+          onClick={() => setCadastroModalOpen(true)}
+        >
           <Plus className="w-4 h-4 mr-2" />
           Novo Veículo
         </Button>
@@ -260,6 +264,11 @@ const Veiculos: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      <CadastroVeiculoModal 
+        open={cadastroModalOpen}
+        onOpenChange={setCadastroModalOpen}
+      />
     </div>
   );
 };

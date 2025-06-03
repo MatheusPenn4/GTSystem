@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { ParkingCircle, Search, Filter, Car, Clock, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import ControleManualModal from '@/components/modals/ControleManualModal';
 
 interface Vaga {
   id: string;
@@ -20,6 +20,7 @@ const Estacionamento: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [setorFilter, setSetorFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [controleModalOpen, setControleModalOpen] = useState(false);
 
   // Mock data - 50 vagas divididas em setores
   const vagas: Vaga[] = Array.from({ length: 50 }, (_, i) => {
@@ -98,7 +99,10 @@ const Estacionamento: React.FC = () => {
             <Filter className="w-4 h-4 mr-2" />
             Relatório
           </Button>
-          <Button className="ajh-button-primary">
+          <Button 
+            className="ajh-button-primary"
+            onClick={() => setControleModalOpen(true)}
+          >
             <ParkingCircle className="w-4 h-4 mr-2" />
             Controle Manual
           </Button>
@@ -292,6 +296,11 @@ const Estacionamento: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      <ControleManualModal 
+        open={controleModalOpen}
+        onOpenChange={setControleModalOpen}
+      />
     </div>
   );
 };

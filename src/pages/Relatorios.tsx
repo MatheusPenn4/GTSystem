@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BarChart3, Download, Calendar, TrendingUp, TrendingDown, Users, Car, ParkingCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,9 +17,14 @@ import {
   Pie,
   Cell
 } from 'recharts';
+import PeriodoRelatorioModal from '@/components/modals/PeriodoRelatorioModal';
+import { useToast } from '@/hooks/use-toast';
 
 const Relatorios: React.FC = () => {
   const [periodo, setPeriodo] = useState<string>('30dias');
+  const [periodoModalOpen, setPeriodoModalOpen] = useState(false);
+  const [periodoCustomizado, setPeriodoCustomizado] = useState<any>(null);
+  const { toast } = useToast();
 
   // Mock data para gráficos
   const ocupacaoData = [
@@ -90,6 +94,26 @@ const Relatorios: React.FC = () => {
     }
   ];
 
+  const handlePeriodoSelected = (novoPeriodo: any) => {
+    setPeriodoCustomizado(novoPeriodo);
+    setPeriodo('personalizado');
+  };
+
+  const handleExportarRelatorio = (tipo: string, formato: string) => {
+    toast({
+      title: "Exportando relatório...",
+      description: `Preparando ${tipo} em formato ${formato}`,
+    });
+
+    // Simular download
+    setTimeout(() => {
+      toast({
+        title: "Download iniciado!",
+        description: `${tipo} está sendo baixado em formato ${formato}.`,
+      });
+    }, 2000);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -99,11 +123,17 @@ const Relatorios: React.FC = () => {
           <p className="text-slate-400">Análise e estatísticas do sistema de estacionamento</p>
         </div>
         <div className="flex gap-2">
-          <Button className="ajh-button-secondary">
+          <Button 
+            className="ajh-button-secondary"
+            onClick={() => setPeriodoModalOpen(true)}
+          >
             <Calendar className="w-4 h-4 mr-2" />
             Período
           </Button>
-          <Button className="ajh-button-primary">
+          <Button 
+            className="ajh-button-primary"
+            onClick={() => handleExportarRelatorio('Relatório Geral', 'PDF')}
+          >
             <Download className="w-4 h-4 mr-2" />
             Exportar
           </Button>
@@ -119,12 +149,21 @@ const Relatorios: React.FC = () => {
               { key: '30dias', label: 'Últimos 30 dias' },
               { key: '3meses', label: 'Últimos 3 meses' },
               { key: '6meses', label: 'Últimos 6 meses' },
-              { key: 'ano', label: 'Este ano' }
+              { key: 'ano', label: 'Este ano' },
+              { key: 'personalizado', label: periodoCustomizado ? 
+                `${new Date(periodoCustomizado.inicio).toLocaleDateString()} - ${new Date(periodoCustomizado.fim).toLocaleDateString()}` : 
+                'Personalizado' }
             ].map(p => (
               <Button
                 key={p.key}
                 variant={periodo === p.key ? 'default' : 'outline'}
-                onClick={() => setPeriodo(p.key)}
+                onClick={() => {
+                  if (p.key === 'personalizado') {
+                    setPeriodoModalOpen(true);
+                  } else {
+                    setPeriodo(p.key);
+                  }
+                }}
                 className={periodo === p.key ? 'ajh-button-primary' : 'ajh-button-secondary'}
                 size="sm"
               >
@@ -336,7 +375,11 @@ const Relatorios: React.FC = () => {
                   <Badge variant="secondary" className="text-xs">{relatorio.formato}</Badge>
                 </div>
                 <p className="text-slate-400 text-sm mb-4">{relatorio.descricao}</p>
-                <Button size="sm" className="ajh-button-secondary w-full">
+                <Button 
+                  size="sm" 
+                  className="ajh-button-secondary w-full"
+                  onClick={() => handleExportarRelatorio(relatorio.nome, relatorio.formato)}
+                >
                   <Download className="w-4 h-4 mr-2" />
                   Baixar
                 </Button>
@@ -345,6 +388,12 @@ const Relatorios: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      <PeriodoRelatorioModal 
+        open={periodoModalOpen}
+        onOpenChange={setPeriodoModalOpen}
+        onPeriodoSelected={handlePeriodoSelected}
+      />
     </div>
   );
 };
