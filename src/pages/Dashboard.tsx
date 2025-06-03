@@ -1,5 +1,5 @@
-
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Building2, 
   Car, 
@@ -12,8 +12,16 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import CadastroEmpresaModal from '@/components/modals/CadastroEmpresaModal';
+import CadastroVeiculoModal from '@/components/modals/CadastroVeiculoModal';
+import CadastroMotoristaModal from '@/components/modals/CadastroMotoristaModal';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+  const [showEmpresaModal, setShowEmpresaModal] = useState(false);
+  const [showVeiculoModal, setShowVeiculoModal] = useState(false);
+  const [showMotoristaModal, setShowMotoristaModal] = useState(false);
+
   const stats = [
     {
       title: 'Empresas Ativas',
@@ -197,19 +205,31 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <button className="w-full ajh-button-primary justify-start">
+              <button 
+                onClick={() => setShowEmpresaModal(true)}
+                className="w-full ajh-button-primary justify-start"
+              >
                 <Building2 className="w-4 h-4 mr-2" />
                 Nova Empresa
               </button>
-              <button className="w-full ajh-button-secondary justify-start">
+              <button 
+                onClick={() => setShowVeiculoModal(true)}
+                className="w-full ajh-button-secondary justify-start"
+              >
                 <Car className="w-4 h-4 mr-2" />
                 Novo Veículo
               </button>
-              <button className="w-full ajh-button-secondary justify-start">
+              <button 
+                onClick={() => setShowMotoristaModal(true)}
+                className="w-full ajh-button-secondary justify-start"
+              >
                 <Users className="w-4 h-4 mr-2" />
                 Novo Motorista
               </button>
-              <button className="w-full ajh-button-secondary justify-start">
+              <button 
+                onClick={() => navigate('/estacionamento')}
+                className="w-full ajh-button-secondary justify-start"
+              >
                 <ParkingCircle className="w-4 h-4 mr-2" />
                 Gerenciar Vagas
               </button>
@@ -272,6 +292,20 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modals */}
+      <CadastroEmpresaModal 
+        isOpen={showEmpresaModal} 
+        onClose={() => setShowEmpresaModal(false)} 
+      />
+      <CadastroVeiculoModal 
+        isOpen={showVeiculoModal} 
+        onClose={() => setShowVeiculoModal(false)} 
+      />
+      <CadastroMotoristaModal 
+        isOpen={showMotoristaModal} 
+        onClose={() => setShowMotoristaModal(false)} 
+      />
     </div>
   );
 };
