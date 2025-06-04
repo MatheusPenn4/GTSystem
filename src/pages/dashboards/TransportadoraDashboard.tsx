@@ -219,6 +219,13 @@ const TransportadoraDashboard: React.FC = () => {
                 Cadastrar Motorista
               </button>
               <button 
+                onClick={() => navigate('/reserva-vagas')}
+                className="w-full ajh-button-secondary justify-start"
+              >
+                <ParkingCircle className="w-4 h-4 mr-2" />
+                Reservar Vagas
+              </button>
+              <button 
                 onClick={() => navigate('/veiculos')}
                 className="w-full ajh-button-secondary justify-start"
               >

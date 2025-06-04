@@ -48,6 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         { icon: Building2, label: 'Filiais', path: '/empresas' },
         { icon: Car, label: 'Meus Veículos', path: '/veiculos' },
         { icon: Users, label: 'Meus Motoristas', path: '/motoristas' },
+        { icon: ParkingCircle, label: 'Reservar Vagas', path: '/reserva-vagas' },
         { icon: BarChart3, label: 'Relatórios', path: '/relatorios' },
         { icon: Settings, label: 'Configurações', path: '/configuracoes' },
       ];

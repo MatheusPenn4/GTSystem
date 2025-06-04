@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import CadastroVeiculoModal from '@/components/modals/CadastroVeiculoModal';
+import { useToast } from '@/hooks/use-toast';
 
 interface Veiculo {
   id: string;
@@ -31,6 +32,7 @@ const Veiculos: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [cadastroModalOpen, setCadastroModalOpen] = useState(false);
+  const { toast } = useToast();
 
   // Mock data
   const veiculos: Veiculo[] = [
@@ -93,8 +95,38 @@ const Veiculos: React.FC = () => {
     }
   };
 
+  const isValidadeProxima = (validade: string) => {
+    const hoje = new Date();
+    const dataValidade = new Date(validade);
+    const diferenca = dataValidade.getTime() - hoje.getTime();
+    const diasRestantes = Math.ceil(diferenca / (1000 * 3600 * 24));
+    return diasRestantes <= 30 && diasRestantes > 0;
+  };
+
   const totalAtivos = veiculos.filter(v => v.status === 'ativo').length;
   const totalManutencao = veiculos.filter(v => v.status === 'manutencao').length;
+
+  const handleVisualizarVeiculo = (id: string, placa: string) => {
+    toast({
+      title: "Visualizando veículo",
+      description: `Abrindo detalhes do veículo ${placa}`,
+    });
+  };
+
+  const handleEditarVeiculo = (id: string, placa: string) => {
+    toast({
+      title: "Editando veículo",
+      description: `Abrindo edição do veículo ${placa}`,
+    });
+  };
+
+  const handleExcluirVeiculo = (id: string, placa: string) => {
+    toast({
+      title: "Veículo excluído",
+      description: `Veículo ${placa} foi removido do sistema`,
+      variant: "destructive",
+    });
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -246,13 +278,28 @@ const Veiculos: React.FC = () => {
                     <TableCell>{getStatusBadge(veiculo.status)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
-                        <Button size="sm" variant="ghost" className="text-ajh-primary hover:text-ajh-primary hover:bg-ajh-primary/10">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-ajh-primary hover:text-ajh-primary hover:bg-ajh-primary/10"
+                          onClick={() => handleVisualizarVeiculo(veiculo.id, veiculo.placa)}
+                        >
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" className="text-ajh-secondary hover:text-ajh-secondary hover:bg-ajh-secondary/10">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-ajh-secondary hover:text-ajh-secondary hover:bg-ajh-secondary/10"
+                          onClick={() => handleEditarVeiculo(veiculo.id, veiculo.placa)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          onClick={() => handleExcluirVeiculo(veiculo.id, veiculo.placa)}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>

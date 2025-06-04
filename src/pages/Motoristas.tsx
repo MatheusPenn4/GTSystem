@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import CadastroMotoristaModal from '@/components/modals/CadastroMotoristaModal';
+import { useToast } from '@/hooks/use-toast';
 
 interface Motorista {
   id: string;
@@ -33,6 +34,7 @@ const Motoristas: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [cadastroModalOpen, setCadastroModalOpen] = useState(false);
+  const { toast } = useToast();
 
   // Mock data
   const motoristas: Motorista[] = [
@@ -111,6 +113,28 @@ const Motoristas: React.FC = () => {
 
   const totalAtivos = motoristas.filter(m => m.status === 'ativo').length;
   const cnhVencendo = motoristas.filter(m => isValidadeProxima(m.validade)).length;
+
+  const handleVisualizarMotorista = (id: string, nome: string) => {
+    toast({
+      title: "Visualizando motorista",
+      description: `Abrindo detalhes de ${nome}`,
+    });
+  };
+
+  const handleEditarMotorista = (id: string, nome: string) => {
+    toast({
+      title: "Editando motorista",
+      description: `Abrindo edição de ${nome}`,
+    });
+  };
+
+  const handleExcluirMotorista = (id: string, nome: string) => {
+    toast({
+      title: "Motorista excluído",
+      description: `${nome} foi removido do sistema`,
+      variant: "destructive",
+    });
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -274,13 +298,28 @@ const Motoristas: React.FC = () => {
                     <TableCell>{getStatusBadge(motorista.status)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
-                        <Button size="sm" variant="ghost" className="text-ajh-primary hover:text-ajh-primary hover:bg-ajh-primary/10">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-ajh-primary hover:text-ajh-primary hover:bg-ajh-primary/10"
+                          onClick={() => handleVisualizarMotorista(motorista.id, motorista.nome)}
+                        >
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" className="text-ajh-secondary hover:text-ajh-secondary hover:bg-ajh-secondary/10">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-ajh-secondary hover:text-ajh-secondary hover:bg-ajh-secondary/10"
+                          onClick={() => handleEditarMotorista(motorista.id, motorista.nome)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          onClick={() => handleExcluirMotorista(motorista.id, motorista.nome)}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>

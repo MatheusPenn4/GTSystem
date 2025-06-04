@@ -19,12 +19,15 @@ import {
 } from 'recharts';
 import PeriodoRelatorioModal from '@/components/modals/PeriodoRelatorioModal';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Relatorios: React.FC = () => {
   const [periodo, setPeriodo] = useState<string>('30dias');
+  const [tipoRelatorio, setTipoRelatorio] = useState<string>('geral');
   const [periodoModalOpen, setPeriodoModalOpen] = useState(false);
   const [periodoCustomizado, setPeriodoCustomizado] = useState<any>(null);
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   // Mock data para gráficos
   const ocupacaoData = [
@@ -97,21 +100,39 @@ const Relatorios: React.FC = () => {
   const handlePeriodoSelected = (novoPeriodo: any) => {
     setPeriodoCustomizado(novoPeriodo);
     setPeriodo('personalizado');
+    if (novoPeriodo.tipo) {
+      setTipoRelatorio(novoPeriodo.tipo);
+    }
   };
 
   const handleExportarRelatorio = (tipo: string, formato: string) => {
+    const tipoCompleto = isAdmin() && tipoRelatorio !== 'geral' ? 
+      `${tipo} (${tipoRelatorio === 'transportadoras' ? 'Transportadoras' : 'Estacionamentos'})` : 
+      tipo;
+      
     toast({
       title: "Exportando relatório...",
-      description: `Preparando ${tipo} em formato ${formato}`,
+      description: `Preparando ${tipoCompleto} em formato ${formato}`,
     });
 
     // Simular download
     setTimeout(() => {
       toast({
         title: "Download iniciado!",
-        description: `${tipo} está sendo baixado em formato ${formato}.`,
+        description: `${tipoCompleto} está sendo baixado em formato ${formato}.`,
       });
     }, 2000);
+  };
+
+  const getTipoRelatorioLabel = () => {
+    switch (tipoRelatorio) {
+      case 'transportadoras':
+        return 'Relatórios focados em Transportadoras';
+      case 'estacionamentos':
+        return 'Relatórios focados em Estacionamentos';
+      default:
+        return 'Relatórios Gerais do Sistema';
+    }
   };
 
   return (
@@ -120,7 +141,9 @@ const Relatorios: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Relatórios</h1>
-          <p className="text-slate-400">Análise e estatísticas do sistema de estacionamento</p>
+          <p className="text-slate-400">
+            {isAdmin() ? getTipoRelatorioLabel() : 'Análise e estatísticas do sistema de estacionamento'}
+          </p>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -139,6 +162,43 @@ const Relatorios: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Tipo de Relatório (Admin) */}
+      {isAdmin() && (
+        <Card className="ajh-card">
+          <CardContent className="p-4">
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                variant={tipoRelatorio === 'geral' ? 'default' : 'outline'}
+                onClick={() => setTipoRelatorio('geral')}
+                className={tipoRelatorio === 'geral' ? 'ajh-button-primary' : 'ajh-button-secondary'}
+                size="sm"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Relatórios Gerais
+              </Button>
+              <Button
+                variant={tipoRelatorio === 'transportadoras' ? 'default' : 'outline'}
+                onClick={() => setTipoRelatorio('transportadoras')}
+                className={tipoRelatorio === 'transportadoras' ? 'ajh-button-primary' : 'ajh-button-secondary'}
+                size="sm"
+              >
+                <Building2 className="w-4 h-4 mr-2" />
+                Foco: Transportadoras
+              </Button>
+              <Button
+                variant={tipoRelatorio === 'estacionamentos' ? 'default' : 'outline'}
+                onClick={() => setTipoRelatorio('estacionamentos')}
+                className={tipoRelatorio === 'estacionamentos' ? 'ajh-button-primary' : 'ajh-button-secondary'}
+                size="sm"
+              >
+                <ParkingCircle className="w-4 h-4 mr-2" />
+                Foco: Estacionamentos
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filtros de Período */}
       <Card className="ajh-card">

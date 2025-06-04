@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ParkingCircle, Search, Filter, Car, Clock, CheckCircle, ArrowLeft } from 'lucide-react';
+import { ParkingCircle, Search, Filter, Car, Clock, CheckCircle, ArrowLeft, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import ControleManualModal from '@/components/modals/ControleManualModal';
 
 interface Vaga {
@@ -30,10 +31,12 @@ const Estacionamento: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAdmin, isEstacionamento } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [setorFilter, setSetorFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [controleModalOpen, setControleModalOpen] = useState(false);
+  const [vagaSelecionada, setVagaSelecionada] = useState<string>('');
 
   // Dados simulados do estacionamento específico
   const estacionamentoInfo: EstacionamentoInfo = {
@@ -101,6 +104,33 @@ const Estacionamento: React.FC = () => {
     }
   };
 
+  const handleVagaClick = (vaga: Vaga) => {
+    if (vaga.status === 'livre') {
+      setVagaSelecionada(vaga.numero);
+      setControleModalOpen(true);
+    } else {
+      toast({
+        title: "Informações da Vaga",
+        description: `Vaga ${vaga.numero} - ${vaga.status.toUpperCase()}${vaga.veiculo ? ` (${vaga.veiculo})` : ''}`,
+      });
+    }
+  };
+
+  const handleRelatorio = () => {
+    toast({
+      title: "Gerando relatório...",
+      description: "O relatório do estacionamento será baixado em instantes.",
+    });
+    
+    // Simular download
+    setTimeout(() => {
+      toast({
+        title: "Download iniciado!",
+        description: "Relatório de ocupação baixado com sucesso.",
+      });
+    }, 2000);
+  };
+
   const vagasLivres = vagas.filter(v => v.status === 'livre').length;
   const vagasOcupadas = vagas.filter(v => v.status === 'ocupada').length;
   const vagasReservadas = vagas.filter(v => v.status === 'reservada').length;
@@ -131,8 +161,11 @@ const Estacionamento: React.FC = () => {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button className="ajh-button-secondary">
-            <Filter className="w-4 h-4 mr-2" />
+          <Button 
+            className="ajh-button-secondary"
+            onClick={handleRelatorio}
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
             Relatório
           </Button>
           {(isAdmin() || isEstacionamento()) && (
@@ -298,7 +331,7 @@ const Estacionamento: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-white">Mapa do Estacionamento</CardTitle>
           <CardDescription className="text-slate-400">
-            {filteredVagas.length} vaga(s) encontrada(s)
+            {filteredVagas.length} vaga(s) encontrada(s) • Clique nas vagas livres para ações rápidas
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -314,6 +347,7 @@ const Estacionamento: React.FC = () => {
                   ${vaga.status === 'manutencao' ? 'bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20' : ''}
                 `}
                 title={`Vaga ${vaga.numero} - ${vaga.status}${vaga.veiculo ? ` (${vaga.veiculo})` : ''}`}
+                onClick={() => handleVagaClick(vaga)}
               >
                 <div className="flex flex-col items-center space-y-1">
                   {getStatusIcon(vaga.status)}
@@ -338,6 +372,7 @@ const Estacionamento: React.FC = () => {
       <ControleManualModal 
         open={controleModalOpen}
         onOpenChange={setControleModalOpen}
+        vagaSelecionada={vagaSelecionada}
       />
     </div>
   );

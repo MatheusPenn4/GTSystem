@@ -1,250 +1,155 @@
 
 import React, { useState } from 'react';
-import { Calendar, Clock } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar, BarChart3, Building2, ParkingCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PeriodoRelatorioModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onPeriodoSelected: (periodo: { inicio: string; fim: string; tipo: string }) => void;
+  onPeriodoSelected: (periodo: any) => void;
 }
 
-const PeriodoRelatorioModal: React.FC<PeriodoRelatorioModalProps> = ({
-  open,
+const PeriodoRelatorioModal: React.FC<PeriodoRelatorioModalProps> = ({ 
+  open, 
   onOpenChange,
-  onPeriodoSelected,
+  onPeriodoSelected 
 }) => {
-  const { toast } = useToast();
-  const [tipoSelecionado, setTipoSelecionado] = useState<string>('personalizado');
+  const [tipoRelatorio, setTipoRelatorio] = useState<string>('');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
+  const { isAdmin } = useAuth();
 
-  const periodosPreDefinidos = [
-    { key: 'hoje', label: 'Hoje', descricao: 'Apenas hoje' },
-    { key: 'ontem', label: 'Ontem', descricao: 'Apenas ontem' },
-    { key: '7dias', label: 'Últimos 7 dias', descricao: 'Uma semana atrás até hoje' },
-    { key: '30dias', label: 'Últimos 30 dias', descricao: 'Um mês atrás até hoje' },
-    { key: '90dias', label: 'Últimos 90 dias', descricao: 'Três meses atrás até hoje' },
-    { key: 'mesAtual', label: 'Mês atual', descricao: 'Do início do mês até hoje' },
-    { key: 'mesPassado', label: 'Mês passado', descricao: 'Mês anterior completo' },
-    { key: 'anoAtual', label: 'Ano atual', descricao: 'Do início do ano até hoje' },
-    { key: 'personalizado', label: 'Período personalizado', descricao: 'Selecione datas específicas' }
-  ];
-
-  const calcularPeriodo = (tipo: string) => {
-    const hoje = new Date();
-    let inicio = new Date();
-    let fim = new Date();
-
-    switch (tipo) {
-      case 'hoje':
-        inicio = new Date(hoje);
-        fim = new Date(hoje);
-        break;
-      case 'ontem':
-        inicio = new Date(hoje.getTime() - 24 * 60 * 60 * 1000);
-        fim = new Date(hoje.getTime() - 24 * 60 * 60 * 1000);
-        break;
-      case '7dias':
-        inicio = new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000);
-        fim = hoje;
-        break;
-      case '30dias':
-        inicio = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
-        fim = hoje;
-        break;
-      case '90dias':
-        inicio = new Date(hoje.getTime() - 90 * 24 * 60 * 60 * 1000);
-        fim = hoje;
-        break;
-      case 'mesAtual':
-        inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-        fim = hoje;
-        break;
-      case 'mesPassado':
-        inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
-        fim = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
-        break;
-      case 'anoAtual':
-        inicio = new Date(hoje.getFullYear(), 0, 1);
-        fim = hoje;
-        break;
-      default:
-        return null;
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!dataInicio || !dataFim) {
+      return;
     }
 
-    return {
-      inicio: inicio.toISOString().split('T')[0],
-      fim: fim.toISOString().split('T')[0]
+    const periodo = {
+      inicio: dataInicio,
+      fim: dataFim,
+      tipo: tipoRelatorio
     };
-  };
-
-  const handleConfirmar = () => {
-    let periodo;
-
-    if (tipoSelecionado === 'personalizado') {
-      if (!dataInicio || !dataFim) {
-        toast({
-          title: "Datas obrigatórias",
-          description: "Selecione as datas de início e fim.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      if (new Date(dataInicio) > new Date(dataFim)) {
-        toast({
-          title: "Data inválida",
-          description: "A data de início deve ser anterior à data de fim.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      periodo = {
-        inicio: dataInicio,
-        fim: dataFim,
-        tipo: 'personalizado'
-      };
-    } else {
-      const calculado = calcularPeriodo(tipoSelecionado);
-      if (!calculado) return;
-
-      periodo = {
-        ...calculado,
-        tipo: tipoSelecionado
-      };
-    }
 
     onPeriodoSelected(periodo);
-    toast({
-      title: "Período selecionado!",
-      description: `Relatório será gerado para o período selecionado.`,
-    });
     onOpenChange(false);
+    
+    // Reset form
+    setTipoRelatorio('');
+    setDataInicio('');
+    setDataFim('');
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] ajh-card">
+      <DialogContent className="ajh-modal">
         <DialogHeader>
-          <DialogTitle className="text-white flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-ajh-primary" />
-            Selecionar Período do Relatório
-          </DialogTitle>
+          <DialogTitle className="text-white">Configurar Período do Relatório</DialogTitle>
           <DialogDescription className="text-slate-400">
-            Escolha o período para gerar o relatório personalizado.
+            Selecione o período e tipo de relatório desejado
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Períodos Pré-definidos */}
-          <div>
-            <Label className="text-slate-300 text-sm font-medium mb-3 block">
-              Períodos Pré-definidos
-            </Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {periodosPreDefinidos.filter(p => p.key !== 'personalizado').map((periodo) => (
-                <div
-                  key={periodo.key}
-                  className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                    tipoSelecionado === periodo.key 
-                      ? 'border-ajh-primary bg-ajh-primary/10' 
-                      : 'border-slate-700/50 bg-slate-800/30 hover:border-slate-600'
-                  }`}
-                  onClick={() => setTipoSelecionado(periodo.key)}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <Clock className="w-4 h-4 text-ajh-primary" />
-                    <span className="text-white text-sm font-medium">{periodo.label}</span>
-                  </div>
-                  <p className="text-slate-400 text-xs">{periodo.descricao}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Período Personalizado */}
-          <div>
-            <div
-              className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                tipoSelecionado === 'personalizado'
-                  ? 'border-ajh-primary bg-ajh-primary/10'
-                  : 'border-slate-700/50 bg-slate-800/30 hover:border-slate-600'
-              }`}
-              onClick={() => setTipoSelecionado('personalizado')}
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <Calendar className="w-4 h-4 text-ajh-primary" />
-                <span className="text-white text-sm font-medium">Período Personalizado</span>
-              </div>
-              
-              {tipoSelecionado === 'personalizado' && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-slate-300 text-xs mb-2 block">Data de Início</Label>
-                    <Input
-                      type="date"
-                      value={dataInicio}
-                      onChange={(e) => setDataInicio(e.target.value)}
-                      className="ajh-input"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-slate-300 text-xs mb-2 block">Data de Fim</Label>
-                    <Input
-                      type="date"
-                      value={dataFim}
-                      onChange={(e) => setDataFim(e.target.value)}
-                      className="ajh-input"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Preview do Período Selecionado */}
-          {tipoSelecionado && tipoSelecionado !== 'personalizado' && (
-            <div className="bg-slate-800/30 p-4 rounded-lg border border-slate-700/50">
-              <h4 className="text-white text-sm font-medium mb-2">Preview do Período</h4>
-              {(() => {
-                const periodo = calcularPeriodo(tipoSelecionado);
-                if (!periodo) return null;
-                return (
-                  <div className="text-slate-400 text-sm">
-                    <p>Início: {new Date(periodo.inicio).toLocaleDateString()}</p>
-                    <p>Fim: {new Date(periodo.fim).toLocaleDateString()}</p>
-                  </div>
-                );
-              })()}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Tipo de Relatório (apenas para Admin) */}
+          {isAdmin() && (
+            <div className="space-y-2">
+              <Label htmlFor="tipoRelatorio" className="text-slate-300">Tipo de Relatório</Label>
+              <Select value={tipoRelatorio} onValueChange={setTipoRelatorio}>
+                <SelectTrigger className="ajh-input">
+                  <SelectValue placeholder="Selecione o tipo de relatório" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="geral">
+                    <div className="flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4 text-ajh-primary" />
+                      Relatório Geral (Admin)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="transportadoras">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-blue-400" />
+                      Foco em Transportadoras
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="estacionamentos">
+                    <div className="flex items-center gap-2">
+                      <ParkingCircle className="w-4 h-4 text-green-400" />
+                      Foco em Estacionamentos
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           )}
 
-          {/* Botões de Ação */}
-          <div className="flex justify-end gap-3">
+          {/* Data de Início */}
+          <div className="space-y-2">
+            <Label htmlFor="dataInicio" className="text-slate-300">Data de Início</Label>
+            <input
+              id="dataInicio"
+              type="date"
+              value={dataInicio}
+              onChange={(e) => setDataInicio(e.target.value)}
+              className="ajh-input"
+              required
+            />
+          </div>
+
+          {/* Data de Fim */}
+          <div className="space-y-2">
+            <Label htmlFor="dataFim" className="text-slate-300">Data de Fim</Label>
+            <input
+              id="dataFim"
+              type="date"
+              value={dataFim}
+              onChange={(e) => setDataFim(e.target.value)}
+              className="ajh-input"
+              min={dataInicio}
+              required
+            />
+          </div>
+
+          {/* Preview */}
+          {dataInicio && dataFim && (
+            <div className="p-4 bg-slate-800/50 border border-slate-700/50 rounded-lg">
+              <h4 className="text-white font-medium mb-2 flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Resumo do Período
+              </h4>
+              <div className="space-y-1 text-sm text-slate-300">
+                <p><strong>Período:</strong> {new Date(dataInicio).toLocaleDateString()} até {new Date(dataFim).toLocaleDateString()}</p>
+                {tipoRelatorio && <p><strong>Tipo:</strong> {
+                  {
+                    'geral': 'Relatório Geral (Admin)',
+                    'transportadoras': 'Foco em Transportadoras',
+                    'estacionamentos': 'Foco em Estacionamentos'
+                  }[tipoRelatorio]
+                }</p>}
+                <p><strong>Dias:</strong> {Math.ceil((new Date(dataFim).getTime() - new Date(dataInicio).getTime()) / (1000 * 60 * 60 * 24))} dias</p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4">
             <Button
+              type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="ajh-button-secondary"
+              className="ajh-button-secondary flex-1"
             >
               Cancelar
             </Button>
-            <Button onClick={handleConfirmar} className="ajh-button-primary">
-              Confirmar Período
+            <Button type="submit" className="ajh-button-primary flex-1">
+              Aplicar Período
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
