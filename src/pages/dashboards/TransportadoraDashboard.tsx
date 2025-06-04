@@ -10,7 +10,7 @@ import {
   CheckCircle,
   Clock,
   BarChart3,
-  ParkingCircle // Add this import
+  ParkingCircle
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
