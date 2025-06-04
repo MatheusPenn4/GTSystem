@@ -1,27 +1,29 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { 
   BarChart3, 
-  Calendar, 
   Download, 
   FileBarChart, 
   FileText, 
   Filter, 
   Settings,
   Building2,
-  ParkingCircle
+  ParkingCircle,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar as CalendarIcon } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { Calendar } from "@/components/ui/calendar"
 
 const Relatorios: React.FC = () => {
+  const [date, setDate] = useState<Date>();
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Welcome Header */}
@@ -53,22 +55,18 @@ const Relatorios: React.FC = () => {
                     variant={"outline"}
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !format ? "text-muted-foreground" : ""
+                      !date && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {format ? (
-                      format
-                    ) : (
-                      <span>Escolha uma data</span>
-                    )}
+                    {date ? format(date, "PPP") : <span>Escolha uma data</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="center">
                   <Calendar
                     mode="single"
-                    // selected={date}
-                    // onSelect={setDate}
+                    selected={date}
+                    onSelect={setDate}
                     disabled={(date) =>
                       date > new Date() || date < new Date("2020-01-01")
                     }
