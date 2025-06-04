@@ -24,8 +24,8 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
+      <Router>
+        <AuthProvider>
           <div className="min-h-screen bg-ajh-dark">
             <Routes>
               {/* Public routes */}
@@ -109,8 +109,8 @@ function App() {
             </Routes>
           </div>
           <Toaster />
-        </Router>
-      </AuthProvider>
+        </AuthProvider>
+      </Router>
     </QueryClientProvider>
   );
 }

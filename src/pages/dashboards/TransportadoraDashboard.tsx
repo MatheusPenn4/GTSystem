@@ -9,7 +9,8 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  BarChart3
+  BarChart3,
+  ParkingCircle // Add this import
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

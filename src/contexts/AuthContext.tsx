@@ -1,6 +1,5 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
 interface User {
@@ -36,7 +35,6 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     checkAuthStatus();
@@ -182,7 +180,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('ajh_token');
     localStorage.removeItem('ajh_user_type');
     setUser(null);
-    navigate('/login');
+    
+    // Instead of using useNavigate directly, we'll use window.location
+    window.location.href = '/login';
+    
     toast({
       title: "Logout realizado",
       description: "Você foi desconectado com sucesso.",
