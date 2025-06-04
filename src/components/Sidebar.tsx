@@ -11,7 +11,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  Calendar
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -30,6 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     { icon: Car, label: 'Veículos', path: '/veiculos' },
     { icon: Users, label: 'Motoristas', path: '/motoristas' },
     { icon: ParkingCircle, label: 'Estacionamento', path: '/estacionamento' },
+    { icon: Calendar, label: 'Reserva de Vagas', path: '/reserva-vagas' },
     { icon: BarChart3, label: 'Relatórios', path: '/relatorios' },
     { icon: Settings, label: 'Configurações', path: '/configuracoes' },
   ];

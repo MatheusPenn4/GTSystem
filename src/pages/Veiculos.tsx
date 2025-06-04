@@ -13,6 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import ViewModal from '@/components/modals/ViewModal';
+import EditModal from '@/components/modals/EditModal';
+import DeleteModal from '@/components/modals/DeleteModal';
 
 interface Veiculo {
   id: string;
@@ -30,6 +33,18 @@ interface Veiculo {
 const Veiculos: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [viewModal, setViewModal] = useState<{ isOpen: boolean; data: Veiculo | null }>({
+    isOpen: false,
+    data: null
+  });
+  const [editModal, setEditModal] = useState<{ isOpen: boolean; data: Veiculo | null }>({
+    isOpen: false,
+    data: null
+  });
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; data: Veiculo | null }>({
+    isOpen: false,
+    data: null
+  });
 
   // Mock data
   const veiculos: Veiculo[] = [
@@ -90,6 +105,26 @@ const Veiculos: React.FC = () => {
       default:
         return <Badge variant="secondary">Desconhecido</Badge>;
     }
+  };
+
+  const handleView = (veiculo: Veiculo) => {
+    setViewModal({ isOpen: true, data: veiculo });
+  };
+
+  const handleEdit = (veiculo: Veiculo) => {
+    setEditModal({ isOpen: true, data: veiculo });
+  };
+
+  const handleDelete = (veiculo: Veiculo) => {
+    setDeleteModal({ isOpen: true, data: veiculo });
+  };
+
+  const handleSaveEdit = (data: Record<string, any>) => {
+    console.log('Dados salvos:', data);
+  };
+
+  const handleConfirmDelete = () => {
+    console.log('Veículo excluído:', deleteModal.data?.id);
   };
 
   const totalAtivos = veiculos.filter(v => v.status === 'ativo').length;
@@ -242,13 +277,28 @@ const Veiculos: React.FC = () => {
                     <TableCell>{getStatusBadge(veiculo.status)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
-                        <Button size="sm" variant="ghost" className="text-ajh-primary hover:text-ajh-primary hover:bg-ajh-primary/10">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-ajh-primary hover:text-ajh-primary hover:bg-ajh-primary/10"
+                          onClick={() => handleView(veiculo)}
+                        >
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" className="text-ajh-secondary hover:text-ajh-secondary hover:bg-ajh-secondary/10">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-ajh-secondary hover:text-ajh-secondary hover:bg-ajh-secondary/10"
+                          onClick={() => handleEdit(veiculo)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          onClick={() => handleDelete(veiculo)}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -260,6 +310,30 @@ const Veiculos: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      <ViewModal
+        isOpen={viewModal.isOpen}
+        onClose={() => setViewModal({ isOpen: false, data: null })}
+        title={`Visualizar Veículo - ${viewModal.data?.placa}`}
+        data={viewModal.data || {}}
+      />
+
+      <EditModal
+        isOpen={editModal.isOpen}
+        onClose={() => setEditModal({ isOpen: false, data: null })}
+        title={`Editar Veículo - ${editModal.data?.placa}`}
+        data={editModal.data || {}}
+        onSave={handleSaveEdit}
+      />
+
+      <DeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, data: null })}
+        title="Confirmar Exclusão"
+        description={`Tem certeza que deseja excluir o veículo "${deleteModal.data?.placa}"?`}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };

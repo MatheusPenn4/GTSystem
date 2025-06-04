@@ -1,10 +1,12 @@
 
 import React, { useState } from 'react';
-import { ParkingCircle, Search, Filter, Car, Clock, CheckCircle } from 'lucide-react';
+import { ParkingCircle, Search, Filter, Car, Clock, CheckCircle, Download } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import ControleManualModal from '@/components/ControleManualModal';
 
 interface Vaga {
   id: string;
@@ -20,6 +22,9 @@ const Estacionamento: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [setorFilter, setSetorFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedVaga, setSelectedVaga] = useState<Vaga | null>(null);
+  const { toast } = useToast();
 
   // Mock data - 50 vagas divididas em setores
   const vagas: Vaga[] = Array.from({ length: 50 }, (_, i) => {
@@ -78,6 +83,18 @@ const Estacionamento: React.FC = () => {
     }
   };
 
+  const handleVagaClick = (vaga: Vaga) => {
+    setSelectedVaga(vaga);
+    setModalOpen(true);
+  };
+
+  const handleRelatorio = () => {
+    toast({
+      title: "Relatório Gerado",
+      description: "O relatório do estacionamento foi baixado com sucesso.",
+    });
+  };
+
   const vagasLivres = vagas.filter(v => v.status === 'livre').length;
   const vagasOcupadas = vagas.filter(v => v.status === 'ocupada').length;
   const vagasReservadas = vagas.filter(v => v.status === 'reservada').length;
@@ -94,11 +111,17 @@ const Estacionamento: React.FC = () => {
           <p className="text-slate-400">Gerencie as vagas e ocupação do estacionamento</p>
         </div>
         <div className="flex gap-2">
-          <Button className="ajh-button-secondary">
-            <Filter className="w-4 h-4 mr-2" />
+          <Button 
+            className="ajh-button-secondary"
+            onClick={handleRelatorio}
+          >
+            <Download className="w-4 h-4 mr-2" />
             Relatório
           </Button>
-          <Button className="ajh-button-primary">
+          <Button 
+            className="ajh-button-primary"
+            onClick={() => setModalOpen(true)}
+          >
             <ParkingCircle className="w-4 h-4 mr-2" />
             Controle Manual
           </Button>
@@ -256,7 +279,7 @@ const Estacionamento: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-white">Mapa do Estacionamento</CardTitle>
           <CardDescription className="text-slate-400">
-            {filteredVagas.length} vaga(s) encontrada(s)
+            {filteredVagas.length} vaga(s) encontrada(s) - Clique em uma vaga para gerenciar
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -271,7 +294,8 @@ const Estacionamento: React.FC = () => {
                   ${vaga.status === 'reservada' ? 'bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20' : ''}
                   ${vaga.status === 'manutencao' ? 'bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20' : ''}
                 `}
-                title={`Vaga ${vaga.numero} - ${vaga.status}${vaga.veiculo ? ` (${vaga.veiculo})` : ''}`}
+                title={`Vaga ${vaga.numero} - ${vaga.status}${vaga.veiculo ? ` (${vaga.veiculo})` : ''} - Clique para gerenciar`}
+                onClick={() => handleVagaClick(vaga)}
               >
                 <div className="flex flex-col items-center space-y-1">
                   {getStatusIcon(vaga.status)}
@@ -292,6 +316,13 @@ const Estacionamento: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal de Controle Manual */}
+      <ControleManualModal 
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        vaga={selectedVaga}
+      />
     </div>
   );
 };

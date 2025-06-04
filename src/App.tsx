@@ -17,6 +17,7 @@ import Motoristas from "@/pages/Motoristas";
 import Estacionamento from "@/pages/Estacionamento";
 import Relatorios from "@/pages/Relatorios";
 import Configuracoes from "@/pages/Configuracoes";
+import ReservaVagas from "@/pages/ReservaVagas";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -96,6 +97,16 @@ const App = () => (
                 <PrivateRoute>
                   <Layout>
                     <Configuracoes />
+                  </Layout>
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/reserva-vagas" 
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <ReservaVagas />
                   </Layout>
                 </PrivateRoute>
               } 

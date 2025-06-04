@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
-import { BarChart3, Download, Calendar, TrendingUp, TrendingDown, Users, Car, ParkingCircle } from 'lucide-react';
+import { BarChart3, Download, Calendar, TrendingUp, TrendingDown, Users, Car, ParkingCircle, Building2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import {
   BarChart,
   Bar,
@@ -21,6 +22,8 @@ import {
 
 const Relatorios: React.FC = () => {
   const [periodo, setPeriodo] = useState<string>('30dias');
+  const [tipoRelatorio, setTipoRelatorio] = useState<string>('geral');
+  const { toast } = useToast();
 
   // Mock data para gráficos
   const ocupacaoData = [
@@ -90,6 +93,46 @@ const Relatorios: React.FC = () => {
     }
   ];
 
+  const handleDownloadRelatorio = (tipo: string) => {
+    toast({
+      title: "Relatório Baixado",
+      description: `Relatório de ${tipo} foi baixado com sucesso.`,
+    });
+  };
+
+  const getRelatoriosDisponiveis = () => {
+    const relatoriosBase = [
+      { nome: 'Relatório de Ocupação', descricao: 'Análise detalhada da ocupação do estacionamento', formato: 'PDF' },
+      { nome: 'Histórico de Veículos', descricao: 'Lista completa de veículos e movimentações', formato: 'Excel' },
+      { nome: 'Métricas de Performance', descricao: 'KPIs e indicadores de desempenho', formato: 'PDF' },
+      { nome: 'Exportação Completa', descricao: 'Todos os dados do sistema', formato: 'CSV' }
+    ];
+
+    if (tipoRelatorio === 'transportadoras') {
+      return [
+        { nome: 'Relatório de Transportadoras', descricao: 'Performance das empresas transportadoras', formato: 'PDF' },
+        { nome: 'Faturamento por Transportadora', descricao: 'Receita gerada por empresa', formato: 'Excel' },
+        { nome: 'Utilização de Vagas', descricao: 'Como as transportadoras utilizam as vagas', formato: 'PDF' },
+        ...relatoriosBase
+      ];
+    }
+
+    if (tipoRelatorio === 'estacionamentos') {
+      return [
+        { nome: 'Ocupação por Setor', descricao: 'Análise de ocupação por área do estacionamento', formato: 'PDF' },
+        { nome: 'Manutenção de Vagas', descricao: 'Histórico de manutenções e indisponibilidades', formato: 'Excel' },
+        { nome: 'Receita do Estacionamento', descricao: 'Faturamento detalhado do estacionamento', formato: 'PDF' },
+        ...relatoriosBase
+      ];
+    }
+
+    return [
+      { nome: 'Faturamento Mensal', descricao: 'Resumo financeiro do período selecionado', formato: 'PDF' },
+      { nome: 'Relatório de Empresas', descricao: 'Dados consolidados por empresa cliente', formato: 'Excel' },
+      ...relatoriosBase
+    ];
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -103,16 +146,41 @@ const Relatorios: React.FC = () => {
             <Calendar className="w-4 h-4 mr-2" />
             Período
           </Button>
-          <Button className="ajh-button-primary">
+          <Button 
+            className="ajh-button-primary"
+            onClick={() => handleDownloadRelatorio('geral')}
+          >
             <Download className="w-4 h-4 mr-2" />
             Exportar
           </Button>
         </div>
       </div>
 
-      {/* Filtros de Período */}
+      {/* Filtros de Tipo de Relatório */}
       <Card className="ajh-card">
         <CardContent className="p-4">
+          <div className="flex gap-2 flex-wrap mb-4">
+            <span className="text-slate-300 font-medium mr-4">Tipo de Relatório:</span>
+            {[
+              { key: 'geral', label: 'Geral', icon: BarChart3 },
+              { key: 'transportadoras', label: 'Transportadoras', icon: Building2 },
+              { key: 'estacionamentos', label: 'Estacionamentos', icon: ParkingCircle }
+            ].map(tipo => {
+              const Icon = tipo.icon;
+              return (
+                <Button
+                  key={tipo.key}
+                  variant={tipoRelatorio === tipo.key ? 'default' : 'outline'}
+                  onClick={() => setTipoRelatorio(tipo.key)}
+                  className={tipoRelatorio === tipo.key ? 'ajh-button-primary' : 'ajh-button-secondary'}
+                  size="sm"
+                >
+                  <Icon className="w-4 h-4 mr-2" />
+                  {tipo.label}
+                </Button>
+              );
+            })}
+          </div>
           <div className="flex gap-2 flex-wrap">
             {[
               { key: '7dias', label: 'Últimos 7 dias' },
@@ -317,26 +385,23 @@ const Relatorios: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-white">Relatórios Disponíveis</CardTitle>
           <CardDescription className="text-slate-400">
-            Baixe relatórios detalhados em diferentes formatos
+            Baixe relatórios detalhados em diferentes formatos para {tipoRelatorio}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { nome: 'Relatório de Ocupação', descricao: 'Análise detalhada da ocupação do estacionamento', formato: 'PDF' },
-              { nome: 'Histórico de Veículos', descricao: 'Lista completa de veículos e movimentações', formato: 'Excel' },
-              { nome: 'Faturamento Mensal', descricao: 'Resumo financeiro do período selecionado', formato: 'PDF' },
-              { nome: 'Relatório de Empresas', descricao: 'Dados consolidados por empresa cliente', formato: 'Excel' },
-              { nome: 'Métricas de Performance', descricao: 'KPIs e indicadores de desempenho', formato: 'PDF' },
-              { nome: 'Exportação Completa', descricao: 'Todos os dados do sistema', formato: 'CSV' }
-            ].map((relatorio, index) => (
+            {getRelatoriosDisponiveis().map((relatorio, index) => (
               <div key={index} className="p-4 bg-slate-800/30 rounded-lg border border-slate-700/50">
                 <div className="flex items-start justify-between mb-3">
                   <h4 className="text-white font-medium">{relatorio.nome}</h4>
                   <Badge variant="secondary" className="text-xs">{relatorio.formato}</Badge>
                 </div>
                 <p className="text-slate-400 text-sm mb-4">{relatorio.descricao}</p>
-                <Button size="sm" className="ajh-button-secondary w-full">
+                <Button 
+                  size="sm" 
+                  className="ajh-button-secondary w-full"
+                  onClick={() => handleDownloadRelatorio(relatorio.nome)}
+                >
                   <Download className="w-4 h-4 mr-2" />
                   Baixar
                 </Button>

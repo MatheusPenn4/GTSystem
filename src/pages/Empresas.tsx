@@ -13,6 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import ViewModal from '@/components/modals/ViewModal';
+import EditModal from '@/components/modals/EditModal';
+import DeleteModal from '@/components/modals/DeleteModal';
 
 interface Empresa {
   id: string;
@@ -30,6 +33,18 @@ interface Empresa {
 const Empresas: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [viewModal, setViewModal] = useState<{ isOpen: boolean; data: Empresa | null }>({
+    isOpen: false,
+    data: null
+  });
+  const [editModal, setEditModal] = useState<{ isOpen: boolean; data: Empresa | null }>({
+    isOpen: false,
+    data: null
+  });
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; data: Empresa | null }>({
+    isOpen: false,
+    data: null
+  });
 
   // Mock data - replace with API call
   const empresas: Empresa[] = [
@@ -102,6 +117,28 @@ const Empresas: React.FC = () => {
       default:
         return <Badge variant="secondary">Desconhecido</Badge>;
     }
+  };
+
+  const handleView = (empresa: Empresa) => {
+    setViewModal({ isOpen: true, data: empresa });
+  };
+
+  const handleEdit = (empresa: Empresa) => {
+    setEditModal({ isOpen: true, data: empresa });
+  };
+
+  const handleDelete = (empresa: Empresa) => {
+    setDeleteModal({ isOpen: true, data: empresa });
+  };
+
+  const handleSaveEdit = (data: Record<string, any>) => {
+    // Aqui você implementaria a lógica para salvar as alterações
+    console.log('Dados salvos:', data);
+  };
+
+  const handleConfirmDelete = () => {
+    // Aqui você implementaria a lógica para excluir o registro
+    console.log('Empresa excluída:', deleteModal.data?.id);
   };
 
   const totalAtivas = empresas.filter(e => e.status === 'ativo').length;
@@ -259,13 +296,28 @@ const Empresas: React.FC = () => {
                     <TableCell className="text-slate-300">{empresa.motoristas}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
-                        <Button size="sm" variant="ghost" className="text-ajh-primary hover:text-ajh-primary hover:bg-ajh-primary/10">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-ajh-primary hover:text-ajh-primary hover:bg-ajh-primary/10"
+                          onClick={() => handleView(empresa)}
+                        >
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" className="text-ajh-secondary hover:text-ajh-secondary hover:bg-ajh-secondary/10">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-ajh-secondary hover:text-ajh-secondary hover:bg-ajh-secondary/10"
+                          onClick={() => handleEdit(empresa)}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          onClick={() => handleDelete(empresa)}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -277,6 +329,30 @@ const Empresas: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      <ViewModal
+        isOpen={viewModal.isOpen}
+        onClose={() => setViewModal({ isOpen: false, data: null })}
+        title={`Visualizar Empresa - ${viewModal.data?.nome}`}
+        data={viewModal.data || {}}
+      />
+
+      <EditModal
+        isOpen={editModal.isOpen}
+        onClose={() => setEditModal({ isOpen: false, data: null })}
+        title={`Editar Empresa - ${editModal.data?.nome}`}
+        data={editModal.data || {}}
+        onSave={handleSaveEdit}
+      />
+
+      <DeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, data: null })}
+        title="Confirmar Exclusão"
+        description={`Tem certeza que deseja excluir a empresa "${deleteModal.data?.nome}"?`}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };
