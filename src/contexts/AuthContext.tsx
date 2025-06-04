@@ -7,8 +7,10 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: string;
+  role: 'admin' | 'transportadora' | 'estacionamento';
   avatar?: string;
+  companyId?: string;
+  companyName?: string;
 }
 
 interface AuthContextType {
@@ -38,26 +40,59 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const checkAuthStatus = async () => {
     try {
       const token = localStorage.getItem('ajh_token');
-      if (token) {
-        // Simulated API call - replace with actual endpoint
-        // const response = await fetch('/api/auth/me', {
-        //   headers: { Authorization: `Bearer ${token}` }
-        // });
+      const userType = localStorage.getItem('ajh_user_type');
+      if (token && userType) {
+        // Simulated user data based on type
+        let userData: User;
         
-        // Simulated user data
-        const userData = {
-          id: '1',
-          name: 'Admin AJH',
-          email: 'admin@ajh.com',
-          role: 'admin',
-          avatar: '/api/placeholder/40/40'
-        };
+        switch (userType) {
+          case 'admin':
+            userData = {
+              id: '1',
+              name: 'Admin AJH',
+              email: 'admin@ajh.com',
+              role: 'admin',
+              avatar: '/api/placeholder/40/40'
+            };
+            break;
+          case 'transportadora':
+            userData = {
+              id: '2',
+              name: 'Transportadora ABC',
+              email: 'transportadora@abc.com',
+              role: 'transportadora',
+              companyId: 'transp-001',
+              companyName: 'Transportadora ABC Ltda',
+              avatar: '/api/placeholder/40/40'
+            };
+            break;
+          case 'estacionamento':
+            userData = {
+              id: '3',
+              name: 'Estacionamento Central',
+              email: 'estacionamento@central.com',
+              role: 'estacionamento',
+              companyId: 'park-001',
+              companyName: 'Estacionamento Central',
+              avatar: '/api/placeholder/40/40'
+            };
+            break;
+          default:
+            userData = {
+              id: '1',
+              name: 'Admin AJH',
+              email: 'admin@ajh.com',
+              role: 'admin',
+              avatar: '/api/placeholder/40/40'
+            };
+        }
         
         setUser(userData);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       localStorage.removeItem('ajh_token');
+      localStorage.removeItem('ajh_user_type');
     } finally {
       setIsLoading(false);
     }
@@ -67,25 +102,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       
-      // Simulated API call - replace with actual endpoint
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password })
-      // });
+      // Simulated login validation with different user types
+      let userData: User | null = null;
+      let userType = '';
       
-      // Simulated login validation
       if (email === 'admin@ajh.com' && password === 'admin123') {
-        const token = 'simulated_jwt_token_12345';
-        const userData = {
+        userData = {
           id: '1',
           name: 'Admin AJH',
           email: 'admin@ajh.com',
           role: 'admin',
           avatar: '/api/placeholder/40/40'
         };
-        
+        userType = 'admin';
+      } else if (email === 'transportadora@abc.com' && password === 'transp123') {
+        userData = {
+          id: '2',
+          name: 'Transportadora ABC',
+          email: 'transportadora@abc.com',
+          role: 'transportadora',
+          companyId: 'transp-001',
+          companyName: 'Transportadora ABC Ltda',
+          avatar: '/api/placeholder/40/40'
+        };
+        userType = 'transportadora';
+      } else if (email === 'estacionamento@central.com' && password === 'park123') {
+        userData = {
+          id: '3',
+          name: 'Estacionamento Central',
+          email: 'estacionamento@central.com',
+          role: 'estacionamento',
+          companyId: 'park-001',
+          companyName: 'Estacionamento Central',
+          avatar: '/api/placeholder/40/40'
+        };
+        userType = 'estacionamento';
+      }
+      
+      if (userData) {
+        const token = 'simulated_jwt_token_12345';
         localStorage.setItem('ajh_token', token);
+        localStorage.setItem('ajh_user_type', userType);
         setUser(userData);
         
         toast({
@@ -97,7 +154,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         toast({
           title: "Erro no login",
-          description: "Credenciais inválidas. Tente admin@ajh.com / admin123",
+          description: "Credenciais inválidas. Tente admin@ajh.com/admin123, transportadora@abc.com/transp123 ou estacionamento@central.com/park123",
           variant: "destructive",
         });
         return false;
@@ -117,6 +174,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('ajh_token');
+    localStorage.removeItem('ajh_user_type');
     setUser(null);
     navigate('/login');
     toast({

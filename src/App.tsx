@@ -11,6 +11,7 @@ import Layout from "@/components/Layout";
 // Pages
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
+import EstacionamentosCadastrados from "@/pages/EstacionamentosCadastrados";
 import Empresas from "@/pages/Empresas";
 import Veiculos from "@/pages/Veiculos";
 import Motoristas from "@/pages/Motoristas";
@@ -18,6 +19,9 @@ import Estacionamento from "@/pages/Estacionamento";
 import Relatorios from "@/pages/Relatorios";
 import Configuracoes from "@/pages/Configuracoes";
 import ReservaVagas from "@/pages/ReservaVagas";
+import MinhasReservas from "@/pages/MinhasReservas";
+import ReservasRecebidas from "@/pages/ReservasRecebidas";
+import MeuEstacionamento from "@/pages/MeuEstacionamento";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +41,36 @@ const App = () => (
                 <PrivateRoute>
                   <Layout>
                     <Dashboard />
+                  </Layout>
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/estacionamentos-cadastrados" 
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <EstacionamentosCadastrados />
+                  </Layout>
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/estacionamento/:id" 
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Estacionamento />
+                  </Layout>
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/estacionamento" 
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Estacionamento />
                   </Layout>
                 </PrivateRoute>
               } 
@@ -72,16 +106,6 @@ const App = () => (
               } 
             />
             <Route 
-              path="/estacionamento" 
-              element={
-                <PrivateRoute>
-                  <Layout>
-                    <Estacionamento />
-                  </Layout>
-                </PrivateRoute>
-              } 
-            />
-            <Route 
               path="/relatorios" 
               element={
                 <PrivateRoute>
@@ -107,6 +131,36 @@ const App = () => (
                 <PrivateRoute>
                   <Layout>
                     <ReservaVagas />
+                  </Layout>
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/minhas-reservas" 
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <MinhasReservas />
+                  </Layout>
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/reservas-recebidas" 
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <ReservasRecebidas />
+                  </Layout>
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/meu-estacionamento" 
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <MeuEstacionamento />
                   </Layout>
                 </PrivateRoute>
               } 

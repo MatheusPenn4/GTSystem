@@ -12,7 +12,9 @@ import {
   LogOut,
   Menu,
   X,
-  Calendar
+  Calendar,
+  MapPin,
+  Clock
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -23,18 +25,51 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
-  const menuItems = [
-    { icon: Home, label: 'Dashboard', path: '/dashboard' },
-    { icon: Building2, label: 'Empresas', path: '/empresas' },
-    { icon: Car, label: 'Veículos', path: '/veiculos' },
-    { icon: Users, label: 'Motoristas', path: '/motoristas' },
-    { icon: ParkingCircle, label: 'Estacionamento', path: '/estacionamento' },
-    { icon: Calendar, label: 'Reserva de Vagas', path: '/reserva-vagas' },
-    { icon: BarChart3, label: 'Relatórios', path: '/relatorios' },
-    { icon: Settings, label: 'Configurações', path: '/configuracoes' },
-  ];
+  // Menu items baseados no tipo de usuário
+  const getMenuItems = () => {
+    switch (user?.role) {
+      case 'admin':
+        return [
+          { icon: Home, label: 'Dashboard', path: '/dashboard' },
+          { icon: Building2, label: 'Estacionamentos', path: '/estacionamentos-cadastrados' },
+          { icon: Building2, label: 'Empresas', path: '/empresas' },
+          { icon: Car, label: 'Veículos', path: '/veiculos' },
+          { icon: Users, label: 'Motoristas', path: '/motoristas' },
+          { icon: BarChart3, label: 'Relatórios', path: '/relatorios' },
+          { icon: Settings, label: 'Configurações', path: '/configuracoes' },
+        ];
+      
+      case 'transportadora':
+        return [
+          { icon: Home, label: 'Dashboard', path: '/dashboard' },
+          { icon: Car, label: 'Meus Veículos', path: '/veiculos' },
+          { icon: Users, label: 'Meus Motoristas', path: '/motoristas' },
+          { icon: Calendar, label: 'Reservar Vagas', path: '/reserva-vagas' },
+          { icon: Clock, label: 'Minhas Reservas', path: '/minhas-reservas' },
+          { icon: BarChart3, label: 'Relatórios', path: '/relatorios' },
+          { icon: Settings, label: 'Configurações', path: '/configuracoes' },
+        ];
+      
+      case 'estacionamento':
+        return [
+          { icon: Home, label: 'Dashboard', path: '/dashboard' },
+          { icon: ParkingCircle, label: 'Minhas Vagas', path: '/estacionamento' },
+          { icon: Calendar, label: 'Reservas', path: '/reservas-recebidas' },
+          { icon: MapPin, label: 'Meu Estacionamento', path: '/meu-estacionamento' },
+          { icon: BarChart3, label: 'Relatórios', path: '/relatorios' },
+          { icon: Settings, label: 'Configurações', path: '/configuracoes' },
+        ];
+      
+      default:
+        return [
+          { icon: Home, label: 'Dashboard', path: '/dashboard' },
+        ];
+    }
+  };
+
+  const menuItems = getMenuItems();
 
   return (
     <>
@@ -59,7 +94,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
               <div className="w-8 h-8 bg-gradient-ajh rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">AJH</span>
               </div>
-              <span className="text-white font-semibold text-lg">Sistema</span>
+              <div>
+                <span className="text-white font-semibold text-lg">Sistema</span>
+                {user?.role && (
+                  <p className="text-slate-400 text-xs capitalize">
+                    {user.role === 'admin' ? 'Administrador' : 
+                     user.role === 'transportadora' ? 'Transportadora' : 'Estacionamento'}
+                  </p>
+                )}
+              </div>
             </div>
             <button
               onClick={toggleSidebar}
@@ -89,6 +132,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             );
           })}
         </nav>
+
+        {/* User Info */}
+        {user && (
+          <div className="p-4 border-t border-slate-700/50">
+            <div className="bg-slate-800/50 rounded-lg p-3 mb-3">
+              <p className="text-white text-sm font-medium">{user.name}</p>
+              <p className="text-slate-400 text-xs">{user.email}</p>
+              {user.companyName && (
+                <p className="text-slate-500 text-xs mt-1">{user.companyName}</p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Logout */}
         <div className="p-4 border-t border-slate-700/50">
