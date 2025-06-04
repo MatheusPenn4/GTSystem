@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plus, Search, Edit, Trash2, Eye, Users, Car, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,8 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import CadastroMotoristaModal from '@/components/modals/CadastroMotoristaModal';
-import { useToast } from '@/hooks/use-toast';
 
 interface Motorista {
   id: string;
@@ -33,8 +32,6 @@ interface Motorista {
 const Motoristas: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [cadastroModalOpen, setCadastroModalOpen] = useState(false);
-  const { toast } = useToast();
 
   // Mock data
   const motoristas: Motorista[] = [
@@ -114,28 +111,6 @@ const Motoristas: React.FC = () => {
   const totalAtivos = motoristas.filter(m => m.status === 'ativo').length;
   const cnhVencendo = motoristas.filter(m => isValidadeProxima(m.validade)).length;
 
-  const handleVisualizarMotorista = (id: string, nome: string) => {
-    toast({
-      title: "Visualizando motorista",
-      description: `Abrindo detalhes de ${nome}`,
-    });
-  };
-
-  const handleEditarMotorista = (id: string, nome: string) => {
-    toast({
-      title: "Editando motorista",
-      description: `Abrindo edição de ${nome}`,
-    });
-  };
-
-  const handleExcluirMotorista = (id: string, nome: string) => {
-    toast({
-      title: "Motorista excluído",
-      description: `${nome} foi removido do sistema`,
-      variant: "destructive",
-    });
-  };
-
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -144,10 +119,7 @@ const Motoristas: React.FC = () => {
           <h1 className="text-3xl font-bold text-white mb-2">Motoristas</h1>
           <p className="text-slate-400">Gerencie todos os motoristas cadastrados no sistema</p>
         </div>
-        <Button 
-          className="ajh-button-primary"
-          onClick={() => setCadastroModalOpen(true)}
-        >
+        <Button className="ajh-button-primary">
           <Plus className="w-4 h-4 mr-2" />
           Novo Motorista
         </Button>
@@ -298,28 +270,13 @@ const Motoristas: React.FC = () => {
                     <TableCell>{getStatusBadge(motorista.status)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="text-ajh-primary hover:text-ajh-primary hover:bg-ajh-primary/10"
-                          onClick={() => handleVisualizarMotorista(motorista.id, motorista.nome)}
-                        >
+                        <Button size="sm" variant="ghost" className="text-ajh-primary hover:text-ajh-primary hover:bg-ajh-primary/10">
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="text-ajh-secondary hover:text-ajh-secondary hover:bg-ajh-secondary/10"
-                          onClick={() => handleEditarMotorista(motorista.id, motorista.nome)}
-                        >
+                        <Button size="sm" variant="ghost" className="text-ajh-secondary hover:text-ajh-secondary hover:bg-ajh-secondary/10">
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                          onClick={() => handleExcluirMotorista(motorista.id, motorista.nome)}
-                        >
+                        <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -331,11 +288,6 @@ const Motoristas: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-
-      <CadastroMotoristaModal 
-        open={cadastroModalOpen}
-        onOpenChange={setCadastroModalOpen}
-      />
     </div>
   );
 };

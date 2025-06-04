@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Eye, Building2, Users, Car } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,8 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import CadastroEmpresaModal from '@/components/modals/CadastroEmpresaModal';
-import { useToast } from '@/hooks/use-toast';
 
 interface Empresa {
   id: string;
@@ -31,8 +30,6 @@ interface Empresa {
 const Empresas: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [cadastroModalOpen, setCadastroModalOpen] = useState(false);
-  const { toast } = useToast();
 
   // Mock data - replace with API call
   const empresas: Empresa[] = [
@@ -111,28 +108,6 @@ const Empresas: React.FC = () => {
   const totalVeiculos = empresas.reduce((sum, e) => sum + e.veiculos, 0);
   const totalMotoristas = empresas.reduce((sum, e) => sum + e.motoristas, 0);
 
-  const handleVisualizarEmpresa = (id: string, nome: string) => {
-    toast({
-      title: "Visualizando empresa",
-      description: `Abrindo detalhes de ${nome}`,
-    });
-  };
-
-  const handleEditarEmpresa = (id: string, nome: string) => {
-    toast({
-      title: "Editando empresa",
-      description: `Abrindo edição de ${nome}`,
-    });
-  };
-
-  const handleExcluirEmpresa = (id: string, nome: string) => {
-    toast({
-      title: "Empresa excluída",
-      description: `${nome} foi removida do sistema`,
-      variant: "destructive",
-    });
-  };
-
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -141,10 +116,7 @@ const Empresas: React.FC = () => {
           <h1 className="text-3xl font-bold text-white mb-2">Empresas</h1>
           <p className="text-slate-400">Gerencie todas as empresas cadastradas no sistema</p>
         </div>
-        <Button 
-          className="ajh-button-primary"
-          onClick={() => setCadastroModalOpen(true)}
-        >
+        <Button className="ajh-button-primary">
           <Plus className="w-4 h-4 mr-2" />
           Nova Empresa
         </Button>
@@ -287,28 +259,13 @@ const Empresas: React.FC = () => {
                     <TableCell className="text-slate-300">{empresa.motoristas}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="text-ajh-primary hover:text-ajh-primary hover:bg-ajh-primary/10"
-                          onClick={() => handleVisualizarEmpresa(empresa.id, empresa.nome)}
-                        >
+                        <Button size="sm" variant="ghost" className="text-ajh-primary hover:text-ajh-primary hover:bg-ajh-primary/10">
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="text-ajh-secondary hover:text-ajh-secondary hover:bg-ajh-secondary/10"
-                          onClick={() => handleEditarEmpresa(empresa.id, empresa.nome)}
-                        >
+                        <Button size="sm" variant="ghost" className="text-ajh-secondary hover:text-ajh-secondary hover:bg-ajh-secondary/10">
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                          onClick={() => handleExcluirEmpresa(empresa.id, empresa.nome)}
-                        >
+                        <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -320,11 +277,6 @@ const Empresas: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-
-      <CadastroEmpresaModal 
-        open={cadastroModalOpen}
-        onOpenChange={setCadastroModalOpen}
-      />
     </div>
   );
 };

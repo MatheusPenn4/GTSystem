@@ -1,13 +1,10 @@
+
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ParkingCircle, Search, Filter, Car, Clock, CheckCircle, ArrowLeft, BarChart3 } from 'lucide-react';
+import { ParkingCircle, Search, Filter, Car, Clock, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import ControleManualModal from '@/components/modals/ControleManualModal';
 
 interface Vaga {
   id: string;
@@ -19,39 +16,16 @@ interface Vaga {
   entrada?: string;
 }
 
-interface EstacionamentoInfo {
-  id: string;
-  nome: string;
-  endereco: string;
-  cidade: string;
-  totalVagas: number;
-}
-
 const Estacionamento: React.FC = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { isAdmin, isEstacionamento } = useAuth();
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [setorFilter, setSetorFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [controleModalOpen, setControleModalOpen] = useState(false);
-  const [vagaSelecionada, setVagaSelecionada] = useState<string>('');
 
-  // Dados simulados do estacionamento específico
-  const estacionamentoInfo: EstacionamentoInfo = {
-    id: id || '1',
-    nome: id === '2' ? 'Parking Premium' : id === '3' ? 'Estacionamento Norte' : 'Estacionamento Central',
-    endereco: id === '2' ? 'Av. Paulista, 456' : id === '3' ? 'Rua do Norte, 789' : 'Rua das Flores, 123',
-    cidade: id === '3' ? 'Rio de Janeiro - RJ' : 'São Paulo - SP',
-    totalVagas: id === '2' ? 80 : id === '3' ? 60 : 120,
-  };
-
-  // Mock data - vagas baseadas no estacionamento
-  const vagas: Vaga[] = Array.from({ length: estacionamentoInfo.totalVagas }, (_, i) => {
+  // Mock data - 50 vagas divididas em setores
+  const vagas: Vaga[] = Array.from({ length: 50 }, (_, i) => {
     const numero = (i + 1).toString().padStart(2, '0');
     const setores = ['A', 'B', 'C'];
-    const setor = setores[Math.floor(i / Math.ceil(estacionamentoInfo.totalVagas / 3))];
+    const setor = setores[Math.floor(i / 17)];
     const statuses: Vaga['status'][] = ['livre', 'ocupada', 'reservada', 'manutencao'];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
     
@@ -104,33 +78,6 @@ const Estacionamento: React.FC = () => {
     }
   };
 
-  const handleVagaClick = (vaga: Vaga) => {
-    if (vaga.status === 'livre') {
-      setVagaSelecionada(vaga.numero);
-      setControleModalOpen(true);
-    } else {
-      toast({
-        title: "Informações da Vaga",
-        description: `Vaga ${vaga.numero} - ${vaga.status.toUpperCase()}${vaga.veiculo ? ` (${vaga.veiculo})` : ''}`,
-      });
-    }
-  };
-
-  const handleRelatorio = () => {
-    toast({
-      title: "Gerando relatório...",
-      description: "O relatório do estacionamento será baixado em instantes.",
-    });
-    
-    // Simular download
-    setTimeout(() => {
-      toast({
-        title: "Download iniciado!",
-        description: "Relatório de ocupação baixado com sucesso.",
-      });
-    }, 2000);
-  };
-
   const vagasLivres = vagas.filter(v => v.status === 'livre').length;
   const vagasOcupadas = vagas.filter(v => v.status === 'ocupada').length;
   const vagasReservadas = vagas.filter(v => v.status === 'reservada').length;
@@ -142,41 +89,19 @@ const Estacionamento: React.FC = () => {
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-4">
-          {isAdmin() && (
-            <Button
-              variant="outline"
-              onClick={() => navigate('/estacionamentos')}
-              className="ajh-button-secondary"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
-            </Button>
-          )}
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">{estacionamentoInfo.nome}</h1>
-            <p className="text-slate-400">
-              {estacionamentoInfo.endereco} - {estacionamentoInfo.cidade}
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">Estacionamento</h1>
+          <p className="text-slate-400">Gerencie as vagas e ocupação do estacionamento</p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            className="ajh-button-secondary"
-            onClick={handleRelatorio}
-          >
-            <BarChart3 className="w-4 h-4 mr-2" />
+          <Button className="ajh-button-secondary">
+            <Filter className="w-4 h-4 mr-2" />
             Relatório
           </Button>
-          {(isAdmin() || isEstacionamento()) && (
-            <Button 
-              className="ajh-button-primary"
-              onClick={() => setControleModalOpen(true)}
-            >
-              <ParkingCircle className="w-4 h-4 mr-2" />
-              Controle Manual
-            </Button>
-          )}
+          <Button className="ajh-button-primary">
+            <ParkingCircle className="w-4 h-4 mr-2" />
+            Controle Manual
+          </Button>
         </div>
       </div>
 
@@ -331,7 +256,7 @@ const Estacionamento: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-white">Mapa do Estacionamento</CardTitle>
           <CardDescription className="text-slate-400">
-            {filteredVagas.length} vaga(s) encontrada(s) • Clique nas vagas livres para ações rápidas
+            {filteredVagas.length} vaga(s) encontrada(s)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -347,7 +272,6 @@ const Estacionamento: React.FC = () => {
                   ${vaga.status === 'manutencao' ? 'bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20' : ''}
                 `}
                 title={`Vaga ${vaga.numero} - ${vaga.status}${vaga.veiculo ? ` (${vaga.veiculo})` : ''}`}
-                onClick={() => handleVagaClick(vaga)}
               >
                 <div className="flex flex-col items-center space-y-1">
                   {getStatusIcon(vaga.status)}
@@ -368,12 +292,6 @@ const Estacionamento: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-
-      <ControleManualModal 
-        open={controleModalOpen}
-        onOpenChange={setControleModalOpen}
-        vagaSelecionada={vagaSelecionada}
-      />
     </div>
   );
 };

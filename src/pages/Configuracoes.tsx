@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Save, User, Bell, Shield, Database, Globe } from 'lucide-react';
+import { Save, User, Bell, Shield, Database, Palette, Globe } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,7 @@ const Configuracoes: React.FC = () => {
     { id: 'notificacoes', label: 'Notificações', icon: Bell },
     { id: 'seguranca', label: 'Segurança', icon: Shield },
     { id: 'sistema', label: 'Sistema', icon: Database },
+    { id: 'aparencia', label: 'Aparência', icon: Palette },
     { id: 'integracao', label: 'Integração', icon: Globe }
   ];
 
@@ -306,6 +307,64 @@ const Configuracoes: React.FC = () => {
                     <Button className="ajh-button-secondary">
                       Gerar Exportação
                     </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Aparência */}
+          {activeTab === 'aparencia' && (
+            <Card className="ajh-card">
+              <CardHeader>
+                <CardTitle className="text-white">Aparência</CardTitle>
+                <CardDescription className="text-slate-400">
+                  Personalize a interface do sistema
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-white mb-3 block">Tema</Label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { id: 'dark', label: 'Escuro', selected: true },
+                        { id: 'light', label: 'Claro', selected: false },
+                        { id: 'auto', label: 'Automático', selected: false }
+                      ].map((tema) => (
+                        <div
+                          key={tema.id}
+                          className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                            tema.selected 
+                              ? 'border-ajh-primary bg-ajh-primary/10' 
+                              : 'border-slate-600 hover:border-slate-500'
+                          }`}
+                        >
+                          <div className="text-center text-white text-sm">{tema.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-white mb-3 block">Cor Principal</Label>
+                    <div className="flex gap-3">
+                      {[
+                        { color: '#3B82F6', selected: true },
+                        { color: '#06B6D4' },
+                        { color: '#8B5CF6' },
+                        { color: '#10B981' },
+                        { color: '#F59E0B' }
+                      ].map((cor, index) => (
+                        <div
+                          key={index}
+                          className={`w-8 h-8 rounded-full cursor-pointer border-2 ${
+                            cor.selected ? 'border-white' : 'border-slate-600'
+                          }`}
+                          style={{ backgroundColor: cor.color }}
+                        ></div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </CardContent>

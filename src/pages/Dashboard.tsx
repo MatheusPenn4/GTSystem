@@ -1,9 +1,5 @@
+
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import TransportadoraDashboard from './dashboards/TransportadoraDashboard';
-import EstacionamentoDashboard from './dashboards/EstacionamentoDashboard';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
   Building2, 
   Car, 
@@ -16,26 +12,8 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import CadastroEmpresaModal from '@/components/modals/CadastroEmpresaModal';
-import CadastroVeiculoModal from '@/components/modals/CadastroVeiculoModal';
-import CadastroMotoristaModal from '@/components/modals/CadastroMotoristaModal';
 
 const Dashboard: React.FC = () => {
-  const { isAdmin, isTransportadora, isEstacionamento } = useAuth();
-
-  if (isTransportadora()) {
-    return <TransportadoraDashboard />;
-  }
-
-  if (isEstacionamento()) {
-    return <EstacionamentoDashboard />;
-  }
-
-  const navigate = useNavigate();
-  const [showEmpresaModal, setShowEmpresaModal] = useState(false);
-  const [showVeiculoModal, setShowVeiculoModal] = useState(false);
-  const [showMotoristaModal, setShowMotoristaModal] = useState(false);
-
   const stats = [
     {
       title: 'Empresas Ativas',
@@ -130,15 +108,17 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Welcome Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">
-          Dashboard Administrativo
+          Dashboard
         </h1>
         <p className="text-slate-400">
           Bem-vindo de volta! Aqui está um resumo das atividades do sistema.
         </p>
       </div>
-      
+
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
@@ -175,7 +155,9 @@ const Dashboard: React.FC = () => {
         })}
       </div>
 
+      {/* Content Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Recent Activity */}
         <Card className="ajh-card xl:col-span-2">
           <CardHeader>
             <CardTitle className="text-white">Atividade Recente</CardTitle>
@@ -205,6 +187,7 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* Quick Actions */}
         <Card className="ajh-card">
           <CardHeader>
             <CardTitle className="text-white">Ações Rápidas</CardTitle>
@@ -214,31 +197,19 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <button 
-                onClick={() => setShowEmpresaModal(true)}
-                className="w-full ajh-button-primary justify-start"
-              >
+              <button className="w-full ajh-button-primary justify-start">
                 <Building2 className="w-4 h-4 mr-2" />
                 Nova Empresa
               </button>
-              <button 
-                onClick={() => setShowVeiculoModal(true)}
-                className="w-full ajh-button-secondary justify-start"
-              >
+              <button className="w-full ajh-button-secondary justify-start">
                 <Car className="w-4 h-4 mr-2" />
                 Novo Veículo
               </button>
-              <button 
-                onClick={() => setShowMotoristaModal(true)}
-                className="w-full ajh-button-secondary justify-start"
-              >
+              <button className="w-full ajh-button-secondary justify-start">
                 <Users className="w-4 h-4 mr-2" />
                 Novo Motorista
               </button>
-              <button 
-                onClick={() => navigate('/estacionamento')}
-                className="w-full ajh-button-secondary justify-start"
-              >
+              <button className="w-full ajh-button-secondary justify-start">
                 <ParkingCircle className="w-4 h-4 mr-2" />
                 Gerenciar Vagas
               </button>
@@ -247,6 +218,7 @@ const Dashboard: React.FC = () => {
         </Card>
       </div>
 
+      {/* Status Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="ajh-card">
           <CardHeader>
@@ -300,19 +272,6 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-
-      <CadastroEmpresaModal 
-        open={showEmpresaModal} 
-        onOpenChange={setShowEmpresaModal} 
-      />
-      <CadastroVeiculoModal 
-        open={showVeiculoModal} 
-        onOpenChange={setShowVeiculoModal} 
-      />
-      <CadastroMotoristaModal 
-        open={showMotoristaModal} 
-        onOpenChange={setShowMotoristaModal} 
-      />
     </div>
   );
 };
