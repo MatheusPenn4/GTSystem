@@ -14,7 +14,8 @@ import {
   X,
   Calendar,
   MapPin,
-  Clock
+  Clock,
+  DollarSign
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -37,6 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           { icon: Building2, label: 'Empresas', path: '/empresas' },
           { icon: Car, label: 'Veículos', path: '/veiculos' },
           { icon: Users, label: 'Motoristas', path: '/motoristas' },
+          { icon: DollarSign, label: 'Financeiro', path: '/financeiro' },
           { icon: BarChart3, label: 'Relatórios', path: '/relatorios' },
           { icon: Settings, label: 'Configurações', path: '/configuracoes' },
         ];
