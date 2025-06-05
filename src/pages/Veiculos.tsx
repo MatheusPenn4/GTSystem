@@ -1,142 +1,167 @@
 
 import React, { useState } from 'react';
-import { Plus, Search, Filter, Edit, Trash2, Eye, Car, Building2, User } from 'lucide-react';
+import { Plus, Search, Car, Truck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { useAuth } from '@/contexts/AuthContext';
+import TableActions from '@/components/TableActions';
 import ViewModal from '@/components/modals/ViewModal';
 import EditModal from '@/components/modals/EditModal';
 import DeleteModal from '@/components/modals/DeleteModal';
 
-interface Veiculo {
-  id: string;
-  placa: string;
-  modelo: string;
-  marca: string;
-  ano: number;
-  cor: string;
-  empresa: string;
-  motorista: string;
-  status: 'ativo' | 'inativo' | 'manutencao';
-  dataRegistro: string;
-}
-
 const Veiculos: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [viewModal, setViewModal] = useState<{ isOpen: boolean; data: Veiculo | null }>({
-    isOpen: false,
-    data: null
-  });
-  const [editModal, setEditModal] = useState<{ isOpen: boolean; data: Veiculo | null }>({
-    isOpen: false,
-    data: null
-  });
-  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; data: Veiculo | null }>({
-    isOpen: false,
-    data: null
-  });
+  const [selectedVeiculo, setSelectedVeiculo] = useState<any>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const { user } = useAuth();
 
-  // Mock data
-  const veiculos: Veiculo[] = [
-    {
-      id: '1',
-      placa: 'ABC-1234',
-      modelo: 'Civic',
-      marca: 'Honda',
-      ano: 2022,
-      cor: 'Branco',
-      empresa: 'TechCorp Logistics',
-      motorista: 'João Silva',
-      status: 'ativo',
-      dataRegistro: '2024-01-15'
-    },
-    {
-      id: '2',
-      placa: 'XYZ-9876',
-      modelo: 'Corolla',
-      marca: 'Toyota',
-      ano: 2021,
-      cor: 'Prata',
-      empresa: 'FastDelivery LTDA',
-      motorista: 'Maria Santos',
-      status: 'ativo',
-      dataRegistro: '2024-02-10'
-    },
-    {
-      id: '3',
-      placa: 'DEF-5678',
-      modelo: 'HB20',
-      marca: 'Hyundai',
-      ano: 2020,
-      cor: 'Azul',
-      empresa: 'Transportes Brasil',
-      motorista: '',
-      status: 'manutencao',
-      dataRegistro: '2024-03-05'
+  // Mock data - ajustado conforme o tipo de usuário
+  const getVeiculosData = () => {
+    if (user?.role === 'transportadora') {
+      return [
+        {
+          id: 1,
+          placa: 'ABC-1234',
+          modelo: 'Mercedes Sprinter',
+          marca: 'Mercedes',
+          ano: 2020,
+          cor: 'Branco',
+          tipo: 'Van',
+          empresa: user.companyName || 'Minha Empresa',
+          motorista: 'João Silva',
+          status: 'Ativo',
+          chassi: '9BFZF12345678901'
+        },
+        {
+          id: 2,
+          placa: 'DEF-5678',
+          modelo: 'Iveco Daily',
+          marca: 'Iveco',
+          ano: 2019,
+          cor: 'Azul',
+          tipo: 'Caminhão',
+          empresa: user.companyName || 'Minha Empresa',
+          motorista: 'Maria Santos',
+          status: 'Ativo',
+          chassi: '9BFZF12345678902'
+        }
+      ];
+    } else {
+      return [
+        {
+          id: 1,
+          placa: 'ABC-1234',
+          modelo: 'Mercedes Sprinter',
+          marca: 'Mercedes',
+          ano: 2020,
+          cor: 'Branco',
+          tipo: 'Van',
+          empresa: 'TechCorp Ltda',
+          motorista: 'João Silva',
+          status: 'Ativo',
+          chassi: '9BFZF12345678901'
+        },
+        {
+          id: 2,
+          placa: 'DEF-5678',
+          modelo: 'Iveco Daily',
+          marca: 'Iveco',
+          ano: 2019,
+          cor: 'Azul',
+          tipo: 'Caminhão',
+          empresa: 'LogiMaster S.A.',
+          motorista: 'Maria Santos',
+          status: 'Ativo',
+          chassi: '9BFZF12345678902'
+        },
+        {
+          id: 3,
+          placa: 'GHI-9012',
+          modelo: 'Ford Transit',
+          marca: 'Ford',
+          ano: 2021,
+          cor: 'Prata',
+          tipo: 'Van',
+          empresa: 'TransBrasil Express',
+          motorista: 'Carlos Oliveira',
+          status: 'Manutenção',
+          chassi: '9BFZF12345678903'
+        }
+      ];
     }
-  ];
-
-  const filteredVeiculos = veiculos.filter(veiculo => {
-    const matchesSearch = veiculo.placa.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         veiculo.modelo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         veiculo.marca.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || veiculo.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ativo':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Ativo</Badge>;
-      case 'inativo':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Inativo</Badge>;
-      case 'manutencao':
-        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Manutenção</Badge>;
-      default:
-        return <Badge variant="secondary">Desconhecido</Badge>;
-    }
   };
 
-  const handleView = (veiculo: Veiculo) => {
-    setViewModal({ isOpen: true, data: veiculo });
+  const veiculos = getVeiculosData();
+
+  const filteredVeiculos = veiculos.filter(veiculo =>
+    veiculo.placa.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    veiculo.modelo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    veiculo.empresa.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleView = (veiculo: any) => {
+    setSelectedVeiculo(veiculo);
+    setViewModalOpen(true);
   };
 
-  const handleEdit = (veiculo: Veiculo) => {
-    setEditModal({ isOpen: true, data: veiculo });
+  const handleEdit = (veiculo: any) => {
+    setSelectedVeiculo(veiculo);
+    setEditModalOpen(true);
   };
 
-  const handleDelete = (veiculo: Veiculo) => {
-    setDeleteModal({ isOpen: true, data: veiculo });
+  const handleDelete = (veiculo: any) => {
+    setSelectedVeiculo(veiculo);
+    setDeleteModalOpen(true);
   };
 
-  const handleSaveEdit = (data: Record<string, any>) => {
-    console.log('Dados salvos:', data);
+  const handleSave = (data: any) => {
+    console.log('Salvando veículo:', data);
+    // Aqui você implementaria a lógica de salvamento
   };
 
   const handleConfirmDelete = () => {
-    console.log('Veículo excluído:', deleteModal.data?.id);
+    console.log('Excluindo veículo:', selectedVeiculo);
+    // Aqui você implementaria a lógica de exclusão
   };
 
-  const totalAtivos = veiculos.filter(v => v.status === 'ativo').length;
-  const totalManutencao = veiculos.filter(v => v.status === 'manutencao').length;
+  const getStatsForRole = () => {
+    if (user?.role === 'transportadora') {
+      return [
+        { label: 'Meus Veículos', value: '12', icon: Car, color: 'text-ajh-primary' },
+        { label: 'Ativos', value: '10', icon: Car, color: 'text-green-400' },
+        { label: 'Manutenção', value: '2', icon: Car, color: 'text-yellow-400' },
+        { label: 'Média Idade', value: '3.2 anos', icon: Car, color: 'text-blue-400' }
+      ];
+    } else {
+      return [
+        { label: 'Total Veículos', value: '156', icon: Car, color: 'text-ajh-primary' },
+        { label: 'Ativos', value: '142', icon: Car, color: 'text-green-400' },
+        { label: 'Manutenção', value: '8', icon: Car, color: 'text-yellow-400' },
+        { label: 'Inativos', value: '6', icon: Car, color: 'text-red-400' }
+      ];
+    }
+  };
+
+  const stats = getStatsForRole();
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Veículos</h1>
-          <p className="text-slate-400">Gerencie todos os veículos cadastrados no sistema</p>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            {user?.role === 'transportadora' ? 'Meus Veículos' : 'Veículos'}
+          </h1>
+          <p className="text-slate-400">
+            {user?.role === 'transportadora' 
+              ? 'Gerenciamento da sua frota de veículos'
+              : 'Gerenciamento de todos os veículos cadastrados'
+            }
+          </p>
         </div>
         <Button className="ajh-button-primary">
           <Plus className="w-4 h-4 mr-2" />
@@ -144,104 +169,46 @@ const Veiculos: React.FC = () => {
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="ajh-card">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-ajh-primary/10 rounded-lg">
-                <Car className="w-6 h-6 text-ajh-primary" />
-              </div>
-              <div>
-                <p className="text-slate-400 text-sm">Veículos Ativos</p>
-                <p className="text-2xl font-bold text-white">{totalAtivos}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="ajh-card">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-ajh-warning/10 rounded-lg">
-                <Car className="w-6 h-6 text-ajh-warning" />
-              </div>
-              <div>
-                <p className="text-slate-400 text-sm">Em Manutenção</p>
-                <p className="text-2xl font-bold text-white">{totalManutencao}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="ajh-card">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-ajh-secondary/10 rounded-lg">
-                <Car className="w-6 h-6 text-ajh-secondary" />
-              </div>
-              <div>
-                <p className="text-slate-400 text-sm">Total Cadastrados</p>
-                <p className="text-2xl font-bold text-white">{veiculos.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={index} className="ajh-card">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2">
+                  <Icon className={`w-8 h-8 ${stat.color}`} />
+                  <div>
+                    <p className="text-2xl font-bold text-white">{stat.value}</p>
+                    <p className="text-sm text-slate-400">{stat.label}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      {/* Filters */}
+      {/* Search and Filters */}
       <Card className="ajh-card">
-        <CardHeader>
-          <CardTitle className="text-white">Filtros</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <Input
-                  placeholder="Pesquisar por placa, modelo ou marca..."
+                  placeholder="Buscar por placa, modelo ou empresa..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="ajh-input pl-10"
+                  className="pl-10 ajh-input"
                 />
               </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant={statusFilter === 'all' ? 'default' : 'outline'}
-                onClick={() => setStatusFilter('all')}
-                className={statusFilter === 'all' ? 'ajh-button-primary' : 'ajh-button-secondary'}
-              >
-                Todos
-              </Button>
-              <Button
-                variant={statusFilter === 'ativo' ? 'default' : 'outline'}
-                onClick={() => setStatusFilter('ativo')}
-                className={statusFilter === 'ativo' ? 'ajh-button-primary' : 'ajh-button-secondary'}
-              >
-                Ativo
-              </Button>
-              <Button
-                variant={statusFilter === 'manutencao' ? 'default' : 'outline'}
-                onClick={() => setStatusFilter('manutencao')}
-                className={statusFilter === 'manutencao' ? 'ajh-button-primary' : 'ajh-button-secondary'}
-              >
-                Manutenção
-              </Button>
-              <Button
-                variant={statusFilter === 'inativo' ? 'default' : 'outline'}
-                onClick={() => setStatusFilter('inativo')}
-                className={statusFilter === 'inativo' ? 'ajh-button-primary' : 'ajh-button-secondary'}
-              >
-                Inativo
-              </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Table */}
+      {/* Vehicles Table */}
       <Card className="ajh-card">
         <CardHeader>
           <CardTitle className="text-white">Lista de Veículos</CardTitle>
@@ -251,87 +218,95 @@ const Veiculos: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-slate-700">
-                  <TableHead className="text-slate-300">Placa</TableHead>
-                  <TableHead className="text-slate-300">Veículo</TableHead>
-                  <TableHead className="text-slate-300">Empresa</TableHead>
-                  <TableHead className="text-slate-300">Motorista</TableHead>
-                  <TableHead className="text-slate-300">Status</TableHead>
-                  <TableHead className="text-slate-300 text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-700">
+                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Veículo</th>
+                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Placa</th>
+                  {user?.role !== 'transportadora' && (
+                    <th className="text-left py-3 px-2 text-slate-300 font-medium">Empresa</th>
+                  )}
+                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Motorista</th>
+                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Status</th>
+                  <th className="text-center py-3 px-2 text-slate-300 font-medium">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
                 {filteredVeiculos.map((veiculo) => (
-                  <TableRow key={veiculo.id} className="border-slate-700 hover:bg-slate-800/30">
-                    <TableCell className="text-white font-medium">{veiculo.placa}</TableCell>
-                    <TableCell className="text-slate-300">
-                      <div>
-                        <div>{veiculo.marca} {veiculo.modelo}</div>
-                        <div className="text-xs text-slate-400">{veiculo.ano} • {veiculo.cor}</div>
+                  <tr key={veiculo.id} className="border-b border-slate-700/50 hover:bg-slate-800/50">
+                    <td className="py-4 px-2">
+                      <div className="flex items-center space-x-3">
+                        {veiculo.tipo === 'Van' ? (
+                          <Car className="w-8 h-8 text-ajh-primary" />
+                        ) : (
+                          <Truck className="w-8 h-8 text-ajh-secondary" />
+                        )}
+                        <div>
+                          <p className="text-white font-medium">{veiculo.modelo}</p>
+                          <p className="text-sm text-slate-400">{veiculo.marca} - {veiculo.ano}</p>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-slate-300">{veiculo.empresa}</TableCell>
-                    <TableCell className="text-slate-300">{veiculo.motorista || 'Não atribuído'}</TableCell>
-                    <TableCell>{getStatusBadge(veiculo.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="text-ajh-primary hover:text-ajh-primary hover:bg-ajh-primary/10"
-                          onClick={() => handleView(veiculo)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="text-ajh-secondary hover:text-ajh-secondary hover:bg-ajh-secondary/10"
-                          onClick={() => handleEdit(veiculo)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                          onClick={() => handleDelete(veiculo)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                    </td>
+                    <td className="py-4 px-2">
+                      <span className="text-white font-mono bg-slate-800 px-2 py-1 rounded">
+                        {veiculo.placa}
+                      </span>
+                    </td>
+                    {user?.role !== 'transportadora' && (
+                      <td className="py-4 px-2 text-slate-300">{veiculo.empresa}</td>
+                    )}
+                    <td className="py-4 px-2 text-slate-300">{veiculo.motorista}</td>
+                    <td className="py-4 px-2">
+                      <Badge 
+                        className={
+                          veiculo.status === 'Ativo' 
+                            ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                            : veiculo.status === 'Manutenção'
+                            ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                            : 'bg-red-500/20 text-red-400 border-red-500/30'
+                        }
+                      >
+                        {veiculo.status}
+                      </Badge>
+                    </td>
+                    <td className="py-4 px-2">
+                      <div className="flex justify-center">
+                        <TableActions
+                          onView={() => handleView(veiculo)}
+                          onEdit={() => handleEdit(veiculo)}
+                          onDelete={() => handleDelete(veiculo)}
+                        />
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>
 
       {/* Modals */}
       <ViewModal
-        isOpen={viewModal.isOpen}
-        onClose={() => setViewModal({ isOpen: false, data: null })}
-        title={`Visualizar Veículo - ${viewModal.data?.placa}`}
-        data={viewModal.data || {}}
+        isOpen={viewModalOpen}
+        onClose={() => setViewModalOpen(false)}
+        title="Detalhes do Veículo"
+        data={selectedVeiculo || {}}
       />
 
       <EditModal
-        isOpen={editModal.isOpen}
-        onClose={() => setEditModal({ isOpen: false, data: null })}
-        title={`Editar Veículo - ${editModal.data?.placa}`}
-        data={editModal.data || {}}
-        onSave={handleSaveEdit}
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Editar Veículo"
+        data={selectedVeiculo || {}}
+        onSave={handleSave}
       />
 
       <DeleteModal
-        isOpen={deleteModal.isOpen}
-        onClose={() => setDeleteModal({ isOpen: false, data: null })}
-        title="Confirmar Exclusão"
-        description={`Tem certeza que deseja excluir o veículo "${deleteModal.data?.placa}"?`}
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="Excluir Veículo"
+        description={`Tem certeza que deseja excluir o veículo "${selectedVeiculo?.placa}"?`}
         onConfirm={handleConfirmDelete}
       />
     </div>

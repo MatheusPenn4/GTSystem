@@ -1,123 +1,182 @@
 
 import React, { useState } from 'react';
-import { Plus, Search, Edit, Trash2, Eye, Users, Car, AlertTriangle } from 'lucide-react';
+import { Plus, Search, Users, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-
-interface Motorista {
-  id: string;
-  nome: string;
-  cpf: string;
-  cnh: string;
-  categoria: string;
-  validade: string;
-  telefone: string;
-  email: string;
-  empresa: string;
-  veiculo: string;
-  status: 'ativo' | 'inativo' | 'licenca';
-  dataRegistro: string;
-}
+import { useAuth } from '@/contexts/AuthContext';
+import TableActions from '@/components/TableActions';
+import ViewModal from '@/components/modals/ViewModal';
+import EditModal from '@/components/modals/EditModal';
+import DeleteModal from '@/components/modals/DeleteModal';
 
 const Motoristas: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedMotorista, setSelectedMotorista] = useState<any>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const { user } = useAuth();
 
-  // Mock data
-  const motoristas: Motorista[] = [
-    {
-      id: '1',
-      nome: 'João Silva',
-      cpf: '123.456.789-00',
-      cnh: '12345678901',
-      categoria: 'B',
-      validade: '2025-06-15',
-      telefone: '(11) 99999-9999',
-      email: 'joao@email.com',
-      empresa: 'TechCorp Logistics',
-      veiculo: 'ABC-1234',
-      status: 'ativo',
-      dataRegistro: '2024-01-15'
-    },
-    {
-      id: '2',
-      nome: 'Maria Santos',
-      cpf: '987.654.321-00',
-      cnh: '10987654321',
-      categoria: 'B',
-      validade: '2024-12-30',
-      telefone: '(11) 88888-8888',
-      email: 'maria@email.com',
-      empresa: 'FastDelivery LTDA',
-      veiculo: 'XYZ-9876',
-      status: 'ativo',
-      dataRegistro: '2024-02-10'
-    },
-    {
-      id: '3',
-      nome: 'Carlos Oliveira',
-      cpf: '456.789.123-00',
-      cnh: '45678912345',
-      categoria: 'C',
-      validade: '2024-07-10',
-      telefone: '(11) 77777-7777',
-      email: 'carlos@email.com',
-      empresa: 'Transportes Brasil',
-      veiculo: '',
-      status: 'licenca',
-      dataRegistro: '2024-03-05'
-    }
-  ];
-
-  const filteredMotoristas = motoristas.filter(motorista => {
-    const matchesSearch = motorista.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         motorista.cpf.includes(searchTerm) ||
-                         motorista.cnh.includes(searchTerm);
-    const matchesStatus = statusFilter === 'all' || motorista.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ativo':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Ativo</Badge>;
-      case 'inativo':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Inativo</Badge>;
-      case 'licenca':
-        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Licença</Badge>;
-      default:
-        return <Badge variant="secondary">Desconhecido</Badge>;
+  // Mock data - ajustado conforme o tipo de usuário
+  const getMotoristasData = () => {
+    if (user?.role === 'transportadora') {
+      return [
+        {
+          id: 1,
+          nome: 'João Silva',
+          cpf: '123.456.789-00',
+          cnh: '12345678901',
+          categoria: 'D',
+          validadeCnh: '2025-12-15',
+          telefone: '(11) 99999-9999',
+          email: 'joao@email.com',
+          empresa: user.companyName || 'Minha Empresa',
+          veiculo: 'ABC-1234',
+          status: 'Ativo'
+        },
+        {
+          id: 2,
+          nome: 'Maria Santos',
+          cpf: '987.654.321-00',
+          cnh: '10987654321',
+          categoria: 'C',
+          validadeCnh: '2024-08-20',
+          telefone: '(11) 88888-8888',
+          email: 'maria@email.com',
+          empresa: user.companyName || 'Minha Empresa',
+          veiculo: 'DEF-5678',
+          status: 'Ativo'
+        }
+      ];
+    } else {
+      return [
+        {
+          id: 1,
+          nome: 'João Silva',
+          cpf: '123.456.789-00',
+          cnh: '12345678901',
+          categoria: 'D',
+          validadeCnh: '2025-12-15',
+          telefone: '(11) 99999-9999',
+          email: 'joao@email.com',
+          empresa: 'TechCorp Ltda',
+          veiculo: 'ABC-1234',
+          status: 'Ativo'
+        },
+        {
+          id: 2,
+          nome: 'Maria Santos',
+          cpf: '987.654.321-00',
+          cnh: '10987654321',
+          categoria: 'C',
+          validadeCnh: '2024-08-20',
+          telefone: '(11) 88888-8888',
+          email: 'maria@email.com',
+          empresa: 'LogiMaster S.A.',
+          veiculo: 'DEF-5678',
+          status: 'Ativo'
+        },
+        {
+          id: 3,
+          nome: 'Carlos Oliveira',
+          cpf: '456.789.123-00',
+          cnh: '56789012345',
+          categoria: 'C',
+          validadeCnh: '2024-03-10',
+          telefone: '(11) 77777-7777',
+          email: 'carlos@email.com',
+          empresa: 'TransBrasil Express',
+          veiculo: 'GHI-9012',
+          status: 'Inativo'
+        }
+      ];
     }
   };
 
-  const isValidadeProxima = (validade: string) => {
+  const motoristas = getMotoristasData();
+
+  const filteredMotoristas = motoristas.filter(motorista =>
+    motorista.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    motorista.cpf.includes(searchTerm) ||
+    motorista.cnh.includes(searchTerm) ||
+    motorista.empresa.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const isValidadePerto = (validade: string) => {
     const hoje = new Date();
     const dataValidade = new Date(validade);
-    const diferenca = dataValidade.getTime() - hoje.getTime();
-    const diasRestantes = Math.ceil(diferenca / (1000 * 3600 * 24));
-    return diasRestantes <= 30 && diasRestantes > 0;
+    const diffTime = dataValidade.getTime() - hoje.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays <= 30 && diffDays > 0;
   };
 
-  const totalAtivos = motoristas.filter(m => m.status === 'ativo').length;
-  const cnhVencendo = motoristas.filter(m => isValidadeProxima(m.validade)).length;
+  const isValidadeVencida = (validade: string) => {
+    const hoje = new Date();
+    const dataValidade = new Date(validade);
+    return dataValidade < hoje;
+  };
+
+  const handleView = (motorista: any) => {
+    setSelectedMotorista(motorista);
+    setViewModalOpen(true);
+  };
+
+  const handleEdit = (motorista: any) => {
+    setSelectedMotorista(motorista);
+    setEditModalOpen(true);
+  };
+
+  const handleDelete = (motorista: any) => {
+    setSelectedMotorista(motorista);
+    setDeleteModalOpen(true);
+  };
+
+  const handleSave = (data: any) => {
+    console.log('Salvando motorista:', data);
+    // Aqui você implementaria a lógica de salvamento
+  };
+
+  const handleConfirmDelete = () => {
+    console.log('Excluindo motorista:', selectedMotorista);
+    // Aqui você implementaria a lógica de exclusão
+  };
+
+  const getStatsForRole = () => {
+    if (user?.role === 'transportadora') {
+      return [
+        { label: 'Meus Motoristas', value: '8', icon: Users, color: 'text-ajh-primary' },
+        { label: 'Ativos', value: '7', icon: Users, color: 'text-green-400' },
+        { label: 'CNH a Vencer', value: '1', icon: AlertTriangle, color: 'text-yellow-400' },
+        { label: 'Inativos', value: '1', icon: Users, color: 'text-red-400' }
+      ];
+    } else {
+      return [
+        { label: 'Total Motoristas', value: '89', icon: Users, color: 'text-ajh-primary' },
+        { label: 'Ativos', value: '78', icon: Users, color: 'text-green-400' },
+        { label: 'CNH a Vencer', value: '6', icon: AlertTriangle, color: 'text-yellow-400' },
+        { label: 'Inativos', value: '11', icon: Users, color: 'text-red-400' }
+      ];
+    }
+  };
+
+  const stats = getStatsForRole();
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Motoristas</h1>
-          <p className="text-slate-400">Gerencie todos os motoristas cadastrados no sistema</p>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            {user?.role === 'transportadora' ? 'Meus Motoristas' : 'Motoristas'}
+          </h1>
+          <p className="text-slate-400">
+            {user?.role === 'transportadora' 
+              ? 'Gerenciamento dos seus motoristas'
+              : 'Gerenciamento de todos os motoristas cadastrados'
+            }
+          </p>
         </div>
         <Button className="ajh-button-primary">
           <Plus className="w-4 h-4 mr-2" />
@@ -125,104 +184,46 @@ const Motoristas: React.FC = () => {
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="ajh-card">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-ajh-primary/10 rounded-lg">
-                <Users className="w-6 h-6 text-ajh-primary" />
-              </div>
-              <div>
-                <p className="text-slate-400 text-sm">Motoristas Ativos</p>
-                <p className="text-2xl font-bold text-white">{totalAtivos}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="ajh-card">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-ajh-warning/10 rounded-lg">
-                <AlertTriangle className="w-6 h-6 text-ajh-warning" />
-              </div>
-              <div>
-                <p className="text-slate-400 text-sm">CNH Vencendo</p>
-                <p className="text-2xl font-bold text-white">{cnhVencendo}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="ajh-card">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-ajh-secondary/10 rounded-lg">
-                <Car className="w-6 h-6 text-ajh-secondary" />
-              </div>
-              <div>
-                <p className="text-slate-400 text-sm">Com Veículos</p>
-                <p className="text-2xl font-bold text-white">{motoristas.filter(m => m.veiculo).length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={index} className="ajh-card">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2">
+                  <Icon className={`w-8 h-8 ${stat.color}`} />
+                  <div>
+                    <p className="text-2xl font-bold text-white">{stat.value}</p>
+                    <p className="text-sm text-slate-400">{stat.label}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      {/* Filters */}
+      {/* Search and Filters */}
       <Card className="ajh-card">
-        <CardHeader>
-          <CardTitle className="text-white">Filtros</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <Input
-                  placeholder="Pesquisar por nome, CPF ou CNH..."
+                  placeholder="Buscar por nome, CPF, CNH ou empresa..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="ajh-input pl-10"
+                  className="pl-10 ajh-input"
                 />
               </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant={statusFilter === 'all' ? 'default' : 'outline'}
-                onClick={() => setStatusFilter('all')}
-                className={statusFilter === 'all' ? 'ajh-button-primary' : 'ajh-button-secondary'}
-              >
-                Todos
-              </Button>
-              <Button
-                variant={statusFilter === 'ativo' ? 'default' : 'outline'}
-                onClick={() => setStatusFilter('ativo')}
-                className={statusFilter === 'ativo' ? 'ajh-button-primary' : 'ajh-button-secondary'}
-              >
-                Ativo
-              </Button>
-              <Button
-                variant={statusFilter === 'licenca' ? 'default' : 'outline'}
-                onClick={() => setStatusFilter('licenca')}
-                className={statusFilter === 'licenca' ? 'ajh-button-primary' : 'ajh-button-secondary'}
-              >
-                Licença
-              </Button>
-              <Button
-                variant={statusFilter === 'inativo' ? 'default' : 'outline'}
-                onClick={() => setStatusFilter('inativo')}
-                className={statusFilter === 'inativo' ? 'ajh-button-primary' : 'ajh-button-secondary'}
-              >
-                Inativo
-              </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Table */}
+      {/* Drivers Table */}
       <Card className="ajh-card">
         <CardHeader>
           <CardTitle className="text-white">Lista de Motoristas</CardTitle>
@@ -232,62 +233,108 @@ const Motoristas: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-slate-700">
-                  <TableHead className="text-slate-300">Nome</TableHead>
-                  <TableHead className="text-slate-300">CNH</TableHead>
-                  <TableHead className="text-slate-300">Contato</TableHead>
-                  <TableHead className="text-slate-300">Empresa</TableHead>
-                  <TableHead className="text-slate-300">Veículo</TableHead>
-                  <TableHead className="text-slate-300">Status</TableHead>
-                  <TableHead className="text-slate-300 text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-700">
+                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Motorista</th>
+                  <th className="text-left py-3 px-2 text-slate-300 font-medium">CNH</th>
+                  {user?.role !== 'transportadora' && (
+                    <th className="text-left py-3 px-2 text-slate-300 font-medium">Empresa</th>
+                  )}
+                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Veículo</th>
+                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Validade CNH</th>
+                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Status</th>
+                  <th className="text-center py-3 px-2 text-slate-300 font-medium">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
                 {filteredMotoristas.map((motorista) => (
-                  <TableRow key={motorista.id} className="border-slate-700 hover:bg-slate-800/30">
-                    <TableCell className="text-white font-medium">{motorista.nome}</TableCell>
-                    <TableCell className="text-slate-300">
+                  <tr key={motorista.id} className="border-b border-slate-700/50 hover:bg-slate-800/50">
+                    <td className="py-4 px-2">
                       <div>
-                        <div>{motorista.cnh}</div>
-                        <div className="text-xs text-slate-400 flex items-center">
-                          Cat. {motorista.categoria} • Val: {new Date(motorista.validade).toLocaleDateString()}
-                          {isValidadeProxima(motorista.validade) && (
-                            <AlertTriangle className="w-3 h-3 text-yellow-400 ml-1" />
-                          )}
-                        </div>
+                        <p className="text-white font-medium">{motorista.nome}</p>
+                        <p className="text-sm text-slate-400">{motorista.cpf}</p>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-slate-300">
+                    </td>
+                    <td className="py-4 px-2">
                       <div>
-                        <div>{motorista.telefone}</div>
-                        <div className="text-xs text-slate-400">{motorista.email}</div>
+                        <span className="text-white font-mono bg-slate-800 px-2 py-1 rounded text-sm">
+                          {motorista.cnh}
+                        </span>
+                        <p className="text-sm text-slate-400 mt-1">Cat. {motorista.categoria}</p>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-slate-300">{motorista.empresa}</TableCell>
-                    <TableCell className="text-slate-300">{motorista.veiculo || 'Não atribuído'}</TableCell>
-                    <TableCell>{getStatusBadge(motorista.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button size="sm" variant="ghost" className="text-ajh-primary hover:text-ajh-primary hover:bg-ajh-primary/10">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" className="text-ajh-secondary hover:text-ajh-secondary hover:bg-ajh-secondary/10">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                    </td>
+                    {user?.role !== 'transportadora' && (
+                      <td className="py-4 px-2 text-slate-300">{motorista.empresa}</td>
+                    )}
+                    <td className="py-4 px-2">
+                      <span className="text-white font-mono bg-slate-800 px-2 py-1 rounded text-sm">
+                        {motorista.veiculo}
+                      </span>
+                    </td>
+                    <td className="py-4 px-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-white text-sm">
+                          {new Date(motorista.validadeCnh).toLocaleDateString('pt-BR')}
+                        </span>
+                        {isValidadeVencida(motorista.validadeCnh) && (
+                          <AlertTriangle className="w-4 h-4 text-red-400" />
+                        )}
+                        {isValidadePerto(motorista.validadeCnh) && (
+                          <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                        )}
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                    <td className="py-4 px-2">
+                      <Badge 
+                        className={motorista.status === 'Ativo' 
+                          ? 'bg-green-500/20 text-green-400 border-green-500/30' 
+                          : 'bg-red-500/20 text-red-400 border-red-500/30'
+                        }
+                      >
+                        {motorista.status}
+                      </Badge>
+                    </td>
+                    <td className="py-4 px-2">
+                      <div className="flex justify-center">
+                        <TableActions
+                          onView={() => handleView(motorista)}
+                          onEdit={() => handleEdit(motorista)}
+                          onDelete={() => handleDelete(motorista)}
+                        />
+                      </div>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      <ViewModal
+        isOpen={viewModalOpen}
+        onClose={() => setViewModalOpen(false)}
+        title="Detalhes do Motorista"
+        data={selectedMotorista || {}}
+      />
+
+      <EditModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Editar Motorista"
+        data={selectedMotorista || {}}
+        onSave={handleSave}
+      />
+
+      <DeleteModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="Excluir Motorista"
+        description={`Tem certeza que deseja excluir o motorista "${selectedMotorista?.nome}"?`}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };
