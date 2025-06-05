@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,11 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, title, data, onS
   const [formData, setFormData] = useState(data);
   const { toast } = useToast();
 
+  // Atualizar formData quando data mudar
+  useEffect(() => {
+    setFormData(data);
+  }, [data]);
+
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -32,6 +37,42 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, title, data, onS
 
   const handleChange = (key: string, value: string) => {
     setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Campos que não devem ser editáveis
+  const readOnlyFields = ['id', 'dataCredenciamento', 'dataCadastro'];
+
+  // Formatação de labels
+  const formatLabel = (key: string) => {
+    const labelMap: Record<string, string> = {
+      nome: 'Nome',
+      razaoSocial: 'Razão Social',
+      cnpj: 'CNPJ',
+      cpf: 'CPF',
+      endereco: 'Endereço',
+      cidade: 'Cidade',
+      estado: 'Estado',
+      cep: 'CEP',
+      telefone: 'Telefone',
+      email: 'Email',
+      responsavel: 'Responsável',
+      totalVagas: 'Total de Vagas',
+      vagasDisponiveis: 'Vagas Disponíveis',
+      valorDiaria: 'Valor da Diária (R$)',
+      valorHora: 'Valor da Diária (R$)', // Mapeando o antigo campo para o novo
+      placa: 'Placa',
+      modelo: 'Modelo',
+      marca: 'Marca',
+      ano: 'Ano',
+      cor: 'Cor',
+      categoria: 'Categoria',
+      motorista: 'Motorista',
+      rg: 'RG',
+      cnh: 'CNH',
+      telefoneContato: 'Telefone de Contato',
+      empresa: 'Empresa'
+    };
+    return labelMap[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
   };
 
   return (
@@ -50,16 +91,17 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, title, data, onS
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {Object.entries(formData).filter(([key]) => key !== 'id').map(([key, value]) => (
+          {Object.entries(formData).filter(([key]) => !readOnlyFields.includes(key)).map(([key, value]) => (
             <div key={key} className="space-y-2">
-              <Label htmlFor={key} className="text-slate-300 capitalize">
-                {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+              <Label htmlFor={key} className="text-slate-300">
+                {formatLabel(key)}
               </Label>
               <Input
                 id={key}
                 value={value || ''}
                 onChange={(e) => handleChange(key, e.target.value)}
                 className="ajh-input"
+                type={key.includes('email') ? 'email' : key.includes('telefone') || key.includes('cnpj') || key.includes('cpf') ? 'tel' : 'text'}
               />
             </div>
           ))}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Building2, MapPin, Users, Car, Plus, Edit, Trash2, Eye, Search } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +22,7 @@ interface EstacionamentoCadastrado {
   cep: string;
   totalVagas: number;
   vagasDisponiveis: number;
-  valorHora: number;
+  valorDiaria: number;
   telefone: string;
   email: string;
   responsavel: string;
@@ -54,7 +53,7 @@ const EstacionamentosCadastrados: React.FC = () => {
       cep: '01234-567',
       totalVagas: 50,
       vagasDisponiveis: 12,
-      valorHora: 8.50,
+      valorDiaria: 120.00,
       telefone: '(11) 9999-8888',
       email: 'contato@central.com',
       responsavel: 'João Silva',
@@ -70,7 +69,7 @@ const EstacionamentosCadastrados: React.FC = () => {
       cep: '02345-678',
       totalVagas: 80,
       vagasDisponiveis: 25,
-      valorHora: 12.00,
+      valorDiaria: 120.00,
       telefone: '(11) 8888-7777',
       email: 'admin@parknorte.com',
       responsavel: 'Maria Santos',
@@ -86,7 +85,7 @@ const EstacionamentosCadastrados: React.FC = () => {
       cep: '03456-789',
       totalVagas: 30,
       vagasDisponiveis: 0,
-      valorHora: 15.00,
+      valorDiaria: 120.00,
       telefone: '(11) 7777-6666',
       email: 'contato@vilamadalena.com',
       responsavel: 'Carlos Oliveira',
@@ -133,12 +132,20 @@ const EstacionamentosCadastrados: React.FC = () => {
 
   const handleSave = (data: Record<string, any>) => {
     console.log('Salvando estacionamento:', data);
-    // Aqui você implementaria a lógica de salvamento
+    toast({
+      title: "Estacionamento Atualizado",
+      description: "As alterações foram salvas com sucesso.",
+    });
+    setEditModalOpen(false);
   };
 
   const handleConfirmDelete = () => {
     console.log('Excluindo estacionamento:', selectedEstacionamento?.id);
-    // Aqui você implementaria a lógica de exclusão
+    toast({
+      title: "Estacionamento Excluído",
+      description: "O estacionamento foi removido com sucesso.",
+    });
+    setDeleteModalOpen(false);
   };
 
   const handleCadastroSave = (data: Record<string, any>) => {
@@ -151,7 +158,6 @@ const EstacionamentosCadastrados: React.FC = () => {
   };
 
   const handleGerenciarVagas = (estacionamento: EstacionamentoCadastrado) => {
-    // Navegar para a página de gerenciamento de vagas específica do estacionamento
     navigate(`/estacionamento/${estacionamento.id}`);
   };
 
@@ -301,7 +307,7 @@ const EstacionamentosCadastrados: React.FC = () => {
                 <TableHead className="text-slate-300">Nome</TableHead>
                 <TableHead className="text-slate-300">Endereço</TableHead>
                 <TableHead className="text-slate-300">Vagas</TableHead>
-                <TableHead className="text-slate-300">Valor/Hora</TableHead>
+                <TableHead className="text-slate-300">Valor/Diária</TableHead>
                 <TableHead className="text-slate-300">Status</TableHead>
                 <TableHead className="text-slate-300">Ações</TableHead>
               </TableRow>
@@ -328,7 +334,7 @@ const EstacionamentosCadastrados: React.FC = () => {
                     </div>
                   </TableCell>
                   <TableCell className="text-white">
-                    R$ {estacionamento.valorHora.toFixed(2)}
+                    R$ {estacionamento.valorDiaria.toFixed(2)}
                   </TableCell>
                   <TableCell>
                     {getStatusBadge(estacionamento.status)}

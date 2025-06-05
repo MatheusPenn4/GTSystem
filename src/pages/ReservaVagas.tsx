@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ParkingCircle, Search, MapPin, Clock, Car, Building2, Calendar } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +13,7 @@ interface Estacionamento {
   cidade: string;
   vagasDisponiveis: number;
   totalVagas: number;
-  preco: number;
+  valorDiaria: number;
   distancia: string;
   horarioFuncionamento: string;
   status: 'disponivel' | 'cheio' | 'manutencao';
@@ -34,7 +33,7 @@ const ReservaVagas: React.FC = () => {
       cidade: 'São Paulo',
       vagasDisponiveis: 45,
       totalVagas: 100,
-      preco: 15.00,
+      valorDiaria: 120.00,
       distancia: '2.3 km',
       horarioFuncionamento: '24h',
       status: 'disponivel'
@@ -46,7 +45,7 @@ const ReservaVagas: React.FC = () => {
       cidade: 'São Paulo',
       vagasDisponiveis: 12,
       totalVagas: 80,
-      preco: 20.00,
+      valorDiaria: 120.00,
       distancia: '5.7 km',
       horarioFuncionamento: '06:00 - 22:00',
       status: 'disponivel'
@@ -58,7 +57,7 @@ const ReservaVagas: React.FC = () => {
       cidade: 'Rio de Janeiro',
       vagasDisponiveis: 0,
       totalVagas: 60,
-      preco: 18.00,
+      valorDiaria: 120.00,
       distancia: '1.2 km',
       horarioFuncionamento: '24h',
       status: 'cheio'
@@ -70,7 +69,7 @@ const ReservaVagas: React.FC = () => {
       cidade: 'Belo Horizonte',
       vagasDisponiveis: 28,
       totalVagas: 150,
-      preco: 12.00,
+      valorDiaria: 120.00,
       distancia: '3.1 km',
       horarioFuncionamento: '05:00 - 23:00',
       status: 'disponivel'
@@ -254,7 +253,7 @@ const ReservaVagas: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <Car className="w-4 h-4 text-slate-400" />
-                  <span className="text-slate-300">R$ {estacionamento.preco.toFixed(2)}/h</span>
+                  <span className="text-slate-300">R$ {estacionamento.valorDiaria.toFixed(2)}/dia</span>
                 </div>
               </div>
               
