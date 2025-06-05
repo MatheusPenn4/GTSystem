@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Building2, 
@@ -377,22 +376,22 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
+        {/* Quick Actions - Corrigindo centralização e espaçamento */}
         <Card className="ajh-card">
           <CardHeader>
-            <CardTitle className="text-white">Ações Rápidas</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle className="text-white text-center">Ações Rápidas</CardTitle>
+            <CardDescription className="text-slate-400 text-center">
               Operações frequentes
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
+          <CardContent className="px-6 pb-6">
+            <div className="flex flex-col items-center space-y-3">
               {quickActions.map((action, index) => {
                 const Icon = action.icon;
                 return (
-                  <Link key={index} to={action.path}>
-                    <Button className="w-full ajh-button-primary justify-start">
-                      <Icon className="w-4 h-4 mr-2" />
+                  <Link key={index} to={action.path} className="w-full">
+                    <Button className="w-full ajh-button-primary justify-start h-12 text-left">
+                      <Icon className="w-4 h-4 mr-3" />
                       {action.label}
                     </Button>
                   </Link>

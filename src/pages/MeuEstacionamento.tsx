@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MapPin, Plus, Edit, Building2, Users, Car, Clock, Settings } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,9 +6,16 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import CadastroEstacionamentoModal from '@/components/modals/CadastroEstacionamentoModal';
+import EditModal from '@/components/modals/EditModal';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const MeuEstacionamento: React.FC = () => {
   const [modalCadastroOpen, setModalCadastroOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedUnidade, setSelectedUnidade] = useState<any>(null);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Mock data para unidades da rede
   const unidadesRede = [
@@ -81,7 +87,36 @@ const MeuEstacionamento: React.FC = () => {
 
   const handleCadastroEstacionamento = (data: any) => {
     console.log('Cadastrando nova unidade:', data);
-    // Aqui você implementaria a lógica de cadastramento
+    toast({
+      title: "Unidade Cadastrada",
+      description: "Nova unidade foi cadastrada com sucesso!",
+    });
+    setModalCadastroOpen(false);
+  };
+
+  const handleEditarUnidade = (unidade: any) => {
+    setSelectedUnidade(unidade);
+    setEditModalOpen(true);
+  };
+
+  const handleSalvarEdicao = (data: any) => {
+    console.log('Editando unidade:', data);
+    toast({
+      title: "Unidade Atualizada",
+      description: "As informações da unidade foram atualizadas com sucesso!",
+    });
+    setEditModalOpen(false);
+    setSelectedUnidade(null);
+  };
+
+  const handleGerenciarUnidade = (unidade: any) => {
+    console.log('Gerenciando unidade:', unidade.id);
+    toast({
+      title: "Redirecionando",
+      description: `Abrindo gerenciamento da unidade ${unidade.nome}`,
+    });
+    // Redireciona para a página de gerenciamento do estacionamento específico
+    navigate('/estacionamento', { state: { unidadeId: unidade.id } });
   };
 
   return (
@@ -188,11 +223,19 @@ const MeuEstacionamento: React.FC = () => {
                   >
                     {unidade.status}
                   </Badge>
-                  <Button size="sm" className="ajh-button-secondary">
+                  <Button 
+                    size="sm" 
+                    className="ajh-button-secondary"
+                    onClick={() => handleEditarUnidade(unidade)}
+                  >
                     <Edit className="w-4 h-4 mr-2" />
                     Editar
                   </Button>
-                  <Button size="sm" className="ajh-button-primary">
+                  <Button 
+                    size="sm" 
+                    className="ajh-button-primary"
+                    onClick={() => handleGerenciarUnidade(unidade)}
+                  >
                     <Settings className="w-4 h-4 mr-2" />
                     Gerenciar
                   </Button>
@@ -286,6 +329,15 @@ const MeuEstacionamento: React.FC = () => {
         isOpen={modalCadastroOpen}
         onClose={() => setModalCadastroOpen(false)}
         onSave={handleCadastroEstacionamento}
+      />
+
+      {/* Modal de Edição */}
+      <EditModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Editar Unidade"
+        data={selectedUnidade || {}}
+        onSave={handleSalvarEdicao}
       />
     </div>
   );
