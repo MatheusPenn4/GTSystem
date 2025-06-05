@@ -17,6 +17,7 @@ import Veiculos from "@/pages/Veiculos";
 import Motoristas from "@/pages/Motoristas";
 import Estacionamento from "@/pages/Estacionamento";
 import Relatorios from "@/pages/Relatorios";
+import Financeiro from "@/pages/Financeiro";
 import Configuracoes from "@/pages/Configuracoes";
 import ReservaVagas from "@/pages/ReservaVagas";
 import MinhasReservas from "@/pages/MinhasReservas";
@@ -111,6 +112,16 @@ const App = () => (
                 <PrivateRoute>
                   <Layout>
                     <Relatorios />
+                  </Layout>
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/financeiro" 
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Financeiro />
                   </Layout>
                 </PrivateRoute>
               } 
