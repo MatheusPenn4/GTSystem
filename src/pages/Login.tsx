@@ -27,24 +27,24 @@ const Login: React.FC = () => {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center p-4 relative"
+      className="min-h-screen flex items-center justify-end p-4 relative"
       style={{
         backgroundImage: 'url(/lovable-uploads/98a3ae25-5c5f-40dc-937c-bac066e4da8a.png)',
         backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundPosition: 'center left',
         backgroundRepeat: 'no-repeat'
       }}
     >
       {/* Overlay para escurecer/desfocar o fundo */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
       
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-md relative z-10 mr-8 lg:mr-16">
         <div className="glass-effect p-8 rounded-2xl border border-slate-700/50 backdrop-blur-lg bg-slate-900/80">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="w-20 h-20 flex items-center justify-center mx-auto mb-4">
               <img 
-                src="/lovable-uploads/c0ee3dc4-7d90-43b9-a2e0-7678b170d963.png" 
+                src="/lovable-uploads/924cf0eb-5f16-4ed6-b99f-4fd14ee98d4b.png" 
                 alt="GTSystem Logo" 
                 className="w-16 h-16 object-contain"
               />

@@ -95,7 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 flex items-center justify-center">
                 <img 
-                  src="/lovable-uploads/c0ee3dc4-7d90-43b9-a2e0-7678b170d963.png" 
+                  src="/lovable-uploads/924cf0eb-5f16-4ed6-b99f-4fd14ee98d4b.png" 
                   alt="GTSystem Logo" 
                   className="w-8 h-8 object-contain"
                 />
