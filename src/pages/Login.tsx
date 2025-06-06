@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -87,36 +88,23 @@ const Login: React.FC = () => {
           {/* Main Container */}
           <div className="relative backdrop-blur-2xl bg-white/5 border border-white/20 rounded-3xl p-8 shadow-2xl">
             {/* Header Section */}
-            <div className="text-center mb-8">
-              {/* Logo with Glow Effect - Above Text */}
-              <div className="relative w-32 h-32 mx-auto mb-2">
-                {/* Glow Layers */}
-                <div className="absolute inset-0 bg-gradient-to-r from-ajh-primary to-ajh-secondary rounded-full blur-lg opacity-40 scale-125 animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-r from-ajh-secondary to-ajh-accent rounded-full blur-md opacity-30 scale-110 animate-pulse delay-500" />
-                
-                {/* Logo Container */}
-                <div className="relative w-32 h-32 flex items-center justify-center">
-                  <img 
-                    src="/lovable-uploads/924cf0eb-5f16-4ed6-b99f-4fd14ee98d4b.png" 
-                    alt="GTSystem Logo" 
-                    className="w-28 h-28 object-contain drop-shadow-lg brightness-110 contrast-110 saturate-110"
-                    style={{
-                      filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.5)) drop-shadow(0 0 20px rgba(6, 182, 212, 0.4))'
-                    }}
-                  />
-                </div>
+            <div className="text-center mb-10">
+              {/* Logo - Clean without neon effects */}
+              <div className="relative w-40 h-40 mx-auto mb-6 flex items-center justify-center">
+                <img 
+                  src="/lovable-uploads/924cf0eb-5f16-4ed6-b99f-4fd14ee98d4b.png" 
+                  alt="GTSystem Logo" 
+                  className="w-36 h-36 object-contain drop-shadow-lg"
+                />
               </div>
               
               {/* Title with Gradient Text */}
-              <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-ajh-primary via-ajh-secondary to-ajh-accent bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold mb-6 bg-gradient-to-r from-ajh-primary via-ajh-secondary to-ajh-accent bg-clip-text text-transparent">
                 GTSystem
               </h1>
               
-              <p className="text-white/80 text-lg font-medium mb-2">Sistema de Estacionamento</p>
-              <p className="text-white/60 text-sm">Acesso Tecnológico Avançado</p>
-              
               {/* Animated Line */}
-              <div className="w-20 h-1 bg-gradient-to-r from-ajh-primary to-ajh-secondary rounded-full mx-auto mt-4 animate-pulse" />
+              <div className="w-20 h-1 bg-gradient-to-r from-ajh-primary to-ajh-secondary rounded-full mx-auto animate-pulse" />
             </div>
 
             {/* Login Form */}
