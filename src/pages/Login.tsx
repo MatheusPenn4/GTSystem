@@ -27,16 +27,16 @@ const Login: React.FC = () => {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-start p-4 relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{
-        backgroundImage: 'url(/lovable-uploads/98a3ae25-5c5f-40dc-937c-bac066e4da8a.png)',
+        backgroundImage: 'url(/lovable-uploads/831479e3-1ac2-45e0-aa6d-f00ac1d4d24e.png)',
         backgroundSize: 'cover',
-        backgroundPosition: 'right center',
+        backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
       }}
     >
       {/* Overlay tecnológico com gradiente e efeitos */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-transparent"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/80"></div>
       
       {/* Efeitos tecnológicos */}
       <div className="absolute inset-0 opacity-20">
@@ -56,7 +56,7 @@ const Login: React.FC = () => {
         }}></div>
       </div>
       
-      <div className="w-full max-w-md relative z-10 ml-8 lg:ml-16">
+      <div className="w-full max-w-md relative z-10">
         <div className="glass-effect p-6 rounded-2xl border border-slate-700/50 backdrop-blur-lg bg-slate-900/90 shadow-2xl">
           {/* Header */}
           <div className="text-center mb-6">
