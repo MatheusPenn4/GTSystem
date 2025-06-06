@@ -79,22 +79,22 @@ const Login: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 w-full max-w-md mx-auto p-6">
+      <div className="relative z-10 w-full max-w-sm mx-auto p-6">
         {/* Glassmorphism Login Container */}
         <div className="relative">
           {/* Glow Effect Behind Container */}
           <div className="absolute inset-0 bg-gradient-to-r from-ajh-primary/20 via-ajh-secondary/20 to-ajh-accent/20 rounded-3xl blur-xl scale-105" />
           
           {/* Main Container */}
-          <div className="relative backdrop-blur-2xl bg-white/5 border border-white/20 rounded-3xl p-8 shadow-2xl">
+          <div className="relative backdrop-blur-2xl bg-white/5 border border-white/20 rounded-3xl p-6 shadow-2xl">
             {/* Header Section */}
-            <div className="text-center mb-10">
-              {/* Logo - Clean without neon effects */}
-              <div className="relative w-36 h-36 mx-auto mb-4 flex items-center justify-center">
+            <div className="text-center mb-8">
+              {/* Logo - Compact spacing */}
+              <div className="relative w-20 h-20 mx-auto mb-2 flex items-center justify-center">
                 <img 
                   src="/lovable-uploads/924cf0eb-5f16-4ed6-b99f-4fd14ee98d4b.png" 
                   alt="GTSystem Logo" 
-                  className="w-32 h-32 object-contain drop-shadow-lg"
+                  className="w-16 h-16 object-contain drop-shadow-lg"
                 />
               </div>
               
