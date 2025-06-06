@@ -89,14 +89,22 @@ const Login: React.FC = () => {
           <div className="relative backdrop-blur-2xl bg-white/5 border border-white/20 rounded-3xl p-8 shadow-2xl">
             {/* Header Section */}
             <div className="text-center mb-8">
-              {/* Logo with Glow Effect */}
-              <div className="relative w-24 h-24 mx-auto mb-6">
-                <div className="absolute inset-0 bg-gradient-to-r from-ajh-primary to-ajh-secondary rounded-full blur-lg opacity-50 animate-pulse" />
-                <div className="relative w-24 h-24 bg-gradient-to-br from-slate-800 to-slate-900 rounded-full flex items-center justify-center border border-white/20">
+              {/* Logo with Enhanced Glow Effect */}
+              <div className="relative w-32 h-32 mx-auto mb-6">
+                {/* Multiple Glow Layers */}
+                <div className="absolute inset-0 bg-gradient-to-r from-ajh-primary to-ajh-secondary rounded-full blur-2xl opacity-70 scale-125 animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-r from-ajh-secondary to-ajh-accent rounded-full blur-xl opacity-50 scale-110 animate-pulse delay-500" />
+                <div className="absolute inset-0 bg-white/20 rounded-full blur-lg opacity-30 animate-pulse delay-1000" />
+                
+                {/* Logo Container */}
+                <div className="relative w-32 h-32 flex items-center justify-center">
                   <img 
                     src="/lovable-uploads/924cf0eb-5f16-4ed6-b99f-4fd14ee98d4b.png" 
                     alt="GTSystem Logo" 
-                    className="w-16 h-16 object-contain drop-shadow-lg"
+                    className="w-24 h-24 object-contain drop-shadow-2xl brightness-110 contrast-110 saturate-110"
+                    style={{
+                      filter: 'drop-shadow(0 0 20px rgba(59, 130, 246, 0.8)) drop-shadow(0 0 40px rgba(6, 182, 212, 0.6)) drop-shadow(0 0 60px rgba(139, 92, 246, 0.4))'
+                    }}
                   />
                 </div>
               </div>
@@ -196,13 +204,15 @@ const Login: React.FC = () => {
         </div>
       </div>
 
-      {/* Additional CSS Animations */}
-      <style jsx>{`
-        @keyframes grid-move {
-          0% { transform: translate(0, 0); }
-          100% { transform: translate(60px, 60px); }
-        }
-      `}</style>
+      {/* CSS Animations */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(60px, 60px); }
+          }
+        `
+      }} />
     </div>
   );
 };
