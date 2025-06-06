@@ -150,7 +150,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-800/50 transition-colors">
-              <Avatar className="w-8 h-8">
+              <Avatar className="w-10 h-10">
                 <AvatarImage src={user?.avatar} alt={user?.name} />
                 <AvatarFallback className="bg-ajh-primary text-white">
                   {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
