@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -90,17 +89,17 @@ const Login: React.FC = () => {
             {/* Header Section */}
             <div className="text-center mb-8">
               {/* Logo with Glow Effect - Above Text */}
-              <div className="relative w-28 h-28 mx-auto mb-4">
+              <div className="relative w-32 h-32 mx-auto mb-2">
                 {/* Glow Layers */}
                 <div className="absolute inset-0 bg-gradient-to-r from-ajh-primary to-ajh-secondary rounded-full blur-lg opacity-40 scale-125 animate-pulse" />
                 <div className="absolute inset-0 bg-gradient-to-r from-ajh-secondary to-ajh-accent rounded-full blur-md opacity-30 scale-110 animate-pulse delay-500" />
                 
                 {/* Logo Container */}
-                <div className="relative w-28 h-28 flex items-center justify-center">
+                <div className="relative w-32 h-32 flex items-center justify-center">
                   <img 
                     src="/lovable-uploads/924cf0eb-5f16-4ed6-b99f-4fd14ee98d4b.png" 
                     alt="GTSystem Logo" 
-                    className="w-24 h-24 object-contain drop-shadow-lg brightness-110 contrast-110 saturate-110"
+                    className="w-28 h-28 object-contain drop-shadow-lg brightness-110 contrast-110 saturate-110"
                     style={{
                       filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.5)) drop-shadow(0 0 20px rgba(6, 182, 212, 0.4))'
                     }}
