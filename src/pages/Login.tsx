@@ -88,18 +88,18 @@ const Login: React.FC = () => {
           {/* Main Container */}
           <div className="relative backdrop-blur-2xl bg-white/5 border border-white/20 rounded-3xl p-6 shadow-2xl">
             {/* Header Section */}
-            <div className="text-center mb-8">
-              {/* Logo - Increased size and reduced spacing */}
-              <div className="relative w-32 h-32 mx-auto mb-1 flex items-center justify-center">
+            <div className="text-center mb-6">
+              {/* Logo - Much larger size with minimal spacing */}
+              <div className="relative w-40 h-40 mx-auto mb-0 flex items-center justify-center">
                 <img 
                   src="/lovable-uploads/924cf0eb-5f16-4ed6-b99f-4fd14ee98d4b.png" 
                   alt="GTSystem Logo" 
-                  className="w-28 h-28 object-contain drop-shadow-lg"
+                  className="w-36 h-36 object-contain drop-shadow-lg"
                 />
               </div>
               
-              {/* Title with Enhanced Effects - Reduced size to be smaller than logo */}
-              <h1 className="text-2xl font-bold mb-6 bg-gradient-to-r from-ajh-primary via-ajh-secondary to-ajh-accent bg-clip-text text-transparent drop-shadow-2xl"
+              {/* Title with Enhanced Effects - Compact spacing */}
+              <h1 className="text-xl font-bold mb-4 bg-gradient-to-r from-ajh-primary via-ajh-secondary to-ajh-accent bg-clip-text text-transparent drop-shadow-2xl"
                   style={{
                     textShadow: '0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(6, 182, 212, 0.3), 0 0 60px rgba(139, 92, 246, 0.2)',
                     filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.8))'
