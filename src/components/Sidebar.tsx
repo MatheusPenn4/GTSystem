@@ -93,11 +93,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         <div className="p-6 border-b border-slate-700/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-ajh rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">AJH</span>
+              <div className="w-10 h-10 flex items-center justify-center">
+                <img 
+                  src="/lovable-uploads/c0ee3dc4-7d90-43b9-a2e0-7678b170d963.png" 
+                  alt="GTSystem Logo" 
+                  className="w-8 h-8 object-contain"
+                />
               </div>
               <div>
-                <span className="text-white font-semibold text-lg">Sistema</span>
+                <span className="text-white font-semibold text-lg">GTSystem</span>
                 {user?.role && (
                   <p className="text-slate-400 text-xs capitalize">
                     {user.role === 'admin' ? 'Administrador' : 

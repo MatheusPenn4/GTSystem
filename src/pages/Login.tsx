@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -24,68 +25,33 @@ const Login: React.FC = () => {
     setIsLoading(false);
   };
 
-  const handleDemoLogin = (userType: 'admin' | 'transportadora' | 'estacionamento') => {
-    switch (userType) {
-      case 'admin':
-        setEmail('admin@ajh.com');
-        setPassword('admin123');
-        break;
-      case 'transportadora':
-        setEmail('transportadora@abc.com');
-        setPassword('transp123');
-        break;
-      case 'estacionamento':
-        setEmail('estacionamento@central.com');
-        setPassword('park123');
-        break;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-ajh-darker flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="glass-effect p-8 rounded-2xl border border-slate-700/50">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 relative"
+      style={{
+        backgroundImage: 'url(/lovable-uploads/98a3ae25-5c5f-40dc-937c-bac066e4da8a.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Overlay para escurecer/desfocar o fundo */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      
+      <div className="w-full max-w-md relative z-10">
+        <div className="glass-effect p-8 rounded-2xl border border-slate-700/50 backdrop-blur-lg bg-slate-900/80">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-ajh rounded-xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-white font-bold text-xl">AJH</span>
+            <div className="w-20 h-20 flex items-center justify-center mx-auto mb-4">
+              <img 
+                src="/lovable-uploads/c0ee3dc4-7d90-43b9-a2e0-7678b170d963.png" 
+                alt="GTSystem Logo" 
+                className="w-16 h-16 object-contain"
+              />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Sistema de Estacionamento</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">GTSystem</h1>
+            <p className="text-slate-300 text-lg mb-1">Sistema de Estacionamento</p>
             <p className="text-slate-400">Faça login para continuar</p>
-          </div>
-
-          {/* Demo Accounts */}
-          <div className="mb-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-            <h3 className="text-white text-sm font-medium mb-3">Contas de Demonstração:</h3>
-            <div className="space-y-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-full text-left justify-start border-slate-600 text-slate-300 hover:bg-slate-700"
-                onClick={() => handleDemoLogin('admin')}
-              >
-                👨‍💼 Admin: admin@ajh.com / admin123
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-full text-left justify-start border-slate-600 text-slate-300 hover:bg-slate-700"
-                onClick={() => handleDemoLogin('transportadora')}
-              >
-                🚛 Transportadora: transportadora@abc.com / transp123
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-full text-left justify-start border-slate-600 text-slate-300 hover:bg-slate-700"
-                onClick={() => handleDemoLogin('estacionamento')}
-              >
-                🅿️ Estacionamento: estacionamento@central.com / park123
-              </Button>
-            </div>
           </div>
 
           {/* Form */}
@@ -135,7 +101,7 @@ const Login: React.FC = () => {
           {/* Footer */}
           <div className="mt-8 text-center">
             <p className="text-slate-500 text-sm">
-              © 2024 AJH Sistema de Estacionamento
+              © 2024 GTSystem - Sistema de Estacionamento
             </p>
           </div>
         </div>
