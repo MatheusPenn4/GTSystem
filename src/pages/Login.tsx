@@ -90,16 +90,20 @@ const Login: React.FC = () => {
             {/* Header Section */}
             <div className="text-center mb-10">
               {/* Logo - Clean without neon effects */}
-              <div className="relative w-40 h-40 mx-auto mb-6 flex items-center justify-center">
+              <div className="relative w-36 h-36 mx-auto mb-4 flex items-center justify-center">
                 <img 
                   src="/lovable-uploads/924cf0eb-5f16-4ed6-b99f-4fd14ee98d4b.png" 
                   alt="GTSystem Logo" 
-                  className="w-36 h-36 object-contain drop-shadow-lg"
+                  className="w-32 h-32 object-contain drop-shadow-lg"
                 />
               </div>
               
-              {/* Title with Gradient Text */}
-              <h1 className="text-2xl font-bold mb-6 bg-gradient-to-r from-ajh-primary via-ajh-secondary to-ajh-accent bg-clip-text text-transparent">
+              {/* Title with Enhanced Effects */}
+              <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-ajh-primary via-ajh-secondary to-ajh-accent bg-clip-text text-transparent drop-shadow-2xl"
+                  style={{
+                    textShadow: '0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(6, 182, 212, 0.3), 0 0 60px rgba(139, 92, 246, 0.2)',
+                    filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.8))'
+                  }}>
                 GTSystem
               </h1>
               
