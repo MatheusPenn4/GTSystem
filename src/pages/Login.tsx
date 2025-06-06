@@ -89,30 +89,32 @@ const Login: React.FC = () => {
           <div className="relative backdrop-blur-2xl bg-white/5 border border-white/20 rounded-3xl p-8 shadow-2xl">
             {/* Header Section */}
             <div className="text-center mb-8">
-              {/* Logo with Enhanced Glow Effect - Much Larger */}
-              <div className="relative w-48 h-48 mx-auto mb-4">
-                {/* Multiple Glow Layers */}
-                <div className="absolute inset-0 bg-gradient-to-r from-ajh-primary to-ajh-secondary rounded-full blur-3xl opacity-70 scale-125 animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-r from-ajh-secondary to-ajh-accent rounded-full blur-2xl opacity-50 scale-110 animate-pulse delay-500" />
-                <div className="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-30 animate-pulse delay-1000" />
-                
-                {/* Logo Container */}
-                <div className="relative w-48 h-48 flex items-center justify-center">
-                  <img 
-                    src="/lovable-uploads/924cf0eb-5f16-4ed6-b99f-4fd14ee98d4b.png" 
-                    alt="GTSystem Logo" 
-                    className="w-40 h-40 object-contain drop-shadow-2xl brightness-110 contrast-110 saturate-110"
-                    style={{
-                      filter: 'drop-shadow(0 0 25px rgba(59, 130, 246, 0.9)) drop-shadow(0 0 50px rgba(6, 182, 212, 0.7)) drop-shadow(0 0 75px rgba(139, 92, 246, 0.5))'
-                    }}
-                  />
+              {/* Logo with Reduced Glow Effect */}
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <div className="relative w-8 h-8">
+                  {/* Reduced Glow Layers */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-ajh-primary to-ajh-secondary rounded-full blur-lg opacity-30 scale-125 animate-pulse" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-ajh-secondary to-ajh-accent rounded-full blur-md opacity-20 scale-110 animate-pulse delay-500" />
+                  
+                  {/* Logo Container */}
+                  <div className="relative w-8 h-8 flex items-center justify-center">
+                    <img 
+                      src="/lovable-uploads/924cf0eb-5f16-4ed6-b99f-4fd14ee98d4b.png" 
+                      alt="GTSystem Logo" 
+                      className="w-7 h-7 object-contain drop-shadow-lg brightness-110 contrast-110 saturate-110"
+                      style={{
+                        filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.4)) drop-shadow(0 0 16px rgba(6, 182, 212, 0.3))'
+                      }}
+                    />
+                  </div>
                 </div>
+                
+                {/* Title with Gradient Text - Next to Logo */}
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-ajh-primary via-ajh-secondary to-ajh-accent bg-clip-text text-transparent">
+                  GTSystem
+                </h1>
               </div>
               
-              {/* Title with Gradient Text - Closer to Logo */}
-              <h1 className="text-5xl font-bold mb-2 bg-gradient-to-r from-ajh-primary via-ajh-secondary to-ajh-accent bg-clip-text text-transparent">
-                GTSystem
-              </h1>
               <p className="text-white/80 text-lg font-medium mb-2">Sistema de Estacionamento</p>
               <p className="text-white/60 text-sm">Acesso Tecnológico Avançado</p>
               
