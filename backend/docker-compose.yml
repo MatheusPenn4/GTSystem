@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # Serviço da API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gtsystem-api
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/gtsystem
+      - REDIS_URL=redis://redis:6379
+      - PORT=3000
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    networks:
+      - gtsystem-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Serviço do banco de dados PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: gtsystem-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=2005
+      - POSTGRES_DB=gtsystem
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - gtsystem-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Serviço do Redis para cache e sessões
+  redis:
+    image: redis:7-alpine
+    container_name: gtsystem-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - gtsystem-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Serviço de adminstração do PostgreSQL (opcional)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: gtsystem-pgadmin
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@gtsystem.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - gtsystem-network
+
+volumes:
+  postgres-data:
+  redis-data:
+  pgadmin-data:
+
+networks:
+  gtsystem-network:
+    driver: bridge 

@@ -1,0 +1,342 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  // Habilitando preview features para melhor performance
+  previewFeatures = ["relationJoins", "nativeDistinct"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum para roles de usuário
+enum UserRole {
+  ADMIN
+  TRANSPORTADORA
+  ESTACIONAMENTO
+}
+
+// Enum para tipos de empresa
+enum CompanyType {
+  TRANSPORTADORA
+  ESTACIONAMENTO
+}
+
+// Enum para tipos de veículo
+enum VehicleType {
+  TRUCK
+  VAN
+  CAR
+  MOTORCYCLE
+}
+
+// Enum para status de reserva
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// Enum para status de pagamento
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+}
+
+// Enum para tipos de transação
+enum TransactionType {
+  PAYMENT
+  REFUND
+  FEE
+}
+
+// Enum para status de transação
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// Modelo de Empresa
+model Company {
+  id          String      @id @default(uuid())
+  name        String
+  cnpj        String      @unique
+  phone       String?
+  email       String?
+  address     String?
+  companyType CompanyType
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relações
+  users        User[]
+  parkingLots  ParkingLot[]
+  vehicles     Vehicle[]
+  drivers      Driver[]
+  reservations Reservation[]
+
+  // Índices para melhor performance
+  @@index([companyType])
+  @@index([isActive])
+  @@index([companyType, isActive])
+  @@map("companies")
+}
+
+// Modelo de Usuário
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  role          UserRole
+  avatarUrl     String?
+  companyId     String?
+  isActive      Boolean   @default(true)
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relações
+  company       Company?  @relation(fields: [companyId], references: [id])
+
+  // Índices para melhor performance
+  @@index([companyId])
+  @@index([role])
+  @@index([isActive])
+  @@index([companyId, role])
+  @@index([companyId, isActive])
+  @@map("users")
+}
+
+// Modelo de Estacionamento
+model ParkingLot {
+  id              String   @id @default(uuid())
+  companyId       String
+  name            String
+  address         String
+  latitude        Float?
+  longitude       Float?
+  totalSpaces     Int
+  availableSpaces Int
+  pricePerHour    Decimal  @db.Decimal(10, 2)
+  operatingHours  Json?    // {monday: {open: "06:00", close: "22:00"}, ...}
+  amenities       String[] // ['security', 'covered', 'electric_charging']
+  images          String[] // URLs das imagens
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relações
+  company      Company       @relation(fields: [companyId], references: [id])
+  reservations Reservation[]
+  parkingSpaces ParkingSpace[]
+
+  // Índices para melhor performance
+  @@index([companyId])
+  @@index([isActive])
+  @@index([companyId, isActive])
+  @@index([latitude, longitude]) // Para buscas geográficas
+  @@map("parking_lots")
+}
+
+// Modelo de Vaga de Estacionamento
+model ParkingSpace {
+  id           String      @id @default(uuid())
+  parkingLotId String
+  spaceNumber  String
+  spaceType    String      // 'truck', 'car', 'motorcycle', etc.
+  isAvailable  Boolean     @default(true)
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Relações
+  parkingLot   ParkingLot   @relation(fields: [parkingLotId], references: [id])
+  reservations Reservation[]
+
+  // Índices para melhor performance
+  @@index([parkingLotId])
+  @@index([isAvailable])
+  @@index([isActive])
+  @@index([parkingLotId, isAvailable])
+  @@index([parkingLotId, spaceType])
+  @@unique([parkingLotId, spaceNumber])
+  @@map("parking_spaces")
+}
+
+// Modelo de Veículo
+model Vehicle {
+  id           String      @id @default(uuid())
+  companyId    String
+  licensePlate String      @unique
+  vehicleType  VehicleType
+  brand        String?
+  model        String?
+  year         Int?
+  color        String?
+  driverId     String?
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Relações
+  company      Company       @relation(fields: [companyId], references: [id])
+  driver       Driver?       @relation(fields: [driverId], references: [id])
+  reservations Reservation[]
+
+  // Índices para melhor performance
+  @@index([companyId])
+  @@index([driverId])
+  @@index([vehicleType])
+  @@index([isActive])
+  @@index([companyId, isActive])
+  @@index([companyId, vehicleType])
+  @@map("vehicles")
+}
+
+// Modelo de Motorista
+model Driver {
+  id        String   @id @default(uuid())
+  companyId String
+  name      String
+  cpf       String   @unique
+  cnh       String   @unique
+  phone     String?
+  email     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações
+  company      Company       @relation(fields: [companyId], references: [id])
+  vehicles     Vehicle[]
+  reservations Reservation[]
+
+  // Índices para melhor performance
+  @@index([companyId])
+  @@index([isActive])
+  @@index([companyId, isActive])
+  @@map("drivers")
+}
+
+// Modelo de Reserva
+model Reservation {
+  id               String            @id @default(uuid())
+  parkingLotId     String
+  parkingSpaceId   String?
+  companyId        String
+  vehicleId        String
+  driverId         String
+  startTime        DateTime
+  endTime          DateTime
+  actualArrival    DateTime?
+  actualDeparture  DateTime?
+  status           ReservationStatus @default(PENDING)
+  totalCost        Decimal?          @db.Decimal(10, 2)
+  paymentStatus    PaymentStatus     @default(PENDING)
+  specialRequests  String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  // Relações
+  parkingLot    ParkingLot     @relation(fields: [parkingLotId], references: [id])
+  parkingSpace  ParkingSpace?  @relation(fields: [parkingSpaceId], references: [id])
+  company       Company        @relation(fields: [companyId], references: [id])
+  vehicle       Vehicle        @relation(fields: [vehicleId], references: [id])
+  driver        Driver         @relation(fields: [driverId], references: [id])
+  transactions  Transaction[]
+
+  // Índices para melhor performance
+  @@index([parkingLotId])
+  @@index([parkingSpaceId])
+  @@index([companyId])
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([startTime])
+  @@index([endTime])
+  @@index([createdAt])
+  @@index([parkingLotId, status])
+  @@index([companyId, status])
+  @@index([startTime, endTime])
+  @@index([parkingLotId, startTime, endTime]) // Para conflitos de reserva
+  @@map("reservations")
+}
+
+// Modelo de Transação
+model Transaction {
+  id                   String            @id @default(uuid())
+  reservationId        String
+  amount               Decimal           @db.Decimal(10, 2)
+  transactionType      TransactionType
+  status               TransactionStatus @default(PENDING)
+  paymentMethod        String?
+  externalTransactionId String?
+  processedAt          DateTime?
+  createdAt            DateTime          @default(now())
+
+  // Relações
+  reservation Reservation @relation(fields: [reservationId], references: [id])
+
+  // Índices para melhor performance
+  @@index([reservationId])
+  @@index([status])
+  @@index([transactionType])
+  @@index([createdAt])
+  @@index([processedAt])
+  @@index([externalTransactionId])
+  @@map("transactions")
+}
+
+// Modelo de Notificação
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  message     String
+  isRead      Boolean  @default(false)
+  type        String   // 'info', 'success', 'warning', 'error'
+  link        String?
+  createdAt   DateTime @default(now())
+
+  // Índices para melhor performance
+  @@index([userId])
+  @@index([isRead])
+  @@index([type])
+  @@index([createdAt])
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+// Modelo de Log de Auditoria
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  action      String
+  entityType  String
+  entityId    String?
+  details     Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  // Índices para melhor performance
+  @@index([userId])
+  @@index([action])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+} 

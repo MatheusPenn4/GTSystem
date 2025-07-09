@@ -1,500 +1,449 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Typography,
-  Grid,
-  Paper,
-  Card,
-  CardContent,
-  useTheme,
-  Box,
-  CircularProgress,
-  Alert,
-  Button,
-} from '@mui/material';
-import {
-  DirectionsCar,
-  LocalParking as ParkingIcon,
-  Person as PersonIcon,
-  EventAvailable as CalendarIcon,
-  Refresh as RefreshIcon,
-} from '@mui/icons-material';
-import ContentWrapper from '../components/layout/ContentWrapper';
-import DashboardCardWrapper from '../components/dashboard/DashboardCardWrapper';
-import StatCard from '../components/dashboard/StatCard';
-import api from '../services/api';
-
-interface DashboardStats {
-  total_transportadoras: number;
-  total_estacionamentos: number;
-  total_vehicles: number;
-  total_drivers: number;
-  total_reservas: number;
-  vagas_disponiveis: number;
-  vagas_ocupadas: number;
-}
+import { 
+  Building2, 
+  Car, 
+  Users, 
+  ParkingCircle, 
+  TrendingUp, 
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Calendar,
+  MapPin,
+  Truck
+} from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
+import DashboardService, { DashboardData } from '@/services/dashboard';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Dashboard: React.FC = () => {
-  const theme = useTheme();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const fetchStats = async () => {
+  useEffect(() => {
+    // Log do usuário atual para depuração
+    console.log('Dashboard - usuário atual:', user);
+    
+    // Só buscar dados quando o usuário estiver carregado
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
+
+  const fetchDashboardData = async () => {
     try {
-      setLoading(true);
-      setError(null);
-
-      // Dados simulados para garantir que a interface funcione mesmo sem API
-      const dadosSimulados: DashboardStats = {
-        total_transportadoras: 8,
-        total_estacionamentos: 5,
-        total_vehicles: 48,
-        total_drivers: 23,
-        total_reservas: 17,
-        vagas_disponiveis: 230,
-        vagas_ocupadas: 170,
-      };
-
-      try {
-        // Tenta buscar os dados das APIs individuais
-        const [transportadorasRes, estacionamentosRes, vehiclesRes, driversRes] =
-          await Promise.allSettled([
-            api.get('/company/companies/'),
-            api.get('/parking/lots/'),
-            api.get('/company/vehicles/'),
-            api.get('/company/drivers/'),
-          ]);
-
-        // Processa os resultados bem-sucedidos
-        const stats = { ...dadosSimulados };
-
-        if (transportadorasRes.status === 'fulfilled') {
-          const data = transportadorasRes.value.data;
-          stats.total_transportadoras = Array.isArray(data)
-            ? data.length
-            : data.results
-              ? data.results.length
-              : dadosSimulados.total_transportadoras;
-        }
-
-        if (estacionamentosRes.status === 'fulfilled') {
-          const data = estacionamentosRes.value.data;
-          stats.total_estacionamentos = Array.isArray(data)
-            ? data.length
-            : data.results
-              ? data.results.length
-              : dadosSimulados.total_estacionamentos;
-        }
-
-        if (vehiclesRes.status === 'fulfilled') {
-          const data = vehiclesRes.value.data;
-          stats.total_vehicles = Array.isArray(data)
-            ? data.length
-            : data.results
-              ? data.results.length
-              : dadosSimulados.total_vehicles;
-        }
-
-        if (driversRes.status === 'fulfilled') {
-          const data = driversRes.value.data;
-          stats.total_drivers = Array.isArray(data)
-            ? data.length
-            : data.results
-              ? data.results.length
-              : dadosSimulados.total_drivers;
-        }
-
-        console.log('Estatísticas carregadas:', stats);
-        setStats(stats);
-      } catch (apiError) {
-        console.warn('Erro ao buscar dados das APIs, usando dados simulados:', apiError);
-        // Se falhar, usa dados simulados
-        setStats(dadosSimulados);
+      setIsLoading(true);
+      const data = await DashboardService.getDashboardData();
+      console.log('Dados recebidos do serviço:', data);
+      
+      // Forçar o uso dos dados recebidos
+      if (data) {
+        console.log('Atualizando estado com os dados recebidos');
+        setDashboardData(data);
+      } else {
+        console.warn('Dados recebidos são nulos ou indefinidos');
       }
-
-      setLoading(false);
     } catch (error) {
-      console.error('Erro ao carregar estatísticas:', error);
-      setError('Não foi possível carregar as estatísticas. Tente novamente mais tarde.');
-      setLoading(false);
+      console.error('Erro ao buscar dados do dashboard:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  const getQuickActionsForRole = () => {
+    switch (user?.role) {
+      case 'admin':
+        return [
+          { icon: Building2, label: 'Nova Empresa', path: '/empresas' },
+          { icon: Car, label: 'Novo Veículo', path: '/veiculos' },
+          { icon: Users, label: 'Novo Motorista', path: '/motoristas' },
+          { icon: ParkingCircle, label: 'Gerenciar Vagas', path: '/estacionamentos-cadastrados' }
+        ];
 
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '60vh',
-        }}
-      >
-        <CircularProgress
-          size={60}
-          thickness={4}
-          sx={{
-            color: theme.palette.primary.main,
-          }}
-        />
-      </Box>
-    );
-  }
+      case 'transportadora':
+        return [
+          { icon: Car, label: 'Cadastrar Veículo', path: '/veiculos' },
+          { icon: Users, label: 'Cadastrar Motorista', path: '/motoristas' },
+          { icon: Calendar, label: 'Reservar Vaga', path: '/reserva-vagas' },
+          { icon: Clock, label: 'Minhas Reservas', path: '/minhas-reservas' }
+        ];
 
-  if (error) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60vh',
-          p: 3,
-        }}
-      >
-        <Alert
-          severity="error"
-          sx={{
-            width: '100%',
-            maxWidth: 600,
-            mb: 3,
-            borderRadius: 2,
-          }}
-        >
-          {error}
-        </Alert>
-        <Button variant="contained" startIcon={<RefreshIcon />} onClick={fetchStats} sx={{ mt: 2 }}>
-          Tentar novamente
-        </Button>
-      </Box>
-    );
-  }
+      case 'estacionamento':
+        return [
+          { icon: ParkingCircle, label: 'Gerenciar Vagas', path: '/estacionamento' },
+          { icon: Calendar, label: 'Ver Reservas', path: '/reservas-recebidas' },
+          { icon: MapPin, label: 'Meu Estacionamento', path: '/meu-estacionamento' },
+          { icon: Building2, label: 'Cadastrar Unidade', path: '/meu-estacionamento' }
+        ];
 
-  // Dados simulados para o dashboard
-  const dashboardData = {
-    transportadoras: stats?.total_transportadoras || 1,
-    estacionamentos: stats?.total_estacionamentos || 2,
-    reservasAtivas: stats?.total_reservas || 17,
-    veiculos: stats?.total_vehicles || 1,
-    motoristas: stats?.total_drivers || 1,
-    ocupacao: {
-      percentual: stats
-        ? Math.round(
-            (stats.vagas_ocupadas / (stats.vagas_disponiveis + stats.vagas_ocupadas)) * 100
-          )
-        : 57,
-      disponiveis: stats?.vagas_disponiveis || 230,
-      ocupadas: stats?.vagas_ocupadas || 170,
-    },
-    status: 'Todos os serviços estão operando normalmente',
-    atualizacoes: [
-      { data: '28/05/2025', descricao: 'Novo sistema de gestão de estacionamentos implementado' },
-      { data: '23/05/2025', descricao: 'Módulo de relatórios em desenvolvimento' },
-    ],
+      default:
+        return [];
+    }
   };
 
-  // Componente para o cartão de ocupação
-  const OccupancyCard = () => (
-    <Card
-      sx={{
-        height: '100%',
-        borderRadius: 2,
-        overflow: 'visible',
-        position: 'relative',
-        background:
-          theme.palette.mode === 'dark'
-            ? 'linear-gradient(145deg, rgba(18,32,47,0.9), rgba(26,35,126,0.1))'
-            : 'linear-gradient(145deg, #ffffff, #f5f7ff)',
-        boxShadow:
-          theme.palette.mode === 'dark'
-            ? '0 8px 24px rgba(0,0,0,0.3)'
-            : '0 4px 16px rgba(0,0,0,0.06)',
-        transition: 'all 0.3s ease',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow:
-            theme.palette.mode === 'dark'
-              ? '0 12px 28px rgba(0,0,0,0.4)'
-              : '0 8px 24px rgba(0,0,0,0.09)',
-        },
-      }}
-    >
-      <CardContent sx={{ p: 3, pt: 4, height: '100%', position: 'relative' }}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -18,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 42,
-            height: 42,
-            borderRadius: '12px',
-            backgroundColor: theme.palette.primary.main,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            color: '#fff',
-            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
-            transition: 'all 0.3s ease',
-            '.MuiCard-root:hover &': {
-              transform: 'translateX(-50%) translateY(-2px)',
-              boxShadow: '0px 6px 16px rgba(0, 0, 0, 0.2)',
-            },
-            zIndex: 3,
-          }}
-        >
-          <ParkingIcon />
-        </Box>
+  const quickActions = getQuickActionsForRole();
 
-        <Typography
-          variant="body2"
-          color="textSecondary"
-          align="center"
-          sx={{
-            fontWeight: 500,
-            fontSize: '0.9rem',
-            mb: 1.5,
-            mt: 0.5,
-            opacity: 0.85,
-          }}
-        >
-          Ocupação de Vagas
-        </Typography>
-
-        <Typography
-          variant="h3"
-          component="div"
-          align="center"
-          sx={{
-            fontWeight: 700,
-            fontSize: { xs: '2rem', sm: '2.3rem' },
-            letterSpacing: '-0.02em',
-            background:
-              theme.palette.mode === 'dark'
-                ? 'linear-gradient(45deg, #90caf9, #3f51b5)'
-                : 'linear-gradient(45deg, #1a237e, #3949ab)',
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            color: 'transparent',
-            WebkitTextFillColor: 'transparent',
-            mb: 1,
-          }}
-        >
-          {dashboardData.ocupacao.percentual}%
-        </Typography>
-
-        <Grid container spacing={2} sx={{ mt: 0.5 }}>
-          <Grid item xs={6}>
-            <Paper
-              sx={{
-                p: 1.5,
-                textAlign: 'center',
-                bgcolor: 'rgba(76, 175, 80, 0.1)',
-                border: '1px solid rgba(76, 175, 80, 0.2)',
-                borderRadius: 1.5,
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%',
-              }}
-            >
-              <Typography
-                variant="h6"
-                color="success.main"
-                sx={{
-                  fontWeight: 600,
-                  fontSize: '1.3rem',
-                  lineHeight: 1.2,
-                }}
-              >
-                {dashboardData.ocupacao.disponiveis}
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontSize: '0.8rem',
-                  mt: 0.5,
-                }}
-              >
-                Disponíveis
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={6}>
-            <Paper
-              sx={{
-                p: 1.5,
-                textAlign: 'center',
-                bgcolor: 'rgba(244, 67, 54, 0.1)',
-                border: '1px solid rgba(244, 67, 54, 0.2)',
-                borderRadius: 1.5,
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%',
-              }}
-            >
-              <Typography
-                variant="h6"
-                color="error.main"
-                sx={{
-                  fontWeight: 600,
-                  fontSize: '1.3rem',
-                  lineHeight: 1.2,
-                }}
-              >
-                {dashboardData.ocupacao.ocupadas}
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontSize: '0.8rem',
-                  mt: 0.5,
-                }}
-              >
-                Ocupadas
-              </Typography>
-            </Paper>
-          </Grid>
-        </Grid>
-      </CardContent>
-    </Card>
-  );
+  const getTitleForRole = () => {
+    switch (user?.role) {
+      case 'transportadora':
+        return 'Painel da Transportadora';
+      case 'estacionamento':
+        return 'Painel do Estacionamento';
+      default:
+        return 'Dashboard Administrativo';
+    }
+  };
 
   return (
-    <ContentWrapper>
-      <Typography variant="h4" component="h1">
-        Dashboard
-      </Typography>
+    <div className="space-y-6 animate-fade-in">
+      {/* Welcome Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white mb-2">
+          {getTitleForRole()}
+        </h1>
+        <p className="text-slate-400">
+          Bem-vindo de volta! Aqui está um resumo das suas atividades.
+        </p>
+      </div>
 
-      {/* Cards de estatísticas na primeira linha */}
-      <DashboardCardWrapper>
-        <StatCard
-          title="Transportadoras"
-          value={dashboardData.transportadoras}
-          icon={<DirectionsCar />}
-          iconBgColor="#1a237e"
-        />
-        <StatCard
-          title="Estacionamentos"
-          value={dashboardData.estacionamentos}
-          icon={<ParkingIcon />}
-          iconBgColor="#1976d2"
-        />
-        <StatCard
-          title="Reservas Ativas"
-          value={dashboardData.reservasAtivas}
-          icon={<CalendarIcon />}
-          iconBgColor="#1a237e"
-        />
-      </DashboardCardWrapper>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        {isLoading ? (
+          Array(4).fill(0).map((_, index) => (
+            <Card key={index} className="ajh-card">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-4 w-full">
+                    <Skeleton className="h-4 w-24 bg-slate-700" />
+                    <Skeleton className="h-8 w-16 bg-slate-700" />
+                    <div className="flex items-center pt-1">
+                      <Skeleton className="h-4 w-12 bg-slate-700" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-10 w-10 rounded-full bg-slate-700" />
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          // Renderizar cards de estatísticas diretamente com os dados do dashboard
+          <>
+            {/* Empresas Ativas */}
+            <Card className="ajh-card">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-slate-400">Empresas Ativas</p>
+                    <h3 className="text-3xl font-bold text-white mt-2">
+                      {dashboardData?.empresasAtivas || 0}
+                    </h3>
+                    <p className="text-sm text-slate-400 flex items-center mt-1">
+                      {dashboardData?.empresasAtivas ? 'Dados do banco' : 'Nenhuma empresa cadastrada'}
+                    </p>
+                  </div>
+                  <div className="bg-ajh-primary/10 p-3 rounded-full">
+                    <Building2 className="h-6 w-6 text-ajh-primary" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-      {/* Segunda linha de cards */}
-      <DashboardCardWrapper>
-        <StatCard
-          title="Veículos"
-          value={dashboardData.veiculos}
-          icon={<DirectionsCar />}
-          iconBgColor="#1a237e"
-        />
-        <StatCard
-          title="Motoristas"
-          value={dashboardData.motoristas}
-          icon={<PersonIcon />}
-          iconBgColor="#6a1b9a"
-        />
-        <OccupancyCard />
-      </DashboardCardWrapper>
+            {/* Veículos Cadastrados */}
+            <Card className="ajh-card">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-slate-400">Veículos Cadastrados</p>
+                    <h3 className="text-3xl font-bold text-white mt-2">
+                      {dashboardData?.veiculosCadastrados || 0}
+                    </h3>
+                    <p className="text-sm text-slate-400 flex items-center mt-1">
+                      {dashboardData?.veiculosCadastrados ? 'Dados do banco' : 'Nenhum veículo cadastrado'}
+                    </p>
+                  </div>
+                  <div className="bg-ajh-secondary/10 p-3 rounded-full">
+                    <Car className="h-6 w-6 text-ajh-secondary" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-      {/* Seção de informações do sistema */}
-      <Typography variant="h5" component="h2">
-        Informações do Sistema
-      </Typography>
+            {/* Motoristas Ativos */}
+            <Card className="ajh-card">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-slate-400">Motoristas Ativos</p>
+                    <h3 className="text-3xl font-bold text-white mt-2">
+                      {dashboardData?.motoristasAtivos || 0}
+                    </h3>
+                    <p className="text-sm text-slate-400 flex items-center mt-1">
+                      {dashboardData?.motoristasAtivos ? 'Dados do banco' : 'Nenhum motorista cadastrado'}
+                    </p>
+                  </div>
+                  <div className="bg-ajh-accent/10 p-3 rounded-full">
+                    <Users className="h-6 w-6 text-ajh-accent" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-      <Grid container spacing={3} sx={{ mt: 0.5 }}>
-        <Grid item xs={12} md={6}>
-          <Card
-            sx={{
-              borderRadius: 2,
-              overflow: 'hidden',
-              boxShadow:
-                theme.palette.mode === 'dark'
-                  ? '0 4px 20px rgba(0,0,0,0.3)'
-                  : '0 4px 20px rgba(0,0,0,0.08)',
-            }}
-          >
-            <CardContent sx={{ p: 2.5 }}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
-                Status do Sistema
-              </Typography>
-              <Paper
-                sx={{
-                  p: 2,
-                  bgcolor: 'rgba(76, 175, 80, 0.1)',
-                  border: '1px solid rgba(76, 175, 80, 0.2)',
-                  borderRadius: 1.5,
-                }}
-              >
-                <Typography>{dashboardData.status}</Typography>
-              </Paper>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Card
-            sx={{
-              borderRadius: 2,
-              overflow: 'hidden',
-              boxShadow:
-                theme.palette.mode === 'dark'
-                  ? '0 4px 20px rgba(0,0,0,0.3)'
-                  : '0 4px 20px rgba(0,0,0,0.08)',
-              height: '100%',
-            }}
-          >
-            <CardContent sx={{ p: 2.5, height: '100%' }}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
-                Últimas Atualizações
-              </Typography>
-              {dashboardData.atualizacoes.map((item, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    mb: index < dashboardData.atualizacoes.length - 1 ? 2 : 0,
-                    p: 1,
-                    borderRadius: 1,
-                    backgroundColor:
-                      theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)',
-                    '&:hover': {
-                      backgroundColor:
-                        theme.palette.mode === 'dark'
-                          ? 'rgba(255,255,255,0.05)'
-                          : 'rgba(0,0,0,0.03)',
-                    },
-                    transition: 'background-color 0.2s',
-                  }}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    color="textSecondary"
-                    sx={{
-                      fontSize: '0.8rem',
-                      fontWeight: 500,
+            {/* Vagas Ocupadas */}
+            <Card className="ajh-card">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-slate-400">Vagas Ocupadas</p>
+                    <h3 className="text-3xl font-bold text-white mt-2">
+                      {dashboardData?.vagasOcupadas ? 
+                        `${dashboardData.vagasOcupadas.total}/${dashboardData.vagasOcupadas.capacidade}` : 
+                        '0/0'
+                      }
+                    </h3>
+                    <p className="text-sm text-slate-400 flex items-center mt-1">
+                      {dashboardData?.vagasOcupadas ? 
+                        `${dashboardData.vagasOcupadas.percentual}%` : 
+                        'Nenhuma vaga cadastrada'
+                      }
+                    </p>
+                  </div>
+                  <div className="bg-ajh-success/10 p-3 rounded-full">
+                    <ParkingCircle className="h-6 w-6 text-ajh-success" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
+      </div>
+
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Recent Activity */}
+        <Card className="ajh-card col-span-1 md:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-white">Atividades Recentes</CardTitle>
+            <CardDescription className="text-slate-400">
+              {dashboardData?.atividadesRecentes?.length || 0} atividades nas últimas 24 horas
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {isLoading ? (
+                // Esqueletos para atividades recentes
+                Array(3).fill(0).map((_, i) => (
+                  <div key={i} className="flex items-start space-x-3">
+                    <Skeleton className="h-8 w-8 rounded-full bg-slate-700" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-full bg-slate-700" />
+                      <Skeleton className="h-3 w-24 bg-slate-700" />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                // Mostrar atividades reais do banco ou mensagem de vazio
+                dashboardData?.atividadesRecentes && dashboardData.atividadesRecentes.length > 0 ? (
+                  dashboardData.atividadesRecentes.map((atividade, i) => {
+                    const dataAtividade = new Date(atividade.data);
+                    const agora = new Date();
+                    const diffMs = agora.getTime() - dataAtividade.getTime();
+                    
+                    let time;
+                    if (diffMs < 60000) {
+                      time = 'Agora';
+                    } else if (diffMs < 3600000) {
+                      const minutes = Math.floor(diffMs / 60000);
+                      time = `${minutes} min atrás`;
+                    } else if (diffMs < 86400000) {
+                      const hours = Math.floor(diffMs / 3600000);
+                      time = `${hours} hora${hours > 1 ? 's' : ''} atrás`;
+                    } else {
+                      const days = Math.floor(diffMs / 86400000);
+                      time = `${days} dia${days > 1 ? 's' : ''} atrás`;
+                    }
+
+                    let icon;
+                    let borderClass;
+
+                    switch (atividade.tipo) {
+                      case 'veiculo':
+                        icon = <Car className="w-4 h-4 text-green-400" />;
+                        borderClass = 'border-l-green-400';
+                        break;
+                      case 'motorista':
+                        icon = <Users className="w-4 h-4 text-blue-400" />;
+                        borderClass = 'border-l-blue-400';
+                        break;
+                      case 'alerta':
+                        icon = <AlertTriangle className="w-4 h-4 text-yellow-400" />;
+                        borderClass = 'border-l-yellow-400';
+                        break;
+                      default:
+                        icon = <Clock className="w-4 h-4 text-blue-400" />;
+                        borderClass = 'border-l-blue-400';
+                    }
+
+                    return (
+                      <div key={i} className={`pl-4 border-l-2 ${borderClass}`}>
+                        <div className="flex justify-between items-start">
+                          <p className="text-white font-medium">{atividade.descricao}</p>
+                          <div className="ml-4 flex items-center text-xs text-slate-400">
+                            {icon}
+                            <span className="ml-1">{time}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-8">
+                    <Clock className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                    <p className="text-slate-400 text-sm">Nenhuma atividade recente encontrada</p>
+                    <p className="text-slate-500 text-xs mt-1">
+                      As atividades aparecerão aqui conforme você usar o sistema
+                    </p>
+                  </div>
+                )
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions - Corrigindo centralização e espaçamento */}
+        <Card className="ajh-card">
+          <CardHeader>
+            <CardTitle className="text-white text-center">Ações Rápidas</CardTitle>
+            <CardDescription className="text-slate-400 text-center">
+              Operações frequentes
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-6 pb-6">
+            <div className="flex flex-col items-center space-y-3">
+              {quickActions.map((action, index) => {
+                const Icon = action.icon;
+                return (
+                  <Link key={index} to={action.path} className="w-full">
+                    <Button className="w-full ajh-button-primary justify-start h-12 text-left">
+                      <Icon className="w-4 h-4 mr-3" />
+                      {action.label}
+                    </Button>
+                  </Link>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Status Overview - Específico por tipo de usuário */}
+      {user?.role === 'estacionamento' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="ajh-card">
+            <CardHeader>
+              <CardTitle className="text-white">Status do Estacionamento</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Vagas Livres</span>
+                  <Badge className="bg-green-500/20 text-green-400">
+                    {dashboardData?.vagasOcupadas ? 
+                      dashboardData.vagasOcupadas.capacidade - dashboardData.vagasOcupadas.total : 
+                      0
+                    }
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Vagas Ocupadas</span>
+                  <Badge className="bg-red-500/20 text-red-400">
+                    {dashboardData?.vagasOcupadas?.total || 0}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Em Manutenção</span>
+                  <Badge className="bg-yellow-500/20 text-yellow-400">0</Badge>
+                </div>
+                <div className="w-full bg-slate-700 rounded-full h-2 mt-4">
+                  <div 
+                    className="bg-gradient-to-r from-ajh-primary to-ajh-secondary h-2 rounded-full"
+                    style={{ 
+                      width: dashboardData?.vagasOcupadas?.percentual 
+                        ? `${dashboardData.vagasOcupadas.percentual}%` 
+                        : '0%' 
                     }}
-                  >
-                    {item.data}
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.95rem' }}>{item.descricao}</Typography>
-                </Box>
-              ))}
+                  ></div>
+                </div>
+              </div>
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
-    </ContentWrapper>
+
+          <Card className="ajh-card">
+            <CardHeader>
+              <CardTitle className="text-white">Alertas Importantes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <AlertTriangle className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                <p className="text-slate-400 text-sm">Nenhum alerta no momento</p>
+                <p className="text-slate-500 text-xs mt-1">
+                  Alertas importantes aparecerão aqui
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {user?.role === 'transportadora' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="ajh-card">
+            <CardHeader>
+              <CardTitle className="text-white">Status da Frota</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Veículos Cadastrados</span>
+                  <Badge className="bg-blue-500/20 text-blue-400">
+                    {dashboardData?.veiculosCadastrados || 0}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Motoristas Ativos</span>
+                  <Badge className="bg-green-500/20 text-green-400">
+                    {dashboardData?.motoristasAtivos || 0}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Reservas Ativas</span>
+                  <Badge className="bg-yellow-500/20 text-yellow-400">0</Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="ajh-card">
+            <CardHeader>
+              <CardTitle className="text-white">Próximas Reservas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <Calendar className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                <p className="text-slate-400 text-sm">Nenhuma reserva agendada</p>
+                <p className="text-slate-500 text-xs mt-1">
+                  Suas próximas reservas aparecerão aqui
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
   );
 };
 

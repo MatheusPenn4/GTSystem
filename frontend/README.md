@@ -1,109 +1,73 @@
-# 🚗 Sistema de Gestão AJH - Frontend
+# Welcome to your Lovable project
 
-Sistema completo de gestão empresarial com foco em controle de veículos, motoristas e estacionamentos.
+## Project info
 
-## ✨ **Funcionalidades**
+**URL**: https://lovable.dev/projects/107553ed-7bc1-4229-b94d-62c350dd1399
 
-- 🏢 **Gestão de Empresas** - Cadastro e controle de empresas e filiais
-- 🚗 **Gestão de Veículos** - Controle completo da frota
-- 👨‍💼 **Gestão de Motoristas** - Cadastro e controle de CNH
-- 🅿️ **Sistema de Estacionamento** - Controle de vagas e ocupação
-- 🔐 **Autenticação Segura** - JWT com refresh tokens
-- 📱 **Design Responsivo** - Funciona em todos os dispositivos
-- 🌙 **Tema Escuro/Claro** - Interface adaptável
+## How can I edit this code?
 
-## 🛠 **Tecnologias Utilizadas**
+There are several ways of editing your application.
 
-- **React 18** com TypeScript
-- **Material-UI (MUI)** para componentes
-- **React Query** para gerenciamento de estado
-- **React Router** para navegação
-- **Axios** para requisições HTTP
-- **Vite** como bundler
-- **ESLint + Prettier** para qualidade de código
+**Use Lovable**
 
-## 🚀 **Como executar**
+Simply visit the [Lovable Project](https://lovable.dev/projects/107553ed-7bc1-4229-b94d-62c350dd1399) and start prompting.
 
-### Pré-requisitos
-- Node.js 18+
-- npm ou yarn
+Changes made via Lovable will be committed automatically to this repo.
 
-### Instalação
-```bash
-# Clone o repositório
-git clone https://github.com/MatheusPenn4/Ajh-Sistema.git
+**Use your preferred IDE**
 
-# Entre no diretório
-cd Ajh-Sistema/frontend
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-# Instale as dependências
-npm install
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-# Execute o projeto
+Follow these steps:
+
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
+
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
+
+# Step 3: Install the necessary dependencies.
+npm i
+
+# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
-### Scripts disponíveis
-```bash
-npm run dev          # Executa em modo desenvolvimento
-npm run build        # Build para produção
-npm run preview      # Preview da build
-npm run lint         # Executa ESLint
-npm run format       # Formata código com Prettier
-```
+**Edit a file directly in GitHub**
 
-## 🏗 **Estrutura do Projeto**
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
 
-```
-src/
-├── components/          # Componentes reutilizáveis
-│   ├── common/         # Componentes comuns
-│   └── layout/         # Componentes de layout
-├── context/            # Contexts do React
-├── hooks/              # Custom hooks
-├── pages/              # Páginas da aplicação
-├── services/           # Serviços de API
-├── types/              # Definições de tipos
-├── utils/              # Utilitários
-└── adapters/           # Adaptadores de dados
-```
+**Use GitHub Codespaces**
 
-## 🔧 **Configuração do Backend**
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-Configure a URL do backend no arquivo de API:
+## What technologies are used for this project?
 
-```typescript
-// src/services/api.ts
-const api = axios.create({
-  baseURL: 'http://localhost:8000', // Altere para seu backend
-});
-```
+This project is built with:
 
-## 📦 **Endpoints Utilizados**
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
 
-```typescript
-/api/auth/login/           # Autenticação
-/api/company/companies/    # Empresas
-/api/company/vehicles/     # Veículos
-/api/company/drivers/      # Motoristas
-/api/parking/lots/         # Estacionamentos
-```
+## How can I deploy this project?
 
-## 🎯 **Para usar no Lovable:**
+Simply open [Lovable](https://lovable.dev/projects/107553ed-7bc1-4229-b94d-62c350dd1399) and click on Share -> Publish.
 
-1. Fork este repositório: https://github.com/MatheusPenn4/Ajh-Sistema
-2. No Lovable, conecte o repositório GitHub
-3. Configure o diretório raiz como `frontend/`
-4. O Lovable detectará automaticamente que é um projeto React/Vite
+## Can I connect a custom domain to my Lovable project?
 
-## 🤝 **Contribuição**
+Yes, you can!
 
-1. Fork o projeto
-2. Crie uma branch (`git checkout -b feature/nova-funcionalidade`)
-3. Commit suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/nova-funcionalidade`)
-5. Abra um Pull Request
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
----
-
-**Desenvolvido com ❤️ para otimizar a gestão empresarial**
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)

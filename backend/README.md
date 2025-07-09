@@ -1,44 +1,153 @@
-# Sistema de Gestão de Estacionamentos - Backend
+# GTSystem Backend
 
-API Backend para o Sistema de Gestão de Estacionamentos para empresas transportadoras.
+Backend para sistema de gerenciamento de estacionamento para caminhões e veículos de transporte.
 
 ## Tecnologias
 
-- Python 3.9+
-- Django 4.2
-- Django REST Framework
-- PostgreSQL/SQLite
-- JWT para autenticação
+- Node.js (v18+)
+- TypeScript
+- Express.js
+- PostgreSQL
+- Redis
+- Prisma ORM
+- Socket.io
+- JWT Authentication
+- Docker
 
-## Configuração do Ambiente
+## Requisitos
 
-1. Clone o repositório
-2. Crie um ambiente virtual e ative-o:
-   ```
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   venv\Scripts\activate     # Windows
-   ```
-3. Instale as dependências:
-   ```
-   pip install -r requirements/dev.txt
-   ```
-4. Configure o banco de dados no arquivo `parkingmgr/settings/base.py`
-5. Execute as migrações:
-   ```
-   python manage.py migrate
-   ```
+- Node.js 18 ou superior
+- npm ou yarn
+- PostgreSQL
+- Redis
+- Docker e Docker Compose (opcional)
 
-## Configuração Inicial
+## Instalação
 
-1. Crie um superusuário para acessar o admin:
-   ```
-   python scripts/create_superuser.py
-   ```
-   
-2. Opcional: Crie dados iniciais para teste:
-   ```
-   python scripts/create_test_data.py
-   ```
+### Usando npm
 
-## Executando o Servidor
+```bash
+# Instalar dependências
+npm install
+
+# Gerar Prisma Client
+npm run generate
+
+# Executar migrations do banco de dados
+npm run migrate
+
+# Popular o banco com dados iniciais
+npm run seed
+
+# Iniciar o servidor em modo de desenvolvimento
+npm run dev
+```
+
+### Usando Docker
+
+```bash
+# Construir e iniciar os contêineres
+docker-compose up -d
+
+# Executar migrations
+docker-compose exec api npm run migrate
+
+# Popular o banco com dados iniciais
+docker-compose exec api npm run seed
+```
+
+## Estrutura do Projeto
+
+```
+src/
+├── controllers/      # Controladores de rotas
+├── services/         # Lógica de negócio
+├── repositories/     # Acesso aos dados
+├── models/           # Modelos de dados
+├── middleware/       # Middlewares personalizados
+├── routes/           # Definição de rotas
+├── utils/            # Utilitários
+├── config/           # Configurações
+├── validators/       # Validadores Joi
+├── types/            # Tipos TypeScript
+├── tests/            # Testes unitários
+└── database/         # Migrations e seeds
+```
+
+## Scripts Disponíveis
+
+- `npm run build`: Compila o TypeScript
+- `npm start`: Inicia o servidor em produção
+- `npm run dev`: Inicia o servidor em modo de desenvolvimento
+- `npm run migrate`: Executa as migrations do banco de dados
+- `npm run migrate:prod`: Executa as migrations em produção
+- `npm run seed`: Popula o banco com dados iniciais
+- `npm test`: Executa os testes
+- `npm run lint`: Verifica problemas de linting
+- `npm run lint:fix`: Corrige problemas de linting automaticamente
+- `npm run format`: Formata o código usando Prettier
+- `npm run docker:up`: Inicia os contêineres Docker
+- `npm run docker:down`: Para os contêineres Docker
+
+## Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do projeto baseado no `.env.example`:
+
+```
+# Database
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/gtsystem
+REDIS_URL=redis://localhost:6379
+
+# JWT
+JWT_SECRET=your-super-secret-key
+JWT_REFRESH_SECRET=your-refresh-secret-key
+JWT_EXPIRE=15m
+JWT_REFRESH_EXPIRE=7d
+
+# Email
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-password
+
+# Upload
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+
+# App
+PORT=3000
+NODE_ENV=development
+CLIENT_URL=http://localhost:5173
+```
+
+## Documentação da API
+
+A documentação da API está disponível em:
+
+- Desenvolvimento: `http://localhost:3000/api-docs`
+- Produção: `https://api.gtsystem.com/api-docs`
+
+## Testes
+
+```bash
+# Executar todos os testes
+npm test
+
+# Executar testes com watch mode
+npm run test:watch
+
+# Verificar cobertura de testes
+npm test -- --coverage
+```
+
+## Logs
+
+Os logs são armazenados no diretório `logs/`:
+
+- `logs/all.log`: Todos os logs
+- `logs/error.log`: Apenas logs de erro
+
+## Licença
+
+MIT 

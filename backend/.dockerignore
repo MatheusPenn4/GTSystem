@@ -1,0 +1,22 @@
+# Diretórios
+node_modules
+dist
+logs
+coverage
+.git
+.github
+
+# Arquivos
+.DS_Store
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Outros
+*.log
+*.md
+*.yml
+*.yaml
+!docker-compose.yml
+!docker-compose.yaml
+!Dockerfile 

@@ -1,31 +1,30 @@
-# Documentação do Projeto AJH
+# Documentação AJH Parking Management
 
-Esta pasta contém a documentação técnica e de planejamento do Sistema de Gestão de Estacionamento AJH.
+Este diretório contém documentação técnica, guias e informações sobre o sistema de gestão de estacionamento AJH.
 
-## Documentos de Planejamento
+## Índice de Documentos
 
-- [Planejamento Atual (2025)](planejamento_atual_2025.md) - **Versão mais recente e atualizada do planejamento**
-- [Planejamento Atualizado (versão anterior)](planejamento_atualizado.md) - Versão anterior
-- [Planejamento (versão inicial)](planejamento.mb) - Versão inicial
+### Planejamento e Roadmap
+- [Planejamento Atual 2025](./planejamento_atual_2025.md) - Roadmap e estado atual do desenvolvimento
+- [Planejamento de Melhorias](./planejamento_melhorias.md) - **NOVO!** Plano detalhado de melhorias e correções
+- [Planejamento Antigo](./planejamento_antigo.md) - Referência histórica
 
-## Documentação Técnica
+### Arquitetura e Implementação
+- [Modelo de Dados](./modelo_dados.md) - Estrutura das entidades e relacionamentos
+- [Estrutura do Banco de Dados](./db_structure.md) - Detalhes sobre tabelas e campos
+- [API](./api.md) - Endpoints, métodos e parâmetros disponíveis
+- [Segurança JWT](./jwt_security.md) - Implementação de autenticação e autorização
 
-- [Documentação da API](api.md) - Endpoints e exemplos de requisições/respostas
-- [Estrutura do Banco de Dados](db_structure.md) - Modelos e relacionamentos do banco de dados
-- [Segurança JWT](jwt_security.md) - Detalhes sobre a implementação de autenticação JWT
-- [Modelo de Dados](modelo_dados.md) - Descrição detalhada dos modelos e atributos
+### Ambiente e Configuração
+- [Guia de Configuração PostgreSQL](./postgresql_setup_guide.md) - Configuração de banco de dados
+- [Setup do Ambiente](./SETUP.md) - Configuração do ambiente de desenvolvimento
 
-## Como Utilizar Esta Documentação
+### Testes e Qualidade
+- [Resumo de Testes](./resumo_testes.md) - Estratégia e resultados dos testes
 
-1. Comece pelo [Planejamento Atual (2025)](planejamento_atual_2025.md) para entender o estado atual do projeto e os próximos passos.
-2. Consulte a [Documentação da API](api.md) para detalhes sobre os endpoints disponíveis.
-3. Use a [Estrutura do Banco de Dados](db_structure.md) para entender os modelos e relacionamentos.
-4. Para implementações específicas, consulte os documentos técnicos relevantes.
+## Orientações para Autenticação
 
-## Contribuindo com a Documentação
-
-Ao fazer alterações no projeto, por favor, atualize a documentação correspondente:
-
-1. Para novas features, adicione a documentação da API e atualize o planejamento.
-2. Para alterações no banco de dados, atualize o documento de estrutura do banco.
-3. Mantenha o planejamento atualizado com o status atual do projeto.
+> **IMPORTANTE**: O sistema utiliza exclusivamente o módulo `ajh_auth` para autenticação.
+> O módulo `apps/authentication` está descontinuado e deve ser ignorado.
+>
+> Consulte o [Planejamento de Melhorias](./planejamento_melhorias.md) para mais detalhes.
