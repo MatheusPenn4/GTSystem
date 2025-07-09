@@ -198,17 +198,10 @@ cython_debug/
 *.sqlite
 *.sqlite3
 
-# Backup files
-*.bak
-*.backup
-*.sql
+# Files to ignore
+**/node_modules
 
-# Compressed files
-*.zip
-*.tar.gz
-*.rar
-
-# Configuration files with sensitive data
-config.ini
-secrets.json
-credentials.json
+# Arquivos de documentação (exceto README.md)
+*.md
+!README.md
+docs/
