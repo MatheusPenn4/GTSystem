@@ -1,0 +1,27 @@
+# Arquivos e pastas que o Vercel deve ignorar
+../backend/
+../docs/
+../node_modules/
+../venv/
+../.git/
+*.md
+!README.md
+*.log
+*.sqlite
+*.sqlite3
+.env
+.env.local
+.env.production
+.env.development
+.env.test
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+coverage/
+test-results/
+playwright-report/
+e2e-results/ 
