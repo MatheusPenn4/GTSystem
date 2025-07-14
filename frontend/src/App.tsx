@@ -10,6 +10,7 @@ import RoleProtectedRoute from "@/components/RoleProtectedRoute";
 import Layout from "@/components/Layout";
 
 // Pages
+import Index from "@/pages/Index";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import EstacionamentosCadastrados from "@/pages/EstacionamentosCadastrados";
@@ -259,7 +260,7 @@ const App = () => (
                 </PrivateRoute>
               } 
             />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Index />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </NotificationProvider>
