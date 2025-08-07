@@ -112,115 +112,143 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        {isLoading ? (
-          Array(4).fill(0).map((_, index) => (
-            <Card key={index} className="ajh-card">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-4 w-full">
-                    <Skeleton className="h-4 w-24 bg-slate-700" />
-                    <Skeleton className="h-8 w-16 bg-slate-700" />
-                    <div className="flex items-center pt-1">
-                      <Skeleton className="h-4 w-12 bg-slate-700" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-10 w-10 rounded-full bg-slate-700" />
+      {user?.role === 'estacionamento' ? (
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {/* Total de Vagas */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <p className="text-sm text-slate-400">Total de Vagas</p>
+                <p className="text-3xl font-bold text-white">{dashboardData?.vagasOcupadas.capacidade || 0}</p>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Vagas Ocupadas */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <p className="text-sm text-slate-400">Vagas Ocupadas</p>
+                <p className="text-3xl font-bold text-red-400">{dashboardData?.vagasOcupadas.total || 0}</p>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Vagas Livres */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <p className="text-sm text-slate-400">Vagas Livres</p>
+                <p className="text-3xl font-bold text-green-400">{(dashboardData?.vagasOcupadas.capacidade || 0) - (dashboardData?.vagasOcupadas.total || 0)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Reservadas (placeholder, pode ser ajustado se backend retornar) */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <p className="text-sm text-slate-400">Reservadas</p>
+                <p className="text-3xl font-bold text-yellow-400">-</p>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Taxa de Ocupação */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <p className="text-sm text-slate-400">Taxa de Ocupação</p>
+                <p className="text-3xl font-bold text-blue-400">{dashboardData?.vagasOcupadas.percentual || 0}%</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          {/* Empresas Ativas */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-slate-400">Empresas Ativas</p>
+                  <h3 className="text-3xl font-bold text-white mt-2">
+                    {dashboardData?.empresasAtivas || 0}
+                  </h3>
+                  <p className="text-sm text-slate-400 flex items-center mt-1">
+                    {dashboardData?.empresasAtivas ? 'Dados do banco' : 'Nenhuma empresa cadastrada'}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          // Renderizar cards de estatísticas diretamente com os dados do dashboard
-          <>
-            {/* Empresas Ativas */}
-            <Card className="ajh-card">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-slate-400">Empresas Ativas</p>
-                    <h3 className="text-3xl font-bold text-white mt-2">
-                      {dashboardData?.empresasAtivas || 0}
-                    </h3>
-                    <p className="text-sm text-slate-400 flex items-center mt-1">
-                      {dashboardData?.empresasAtivas ? 'Dados do banco' : 'Nenhuma empresa cadastrada'}
-                    </p>
-                  </div>
-                  <div className="bg-ajh-primary/10 p-3 rounded-full">
-                    <Building2 className="h-6 w-6 text-ajh-primary" />
-                  </div>
+                <div className="bg-ajh-primary/10 p-3 rounded-full">
+                  <Building2 className="h-6 w-6 text-ajh-primary" />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Veículos Cadastrados */}
-            <Card className="ajh-card">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-slate-400">Veículos Cadastrados</p>
-                    <h3 className="text-3xl font-bold text-white mt-2">
-                      {dashboardData?.veiculosCadastrados || 0}
-                    </h3>
-                    <p className="text-sm text-slate-400 flex items-center mt-1">
-                      {dashboardData?.veiculosCadastrados ? 'Dados do banco' : 'Nenhum veículo cadastrado'}
-                    </p>
-                  </div>
-                  <div className="bg-ajh-secondary/10 p-3 rounded-full">
-                    <Car className="h-6 w-6 text-ajh-secondary" />
-                  </div>
+          {/* Veículos Cadastrados */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-slate-400">Veículos Cadastrados</p>
+                  <h3 className="text-3xl font-bold text-white mt-2">
+                    {dashboardData?.veiculosCadastrados || 0}
+                  </h3>
+                  <p className="text-sm text-slate-400 flex items-center mt-1">
+                    {dashboardData?.veiculosCadastrados ? 'Dados do banco' : 'Nenhum veículo cadastrado'}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="bg-ajh-secondary/10 p-3 rounded-full">
+                  <Car className="h-6 w-6 text-ajh-secondary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Motoristas Ativos */}
-            <Card className="ajh-card">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-slate-400">Motoristas Ativos</p>
-                    <h3 className="text-3xl font-bold text-white mt-2">
-                      {dashboardData?.motoristasAtivos || 0}
-                    </h3>
-                    <p className="text-sm text-slate-400 flex items-center mt-1">
-                      {dashboardData?.motoristasAtivos ? 'Dados do banco' : 'Nenhum motorista cadastrado'}
-                    </p>
-                  </div>
-                  <div className="bg-ajh-accent/10 p-3 rounded-full">
-                    <Users className="h-6 w-6 text-ajh-accent" />
-                  </div>
+          {/* Motoristas Ativos */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-slate-400">Motoristas Ativos</p>
+                  <h3 className="text-3xl font-bold text-white mt-2">
+                    {dashboardData?.motoristasAtivos || 0}
+                  </h3>
+                  <p className="text-sm text-slate-400 flex items-center mt-1">
+                    {dashboardData?.motoristasAtivos ? 'Dados do banco' : 'Nenhum motorista cadastrado'}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="bg-ajh-accent/10 p-3 rounded-full">
+                  <Users className="h-6 w-6 text-ajh-accent" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Vagas Ocupadas */}
-            <Card className="ajh-card">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-slate-400">Vagas Ocupadas</p>
-                    <h3 className="text-3xl font-bold text-white mt-2">
-                      {dashboardData?.vagasOcupadas ? 
-                        `${dashboardData.vagasOcupadas.total}/${dashboardData.vagasOcupadas.capacidade}` : 
-                        '0/0'
-                      }
-                    </h3>
-                    <p className="text-sm text-slate-400 flex items-center mt-1">
-                      {dashboardData?.vagasOcupadas ? 
-                        `${dashboardData.vagasOcupadas.percentual}%` : 
-                        'Nenhuma vaga cadastrada'
-                      }
-                    </p>
-                  </div>
-                  <div className="bg-ajh-success/10 p-3 rounded-full">
-                    <ParkingCircle className="h-6 w-6 text-ajh-success" />
-                  </div>
+          {/* Vagas Ocupadas */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-slate-400">Vagas Ocupadas</p>
+                  <h3 className="text-3xl font-bold text-white mt-2">
+                    {dashboardData?.vagasOcupadas ? 
+                      `${dashboardData.vagasOcupadas.total}/${dashboardData.vagasOcupadas.capacidade}` : 
+                      '0/0'
+                    }
+                  </h3>
+                  <p className="text-sm text-slate-400 flex items-center mt-1">
+                    {dashboardData?.vagasOcupadas ? 
+                      `${dashboardData.vagasOcupadas.percentual}%` : 
+                      'Nenhuma vaga cadastrada'
+                    }
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
-      </div>
+                <div className="bg-ajh-success/10 p-3 rounded-full">
+                  <ParkingCircle className="h-6 w-6 text-ajh-success" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Content Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">

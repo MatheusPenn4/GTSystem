@@ -7,6 +7,10 @@ import { AnyZodObject, ZodError } from 'zod';
  */
 export const validateRequest = (schema: AnyZodObject) => {
   return async (req: Request, res: Response, next: NextFunction) => {
+    // Não valida body em métodos GET
+    if (req.method === 'GET') {
+      return next();
+    }
     try {
       // Log do conteúdo recebido para diagnóstico
       console.log('validateRequest - Dados recebidos:');

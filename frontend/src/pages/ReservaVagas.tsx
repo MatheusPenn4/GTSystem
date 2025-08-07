@@ -21,6 +21,62 @@ interface Estacionamento {
   amenities?: string[];
 }
 
+// Dados de demonstração para fallback
+const demoEstacionamentos: Estacionamento[] = [
+  {
+    id: 'pl-001',
+    nome: 'Estacionamento Central Plaza',
+    endereco: 'Rua das Flores, 123 - Centro, São Paulo',
+    cidade: 'São Paulo',
+    vagasDisponiveis: 12,
+    totalVagas: 50,
+    valorPorHora: 15.00,
+    distancia: '1.2 km',
+    horarioFuncionamento: '24h',
+    status: 'disponivel',
+    amenities: ['Câmeras', 'Coberto', 'Acessível']
+  },
+  {
+    id: 'pl-002',
+    nome: 'Pátio Logístico Norte',
+    endereco: 'Av. Industrial, 456 - Distrito Industrial, Guarulhos',
+    cidade: 'Guarulhos',
+    vagasDisponiveis: 0,
+    totalVagas: 100,
+    valorPorHora: 20.00,
+    distancia: '5.8 km',
+    horarioFuncionamento: '06:00 - 22:00',
+    status: 'cheio',
+    amenities: ['Câmeras', 'Descoberto']
+  },
+  {
+    id: 'pl-003',
+    nome: 'Estacionamento Sul',
+    endereco: 'Av. Brasil, 789 - Centro, Santo André',
+    cidade: 'Santo André',
+    vagasDisponiveis: 3,
+    totalVagas: 30,
+    valorPorHora: 12.00,
+    distancia: '3.4 km',
+    horarioFuncionamento: '24h',
+    status: 'disponivel',
+    amenities: ['Coberto', 'Acessível']
+  },
+  {
+    id: 'pl-004',
+    nome: 'Estacionamento Oeste',
+    endereco: 'Rua das Palmeiras, 321 - Jardim, Osasco',
+    cidade: 'Osasco',
+    vagasDisponiveis: 0,
+    totalVagas: 40,
+    valorPorHora: 18.00,
+    distancia: '7.1 km',
+    horarioFuncionamento: '07:00 - 20:00',
+    status: 'manutencao',
+    amenities: ['Câmeras', 'Coberto']
+  }
+];
+
 const ReservaVagas: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [cidadeFilter, setCidadeFilter] = useState<string>('all');
@@ -28,6 +84,7 @@ const ReservaVagas: React.FC = () => {
   const [reservaModalOpen, setReservaModalOpen] = useState(false);
   const [estacionamentos, setEstacionamentos] = useState<Estacionamento[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDemo, setIsDemo] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -37,6 +94,7 @@ const ReservaVagas: React.FC = () => {
   const loadEstacionamentos = async () => {
     try {
       setIsLoading(true);
+      setIsDemo(false);
       console.log('Carregando estacionamentos reais da API...');
       
       // Buscar estacionamentos via API
@@ -52,7 +110,6 @@ const ReservaVagas: React.FC = () => {
       }
 
       const data = await response.json();
-      
       // Mapear dados do backend para o formato do frontend
       const estacionamentosMapeados = data.map((est: any) => ({
         id: est.id,
@@ -62,22 +119,22 @@ const ReservaVagas: React.FC = () => {
         vagasDisponiveis: est.availableSpaces || 0,
         totalVagas: est.totalSpaces || 0,
         valorPorHora: est.pricePerHour || 0,
-        distancia: 'Calculando...', // Em uma implementação real, calcularia baseado na localização
+        distancia: 'Calculando...',
         horarioFuncionamento: formatarHorario(est.operatingHours),
         status: determinarStatus(est.availableSpaces, est.totalSpaces, est.isActive),
         amenities: est.amenities || []
       }));
-
       setEstacionamentos(estacionamentosMapeados);
       console.log('Estacionamentos carregados:', estacionamentosMapeados.length);
       
     } catch (error: any) {
       console.error('Erro ao carregar estacionamentos:', error);
-      setEstacionamentos([]);
+      setEstacionamentos(demoEstacionamentos);
+      setIsDemo(true);
       toast({
-        title: "Erro ao carregar estacionamentos",
-        description: error.message || "Não foi possível carregar os estacionamentos disponíveis.",
-        variant: "destructive",
+        title: "Modo Demonstração",
+        description: "Backend não disponível. Exibindo estacionamentos de exemplo.",
+        variant: "default",
       });
     } finally {
       setIsLoading(false);
@@ -300,7 +357,7 @@ const ReservaVagas: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <Car className="w-4 h-4 text-slate-400" />
-                  <span className="text-slate-300">R$ {estacionamento.valorPorHora.toFixed(2)}/hora</span>
+                  <span className="text-slate-300">R$ {typeof estacionamento.valorPorHora === 'number' && !isNaN(estacionamento.valorPorHora) ? estacionamento.valorPorHora.toFixed(2) : 'N/A'}/hora</span>
                 </div>
               </div>
               

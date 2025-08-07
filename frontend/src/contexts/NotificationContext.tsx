@@ -60,51 +60,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   const [isConnected, setIsConnected] = useState(false);
   const { toast } = useToast();
 
-  // Mock WebSocket connection - Em ambiente real, usar WebSocket real
-  useEffect(() => {
-    // Simular conexão WebSocket
-    const simulateConnection = () => {
-      setIsConnected(true);
-      console.log('🔔 Sistema de notificações conectado');
-      
-      // Simular recebimento de notificações periodicamente
-      const interval = setInterval(() => {
-        // Simular notificação aleatória (apenas para demonstração)
-        if (Math.random() > 0.85) { // 15% de chance a cada 30 segundos
-          const mockNotifications = [
-            {
-              type: NotificationType.RESERVATION_CREATED,
-              title: 'Nova Reserva',
-              message: 'Uma transportadora fez uma nova reserva',
-              userId: 'current-user',
-              userRole: 'ESTACIONAMENTO',
-              metadata: { reservationId: 'res-' + Date.now() }
-            },
-            {
-              type: NotificationType.PAYMENT_RECEIVED,
-              title: 'Pagamento Recebido',
-              message: 'Pagamento de R$ 150,00 processado',
-              userId: 'current-user',
-              userRole: 'ESTACIONAMENTO',
-              metadata: { amount: 150.00 }
-            }
-          ];
-          
-          const randomNotification = mockNotifications[Math.floor(Math.random() * mockNotifications.length)];
-          addNotification(randomNotification);
-        }
-      }, 30000); // A cada 30 segundos
-
-      return () => {
-        clearInterval(interval);
-        setIsConnected(false);
-      };
-    };
-
-    const cleanup = simulateConnection();
-    
-    return cleanup;
-  }, []);
+  // Remover o useEffect que simula notificações mockadas
 
   const addNotification = (notificationData: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     const notification: Notification = {

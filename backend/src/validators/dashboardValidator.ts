@@ -5,8 +5,8 @@ import { z } from 'zod';
  */
 export const dashboardFilterSchema = z.object({
   // Filtrar por período de tempo
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  startDate: z.string().optional().or(z.string().length(0)),
+  endDate: z.string().optional().or(z.string().length(0)),
   
   // Filtrar por tipo de status da reserva
   reservationStatus: z.enum(['PENDING', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),

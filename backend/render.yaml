@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: gtsystem-backend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+    healthCheckPath: /api/health
+    autoDeploy: true
+
+databases:
+  - name: gtsystem-postgres
+    databaseName: gtsystem
+    user: gtsystem
+    plan: free
+
+  - name: gtsystem-redis
+    plan: free

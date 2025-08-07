@@ -332,26 +332,59 @@ const MinhasVagas: React.FC = () => {
       return;
     }
 
+    // Validação extra dos campos obrigatórios e tipos
+    const requiredFields = [
+      'totalVagas', 'vagasCaminhao', 'vagasCarreta', 'precoHoraCaminhao', 'precoHoraCarreta',
+      'horarioAbertura', 'horarioFechamento', 'funcionamento24h', 'prefixoNumeracao',
+      'numeroInicial', 'autoReserva', 'tempoLimiteReserva'
+    ];
+    for (const field of requiredFields) {
+      if (configData[field] === undefined || configData[field] === null || configData[field] === "") {
+        toast({
+          title: "Campo obrigatório ausente",
+          description: `O campo '${field}' é obrigatório para gerar as vagas.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    // Garantir tipos corretos
+    const payload = {
+      totalVagas: Number(configData.totalVagas),
+      vagasCaminhao: Number(configData.vagasCaminhao),
+      vagasCarreta: Number(configData.vagasCarreta),
+      precoHoraCaminhao: Number(configData.precoHoraCaminhao),
+      precoHoraCarreta: Number(configData.precoHoraCarreta),
+      horarioAbertura: String(configData.horarioAbertura),
+      horarioFechamento: String(configData.horarioFechamento),
+      funcionamento24h: Boolean(configData.funcionamento24h),
+      prefixoNumeracao: String(configData.prefixoNumeracao),
+      numeroInicial: Number(configData.numeroInicial),
+      autoReserva: Boolean(configData.autoReserva),
+      tempoLimiteReserva: Number(configData.tempoLimiteReserva)
+    };
+    if (payload.vagasCaminhao + payload.vagasCarreta !== payload.totalVagas) {
+      toast({
+        title: "Configuração inválida",
+        description: `A soma de vagas por tipo (${payload.vagasCaminhao + payload.vagasCarreta}) não confere com o total geral (${payload.totalVagas})` ,
+        variant: "destructive",
+      });
+      return;
+    }
     try {
       setIsGeneratingSpaces(true);
-      
       // Salvar configurações no backend
       const ParkingSpaceService = (await import('@/services/parkingSpaces')).default;
-      await ParkingSpaceService.saveConfiguration(configData);
-      
+      await ParkingSpaceService.saveConfiguration(payload);
       // Gerar vagas no backend
-      await ParkingSpaceService.generateSpaces(configData);
-      
+      await ParkingSpaceService.generateSpaces(payload);
       toast({
         title: "Configurações aplicadas",
-        description: `${configData.totalVagas} vagas foram geradas com sucesso.`,
+        description: `${payload.totalVagas} vagas foram geradas com sucesso.`,
       });
-      
       setConfigModalOpen(false);
-      
       // Recarregar vagas após geração
       await loadVagas();
-      
     } catch (error: any) {
       console.error('Erro ao gerar vagas:', error);
       toast({

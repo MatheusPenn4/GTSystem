@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarIcon, Clock, MapPin, Car, User, Building2, ParkingCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import VeiculoService, { Veiculo } from '@/services/veiculos';
+import MotoristaService, { Motorista } from '@/services/motoristas';
 
 interface Estacionamento {
   id: string;
@@ -22,23 +24,6 @@ interface Estacionamento {
   horarioFuncionamento: string;
   status: 'disponivel' | 'cheio' | 'manutencao';
   amenities?: string[];
-}
-
-interface Veiculo {
-  id: string;
-  placa: string;
-  tipo: string;
-  marca?: string;
-  modelo?: string;
-  ano?: number;
-}
-
-interface Motorista {
-  id: string;
-  nome: string;
-  cpf: string;
-  cnh: string;
-  telefone?: string;
 }
 
 interface ReservaModalProps {
@@ -63,7 +48,7 @@ const ReservaModal: React.FC<ReservaModalProps> = ({ isOpen, onClose, estacionam
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
-  const [motoristas, setMotoristas] = useState<Motorista[]>([]);
+  const [motorista, setMotorista] = useState<Motorista | null>(null);
   const [custoEstimado, setCustoEstimado] = useState<number>(0);
   
   const [formData, setFormData] = useState<FormData>({
@@ -87,9 +72,31 @@ const ReservaModal: React.FC<ReservaModalProps> = ({ isOpen, onClose, estacionam
         estacionamentoId: estacionamento.id
       }));
       loadVeiculos();
-      loadMotoristas();
+      setMotorista(null);
     }
   }, [isOpen, estacionamento]);
+
+  // Quando o veículo for selecionado, buscar o motorista principal
+  useEffect(() => {
+    const fetchMotorista = async () => {
+      if (formData.veiculoId) {
+        const veiculo = veiculos.find(v => v.id === formData.veiculoId);
+        if (veiculo && veiculo.motoristaPrincipalId) {
+          try {
+            const motoristaData = await MotoristaService.getById(veiculo.motoristaPrincipalId);
+            setMotorista(motoristaData);
+          } catch (e) {
+            setMotorista(null);
+          }
+        } else {
+          setMotorista(null);
+        }
+      } else {
+        setMotorista(null);
+      }
+    };
+    fetchMotorista();
+  }, [formData.veiculoId, veiculos]);
 
   // Calcular custo estimado quando as datas mudarem
   useEffect(() => {
@@ -100,16 +107,9 @@ const ReservaModal: React.FC<ReservaModalProps> = ({ isOpen, onClose, estacionam
 
   const loadVeiculos = async () => {
     try {
-      console.log('Carregando veículos reais do banco de dados...');
-      // TODO: Implementar chamada real à API de veículos
-      // const veiculosFromAPI = await VehicleService.getAll();
-      // setVeiculos(veiculosFromAPI);
-      
-      // Por enquanto, lista vazia - sem dados fictícios
-      setVeiculos([]);
-      console.log('Veículos carregados: 0 (sem dados fictícios)');
+      const veiculosFromAPI = await VeiculoService.getAll();
+      setVeiculos(veiculosFromAPI);
     } catch (error) {
-      console.error('Erro ao carregar veículos:', error);
       setVeiculos([]);
     }
   };
@@ -122,11 +122,11 @@ const ReservaModal: React.FC<ReservaModalProps> = ({ isOpen, onClose, estacionam
       // setMotoristas(motoristasFromAPI);
       
       // Por enquanto, lista vazia - sem dados fictícios
-      setMotoristas([]);
+      // setMotoristas([]); // Removido
       console.log('Motoristas carregados: 0 (sem dados fictícios)');
     } catch (error) {
       console.error('Erro ao carregar motoristas:', error);
-      setMotoristas([]);
+      // setMotoristas([]); // Removido
     }
   };
 
@@ -150,11 +150,11 @@ const ReservaModal: React.FC<ReservaModalProps> = ({ isOpen, onClose, estacionam
     const newErrors: Partial<FormData> = {};
 
     if (!formData.veiculoId) newErrors.veiculoId = 'Selecione um veículo';
-    if (!formData.motoristaId) newErrors.motoristaId = 'Selecione um motorista';
     if (!formData.dataInicio) newErrors.dataInicio = 'Data de início é obrigatória';
     if (!formData.horaInicio) newErrors.horaInicio = 'Hora de início é obrigatória';
     if (!formData.dataFim) newErrors.dataFim = 'Data de fim é obrigatória';
     if (!formData.horaFim) newErrors.horaFim = 'Hora de fim é obrigatória';
+    if (!motorista) newErrors.veiculoId = 'O veículo selecionado não possui motorista principal cadastrado.';
 
     // Validar se data/hora de fim é posterior ao início
     if (formData.dataInicio && formData.horaInicio && formData.dataFim && formData.horaFim) {
@@ -185,7 +185,7 @@ const ReservaModal: React.FC<ReservaModalProps> = ({ isOpen, onClose, estacionam
       const reservaData = {
         parkingLotId: formData.estacionamentoId,
         vehicleId: formData.veiculoId,
-        driverId: formData.motoristaId,
+        driverId: motorista?.id,
         startTime: `${formData.dataInicio}T${formData.horaInicio}:00.000Z`,
         endTime: `${formData.dataFim}T${formData.horaFim}:00.000Z`,
         specialRequests: formData.observacoes || undefined
@@ -283,7 +283,7 @@ const ReservaModal: React.FC<ReservaModalProps> = ({ isOpen, onClose, estacionam
                   <span className="text-slate-300">{estacionamento.horarioFuncionamento}</span>
                 </div>
                 <div className="col-span-2">
-                  <span className="text-slate-300">R$ {estacionamento.valorPorHora.toFixed(2)}/hora</span>
+                  <span className="text-slate-300">R$ {typeof estacionamento.valorPorHora === 'number' && !isNaN(estacionamento.valorPorHora) ? estacionamento.valorPorHora.toFixed(2) : 'N/A'}/hora</span>
                 </div>
               </div>
 
@@ -322,30 +322,17 @@ const ReservaModal: React.FC<ReservaModalProps> = ({ isOpen, onClose, estacionam
               </Select>
               {errors.veiculoId && <p className="text-red-400 text-sm mt-1">{errors.veiculoId}</p>}
             </div>
-
-            {/* Seleção de Motorista */}
-            <div>
-              <Label htmlFor="motorista" className="text-slate-300">
-                Motorista <span className="text-red-400">*</span>
-              </Label>
-              <Select value={formData.motoristaId} onValueChange={(value) => handleInputChange('motoristaId', value)}>
-                <SelectTrigger className="ajh-input">
-                  <SelectValue placeholder="Selecione um motorista" />
-                </SelectTrigger>
-                <SelectContent className="ajh-dropdown">
-                  {motoristas.map((motorista) => (
-                    <SelectItem key={motorista.id} value={motorista.id}>
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        <span>{motorista.nome}</span>
-                        <span className="text-slate-400 text-xs">CNH: {motorista.cnh}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.motoristaId && <p className="text-red-400 text-sm mt-1">{errors.motoristaId}</p>}
-            </div>
+            {/* Exibir motorista automaticamente */}
+            {motorista && (
+              <div className="mt-2">
+                <Label className="text-slate-300">Motorista</Label>
+                <div className="flex items-center gap-2 p-2 bg-slate-800 rounded">
+                  <User className="w-4 h-4 text-slate-400" />
+                  <span className="text-white font-medium">{motorista.nome}</span>
+                  <span className="text-slate-400 text-xs">CNH: {motorista.cnh}</span>
+                </div>
+              </div>
+            )}
 
             {/* Data e Hora de Início */}
             <div className="grid grid-cols-2 gap-4">

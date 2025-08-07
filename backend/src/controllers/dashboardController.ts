@@ -26,10 +26,10 @@ const dashboardController = {
 
       // Definir datas de início e fim para filtro
       const dateFilter: any = {};
-      if (startDate) {
+      if (startDate && startDate.trim() !== '') {
         dateFilter.gte = new Date(startDate);
       }
-      if (endDate) {
+      if (endDate && endDate.trim() !== '') {
         dateFilter.lte = new Date(endDate);
       }
 
@@ -243,10 +243,10 @@ const dashboardController = {
 
       // Definir datas de início e fim para filtro
       const dateFilter: any = {};
-      if (startDate) {
+      if (startDate && startDate.trim() !== '') {
         dateFilter.gte = new Date(startDate);
       }
-      if (endDate) {
+      if (endDate && endDate.trim() !== '') {
         dateFilter.lte = new Date(endDate);
       }
 
@@ -500,21 +500,33 @@ const dashboardController = {
         throw new ApiError(403, 'Acesso negado. Apenas estacionamentos podem acessar este dashboard.');
       }
 
+      // LOGS DE DIAGNÓSTICO
+      console.log('DASHBOARD QUERY:', req.query);
+      console.log('DASHBOARD USER:', req.user);
+
+      // Obter parâmetros de filtro
+      let parsedQuery;
+      try {
+        parsedQuery = dashboardFilterSchema.parse(req.query);
+        console.log('DASHBOARD PARSED QUERY:', parsedQuery);
+      } catch (e) {
+        console.error('DASHBOARD ZOD ERROR:', e);
+        throw e;
+      }
+      const { startDate, endDate, groupBy } = parsedQuery;
       const companyId = req.user.companyId;
+      console.log('DASHBOARD COMPANY ID:', companyId);
 
       if (!companyId) {
         throw new ApiError(400, 'ID da empresa não encontrado.');
       }
 
-      // Obter parâmetros de filtro
-      const { startDate, endDate, groupBy } = dashboardFilterSchema.parse(req.query);
-
       // Definir datas de início e fim para filtro
       const dateFilter: any = {};
-      if (startDate) {
+      if (startDate && startDate.trim() !== '') {
         dateFilter.gte = new Date(startDate);
       }
-      if (endDate) {
+      if (endDate && endDate.trim() !== '') {
         dateFilter.lte = new Date(endDate);
       }
 
@@ -740,7 +752,7 @@ const dashboardController = {
         }))
       };
 
-      return res.status(200).json(dashboard);
+      return res.status(200).json(convertBigIntToNumber(dashboard));
     } catch (error) {
       next(error);
     }
@@ -800,6 +812,24 @@ async function getCancellationRate(dateFilter: any): Promise<number> {
 
   if (totalReservations === 0) return 0;
   return parseFloat(((cancelledReservations / totalReservations) * 100).toFixed(2));
+}
+
+// Função utilitária para converter BigInt em Number recursivamente
+function convertBigIntToNumber(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(convertBigIntToNumber);
+  } else if (obj && typeof obj === 'object') {
+    const newObj: Record<string, any> = {};
+    for (const key in obj) {
+      if (typeof obj[key] === 'bigint') {
+        newObj[key] = Number(obj[key]);
+      } else {
+        newObj[key] = convertBigIntToNumber(obj[key]);
+      }
+    }
+    return newObj;
+  }
+  return obj;
 }
 
 export default dashboardController; 
