@@ -1,4 +1,4 @@
-import api from '@/lib/api';
+import api from './api';
 
 export interface Empresa {
   id: string;
@@ -103,32 +103,35 @@ const EmpresaService = {
       
       // Mostrar detalhes mais específicos sobre o erro
       if (error.response) {
-        // O servidor respondeu com um status diferente de 2xx
         console.error('Resposta de erro:', error.response.data);
         
-        // Se houver mensagens de erro específicas, exibi-las
         if (error.response.data && error.response.data.errors) {
           const errors = error.response.data.errors;
           const errorMessages = errors.map((err: any) => err.message || err).join(', ');
           throw new Error(`Dados inválidos: ${errorMessages}`);
         }
         
-        const errorMessage = error.response.data?.message || 'Erro ao criar empresa';
-        throw new Error(errorMessage);
-      } else if (error.request) {
-        // A requisição foi feita mas não houve resposta
-        console.error('Request sem resposta:', error.request);
-        throw new Error('Servidor não respondeu. Verifique sua conexão.');
-      } else {
-        // Outros erros
-        console.error('Erro de configuração:', error.message);
-        throw error;
+        if (error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
+        }
+        
+        throw new Error(`Erro ${error.response.status}: ${error.response.statusText}`);
       }
+      
+      if (error.request) {
+        throw new Error('Servidor não está respondendo. Verifique sua conexão.');
+      }
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Tempo limite excedido. Tente novamente.');
+      }
+      
+      throw new Error('Erro inesperado ao criar empresa.');
     }
   },
 
   // Atualizar uma empresa existente
-  update: async (id: string, empresa: Partial<Empresa>): Promise<Empresa> => {
+  update: async (id: string, empresa: Partial<Omit<Empresa, 'id' | 'dataCadastro'>>): Promise<Empresa> => {
     try {
       console.log(`Tentando atualizar empresa ${id} no backend...`, empresa);
       
@@ -136,49 +139,128 @@ const EmpresaService = {
       const backendData: any = {};
       
       if (empresa.nome) backendData.name = empresa.nome;
+      if (empresa.cnpj) backendData.cnpj = empresa.cnpj.replace(/[^\d]/g, '');
+      if (empresa.tipo) backendData.companyType = empresa.tipo.toLowerCase();
+      if (empresa.endereco) backendData.address = empresa.endereco;
       if (empresa.telefone) backendData.phone = empresa.telefone;
       if (empresa.email) backendData.email = empresa.email;
-      if (empresa.endereco) backendData.address = empresa.endereco;
-      if (empresa.status === 'ATIVO' || empresa.status === 'INATIVO') {
-        backendData.isActive = empresa.status === 'ATIVO';
-      }
+      if (empresa.status !== undefined) backendData.isActive = empresa.status === 'ATIVO';
+      
+      console.log('Dados enviados para o backend:', backendData);
       
       const response = await api.put(`/empresas/${id}`, backendData, { timeout: 8000 });
-      console.log('Empresa atualizada com sucesso no backend!');
+      console.log('Empresa atualizada com sucesso no backend!', response.data);
       
       // Mapear resposta do backend para o formato do frontend
       return mapToFrontend(response.data);
-    } catch (error) {
-      console.error(`Erro ao atualizar empresa com ID ${id}:`, error);
-      throw error;
+    } catch (error: any) {
+      console.error(`Erro ao atualizar empresa ${id}:`, error);
+      
+      if (error.response) {
+        console.error('Resposta de erro:', error.response.data);
+        
+        if (error.response.data && error.response.data.errors) {
+          const errors = error.response.data.errors;
+          const errorMessages = errors.map((err: any) => err.message || err).join(', ');
+          throw new Error(`Dados inválidos: ${errorMessages}`);
+        }
+        
+        if (error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
+        }
+        
+        throw new Error(`Erro ${error.response.status}: ${error.response.statusText}`);
+      }
+      
+      if (error.request) {
+        throw new Error('Servidor não está respondendo. Verifique sua conexão.');
+      }
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Tempo limite excedido. Tente novamente.');
+      }
+      
+      throw new Error('Erro inesperado ao atualizar empresa.');
     }
   },
 
-  // Alterar o status de uma empresa
-  changeStatus: async (id: string, status: 'ATIVO' | 'INATIVO' | 'SUSPENSO'): Promise<void> => {
-    try {
-      console.log(`Tentando alterar status da empresa ${id} no backend para ${status}...`);
-      
-      // No backend, isActive é um boolean
-      const isActive = status === 'ATIVO';
-      
-      await api.put(`/empresas/${id}`, { isActive }, { timeout: 8000 });
-      console.log('Status da empresa alterado com sucesso no backend!');
-    } catch (error) {
-      console.error(`Erro ao alterar status da empresa com ID ${id}:`, error);
-      throw error;
-    }
-  },
-
-  // Excluir uma empresa
+  // Deletar uma empresa
   delete: async (id: string): Promise<void> => {
     try {
-      console.log(`Tentando excluir empresa ${id} no backend...`);
+      console.log(`Tentando deletar empresa ${id} no backend...`);
       
       await api.delete(`/empresas/${id}`, { timeout: 8000 });
-      console.log('Empresa excluída com sucesso no backend!');
+      console.log('Empresa deletada com sucesso no backend!');
+    } catch (error: any) {
+      console.error(`Erro ao deletar empresa ${id}:`, error);
+      
+      if (error.response) {
+        console.error('Resposta de erro:', error.response.data);
+        
+        if (error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
+        }
+        
+        throw new Error(`Erro ${error.response.status}: ${error.response.statusText}`);
+      }
+      
+      if (error.request) {
+        throw new Error('Servidor não está respondendo. Verifique sua conexão.');
+      }
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Tempo limite excedido. Tente novamente.');
+      }
+      
+      throw new Error('Erro inesperado ao deletar empresa.');
+    }
+  },
+
+  // Ativar/desativar uma empresa
+  toggleStatus: async (id: string, isActive: boolean): Promise<Empresa> => {
+    try {
+      console.log(`Tentando ${isActive ? 'ativar' : 'desativar'} empresa ${id} no backend...`);
+      
+      const response = await api.patch(`/empresas/${id}/status`, { isActive }, { timeout: 8000 });
+      console.log('Status da empresa atualizado com sucesso no backend!', response.data);
+      
+      return mapToFrontend(response.data);
+    } catch (error: any) {
+      console.error(`Erro ao alterar status da empresa ${id}:`, error);
+      
+      if (error.response) {
+        console.error('Resposta de erro:', error.response.data);
+        
+        if (error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
+        }
+        
+        throw new Error(`Erro ${error.response.status}: ${error.response.statusText}`);
+      }
+      
+      if (error.request) {
+        throw new Error('Servidor não está respondendo. Verifique sua conexão.');
+      }
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Tempo limite excedido. Tente novamente.');
+      }
+      
+      throw new Error('Erro inesperado ao alterar status da empresa.');
+    }
+  },
+
+  // Buscar empresas por tipo
+  getByType: async (tipo: string): Promise<Empresa[]> => {
+    try {
+      console.log(`Tentando buscar empresas do tipo ${tipo}...`);
+      
+      const response = await api.get(`/empresas/type/${tipo.toLowerCase()}`, { timeout: 8000 });
+      console.log('Empresas por tipo obtidas com sucesso no backend!', response.data.length);
+      
+      return response.data.map(mapToFrontend);
     } catch (error) {
-      console.error(`Erro ao excluir empresa com ID ${id}:`, error);
+      console.error(`Erro ao buscar empresas do tipo ${tipo}:`, error);
       throw error;
     }
   }
@@ -190,64 +272,44 @@ const mapToFrontend = (company: CompanyBackend): Empresa => {
     id: company.id,
     nome: company.name,
     cnpj: company.cnpj,
-    tipo: company.companyType as 'TRANSPORTADORA' | 'ESTACIONAMENTO',
+    tipo: company.companyType.toUpperCase() as 'TRANSPORTADORA' | 'ESTACIONAMENTO',
     endereco: company.address,
-    telefone: company.phone || '',
-    email: company.email || '',
+    telefone: company.phone,
+    email: company.email,
     status: company.isActive ? 'ATIVO' : 'INATIVO',
     dataCadastro: company.createdAt,
-    responsavel: '', // O backend não tem este campo explicitamente
+    cidade: undefined, // Não disponível no backend
+    estado: undefined, // Não disponível no backend
+    cep: undefined, // Não disponível no backend
+    responsavel: undefined, // Não disponível no backend
+    logo: undefined // Não disponível no backend
   };
 };
 
-// Função para retornar dados mockados consistentes
+// Dados mockados para fallback (não usado mais)
 const getMockEmpresas = (): Empresa[] => {
   return [
     {
       id: '1',
-      nome: 'Transportadora ABC',
+      nome: 'Transportadora Modelo LTDA',
       cnpj: '12.345.678/0001-90',
       tipo: 'TRANSPORTADORA',
-      endereco: 'Av. Industrial, 1000',
-      cidade: 'São Paulo',
-      estado: 'SP',
-      cep: '04001-000',
-      telefone: '(11) 5555-1234',
-      email: 'contato@transpabc.com.br',
-      responsavel: 'Carlos Silva',
+      endereco: 'Rua das Flores, 123 - São Paulo/SP',
+      telefone: '(11) 99999-9999',
+      email: 'contato@transportadoramodelo.com.br',
       status: 'ATIVO',
-      dataCadastro: '2024-01-10',
-      logo: '/logos/transportadora-abc.png'
+      dataCadastro: '2024-01-01T00:00:00Z'
     },
     {
       id: '2',
-      nome: 'LogisTech Express',
-      cnpj: '23.456.789/0001-12',
-      tipo: 'TRANSPORTADORA',
-      endereco: 'Rua das Indústrias, 456',
-      cidade: 'Campinas',
-      estado: 'SP',
-      cep: '13087-000',
-      telefone: '(19) 3333-4567',
-      email: 'contato@logistech.com.br',
-      responsavel: 'Ana Ferreira',
-      status: 'ATIVO',
-      dataCadastro: '2024-02-15'
-    },
-    {
-      id: '3',
-      nome: 'Estacionamento Central',
-      cnpj: '34.567.890/0001-23',
+      nome: 'Estacionamento Seguro S.A.',
+      cnpj: '98.765.432/0001-10',
       tipo: 'ESTACIONAMENTO',
-      endereco: 'Rua Augusta, 789',
-      cidade: 'São Paulo',
-      estado: 'SP',
-      cep: '01305-000',
-      telefone: '(11) 3333-7890',
-      email: 'contato@estacionamentocentral.com.br',
-      responsavel: 'João Oliveira',
+      endereco: 'Av. Principal, 456 - São Paulo/SP',
+      telefone: '(11) 88888-8888',
+      email: 'contato@estacionamentoseguro.com.br',
       status: 'ATIVO',
-      dataCadastro: '2024-03-05'
+      dataCadastro: '2024-01-02T00:00:00Z'
     }
   ];
 };
