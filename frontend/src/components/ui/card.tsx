@@ -6,7 +6,7 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-import { cn } from "../../../lib/utils"
+
 
 const Card = React.forwardRef<
   HTMLDivElement,

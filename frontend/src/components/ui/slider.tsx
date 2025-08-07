@@ -7,7 +7,7 @@ function cn(...inputs: ClassValue[]) {
 }
 import * as SliderPrimitive from "@radix-ui/react-slider"
 
-import { cn } from "../../../lib/utils"
+
 
 const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,

@@ -7,7 +7,7 @@ function cn(...inputs: ClassValue[]) {
 }
 import * as TabsPrimitive from "@radix-ui/react-tabs"
 
-import { cn } from "../../../lib/utils"
+
 
 const Tabs = TabsPrimitive.Root
 
