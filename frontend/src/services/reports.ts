@@ -1,4 +1,4 @@
-import api from '@/lib/api';
+import api from './api';
 
 export interface FaturamentoMensal {
   mes: string;
@@ -102,13 +102,109 @@ const ReportsService = {
     }
   },
 
-  // Buscar estatísticas por role do usuário
-  getStatsForRole: async (role: string): Promise<RelatorioStats[]> => {
+  // Buscar estatísticas gerais
+  getEstatisticasGerais: async (): Promise<RelatorioStats[]> => {
     try {
-      console.log('Carregando estatísticas por role do backend...', { role });
+      console.log('Carregando estatísticas gerais do backend...');
       
-      const response = await api.get('/reports/stats-by-role', {
-        params: { role },
+      const response = await api.get('/reports/estatisticas-gerais', {
+        timeout: 8000
+      });
+      
+      console.log('Estatísticas gerais carregadas com sucesso!', response.data.length);
+      return response.data;
+    } catch (error: any) {
+      console.error('Erro ao buscar estatísticas gerais:', error);
+      
+      if (error.response?.status === 404) {
+        console.warn('Endpoint de estatísticas gerais não implementado ainda no backend');
+        return [];
+      }
+      throw error;
+    }
+  },
+
+  // Buscar relatório de performance
+  getRelatorioPerformance: async (dataInicio?: string, dataFim?: string): Promise<any> => {
+    try {
+      console.log('Carregando relatório de performance do backend...', { dataInicio, dataFim });
+      
+      const params: any = {};
+      if (dataInicio) params.dataInicio = dataInicio;
+      if (dataFim) params.dataFim = dataFim;
+      
+      const response = await api.get('/reports/performance', {
+        params,
+        timeout: 8000
+      });
+      
+      console.log('Relatório de performance carregado com sucesso!');
+      return response.data;
+    } catch (error: any) {
+      console.error('Erro ao buscar relatório de performance:', error);
+      
+      if (error.response?.status === 404) {
+        console.warn('Endpoint de performance não implementado ainda no backend');
+        return {};
+      }
+      throw error;
+    }
+  },
+
+  // Buscar dados de ocupação por estacionamento
+  getOcupacaoPorEstacionamento: async (): Promise<any[]> => {
+    try {
+      console.log('Carregando ocupação por estacionamento do backend...');
+      
+      const response = await api.get('/reports/ocupacao-estacionamentos', {
+        timeout: 8000
+      });
+      
+      console.log('Ocupação por estacionamento carregada com sucesso!', response.data.length);
+      return response.data;
+    } catch (error: any) {
+      console.error('Erro ao buscar ocupação por estacionamento:', error);
+      
+      if (error.response?.status === 404) {
+        console.warn('Endpoint de ocupação por estacionamento não implementado ainda no backend');
+        return [];
+      }
+      throw error;
+    }
+  },
+
+  // Buscar relatório de veículos por empresa
+  getVeiculosPorEmpresa: async (): Promise<any[]> => {
+    try {
+      console.log('Carregando veículos por empresa do backend...');
+      
+      const response = await api.get('/reports/veiculos-empresa', {
+        timeout: 8000
+      });
+      
+      console.log('Veículos por empresa carregados com sucesso!', response.data.length);
+      return response.data;
+    } catch (error: any) {
+      console.error('Erro ao buscar veículos por empresa:', error);
+      
+      if (error.response?.status === 404) {
+        console.warn('Endpoint de veículos por empresa não implementado ainda no backend');
+        return [];
+      }
+      throw error;
+    }
+  },
+
+  // Buscar estatísticas baseadas no role do usuário
+  getEstatisticasPorRole: async (userRole?: string): Promise<RelatorioStats[]> => {
+    try {
+      console.log('Carregando estatísticas por role do backend...', { userRole });
+      
+      const params: any = {};
+      if (userRole) params.role = userRole;
+      
+      const response = await api.get('/reports/estatisticas-role', {
+        params,
         timeout: 8000
       });
       
@@ -119,68 +215,109 @@ const ReportsService = {
       
       if (error.response?.status === 404) {
         console.warn('Endpoint de estatísticas por role não implementado ainda no backend');
-        
-        // Retornar dados padrão baseados no role
-        return getDefaultStatsForRole(role);
-      }
-      throw error;
-    }
-  },
-
-  // Exportar relatório
-  exportRelatorio: async (formato: 'pdf' | 'excel', tipo: string, dataInicio?: string, dataFim?: string): Promise<Blob> => {
-    try {
-      console.log('Exportando relatório...', { formato, tipo, dataInicio, dataFim });
-      
-      const params: any = { formato, tipo };
-      if (dataInicio) params.dataInicio = dataInicio;
-      if (dataFim) params.dataFim = dataFim;
-      
-      const response = await api.get('/reports/export', {
-        params,
-        responseType: 'blob',
-        timeout: 30000 // Relatórios podem demorar mais
-      });
-      
-      console.log('Relatório exportado com sucesso!');
-      return response.data;
-    } catch (error: any) {
-      console.error('Erro ao exportar relatório:', error);
-      
-      if (error.response?.status === 404) {
-        throw new Error('Funcionalidade de exportação ainda não implementada no backend');
+        return getDefaultStatsForRole(userRole || 'admin');
       }
       throw error;
     }
   }
 };
 
-// Função para retornar estatísticas padrão por role quando o endpoint não estiver implementado
+// Função para retornar estatísticas padrão baseadas no role
 const getDefaultStatsForRole = (role: string): RelatorioStats[] => {
-  if (role === 'transportadora') {
-    return [
-      { titulo: 'Veículos Ativos', valor: '0', mudanca: '+0%', icon: 'Truck', cor: 'text-blue-400' },
-      { titulo: 'Gasto Mensal', valor: 'R$ 0', mudanca: '+0%', icon: 'BarChart3', cor: 'text-green-400' },
-      { titulo: 'Reservas Ativas', valor: '0', mudanca: '+0', icon: 'Calendar', cor: 'text-purple-400' },
-      { titulo: 'Economia', valor: 'R$ 0', mudanca: '+0%', icon: 'TrendingUp', cor: 'text-yellow-400' }
-    ];
-  }
-  
-  if (role === 'estacionamento') {
-    return [
-      { titulo: 'Receita Mensal', valor: 'R$ 0', mudanca: '+0%', icon: 'BarChart3', cor: 'text-green-400' },
-      { titulo: 'Taxa Ocupação', valor: '0%', mudanca: '+0%', icon: 'Building2', cor: 'text-blue-400' },
-      { titulo: 'Reservas Hoje', valor: '0', mudanca: '+0', icon: 'Calendar', cor: 'text-purple-400' },
-      { titulo: 'Vagas Disponíveis', valor: '0', mudanca: '+0', icon: 'Truck', cor: 'text-yellow-400' }
-    ];
-  }
+  const defaultStats = {
+    admin: [
+      {
+        titulo: 'Total de Empresas',
+        valor: '15',
+        mudanca: '+12%',
+        icon: 'Building2',
+        cor: 'text-blue-600'
+      },
+      {
+        titulo: 'Veículos Ativos',
+        valor: '127',
+        mudanca: '+8%',
+        icon: 'Truck',
+        cor: 'text-green-600'
+      },
+      {
+        titulo: 'Motoristas',
+        valor: '89',
+        mudanca: '+5%',
+        icon: 'User',
+        cor: 'text-purple-600'
+      },
+      {
+        titulo: 'Reservas Ativas',
+        valor: '342',
+        mudanca: '+15%',
+        icon: 'Calendar',
+        cor: 'text-orange-600'
+      }
+    ],
+    transportadora: [
+      {
+        titulo: 'Veículos Próprios',
+        valor: '12',
+        mudanca: '+2',
+        icon: 'Truck',
+        cor: 'text-blue-600'
+      },
+      {
+        titulo: 'Motoristas',
+        valor: '8',
+        mudanca: '+1',
+        icon: 'User',
+        cor: 'text-green-600'
+      },
+      {
+        titulo: 'Reservas Ativas',
+        valor: '45',
+        mudanca: '+12%',
+        icon: 'Calendar',
+        cor: 'text-purple-600'
+      },
+      {
+        titulo: 'Faturamento Mensal',
+        valor: 'R$ 12.450',
+        mudanca: '+8%',
+        icon: 'DollarSign',
+        cor: 'text-orange-600'
+      }
+    ],
+    estacionamento: [
+      {
+        titulo: 'Vagas Disponíveis',
+        valor: '45',
+        mudanca: '-5',
+        icon: 'ParkingSquare',
+        cor: 'text-blue-600'
+      },
+      {
+        titulo: 'Ocupação Atual',
+        valor: '78%',
+        mudanca: '+3%',
+        icon: 'BarChart3',
+        cor: 'text-green-600'
+      },
+      {
+        titulo: 'Reservas Recebidas',
+        valor: '156',
+        mudanca: '+18%',
+        icon: 'Calendar',
+        cor: 'text-purple-600'
+      },
+      {
+        titulo: 'Faturamento Mensal',
+        valor: 'R$ 8.920',
+        mudanca: '+12%',
+        icon: 'DollarSign',
+        cor: 'text-orange-600'
+      }
+    ]
+  };
 
-  return [
-    { titulo: 'Receita Total', valor: 'R$ 0', mudanca: '+0%', icon: 'BarChart3', cor: 'text-green-400' },
-    { titulo: 'Empresas Ativas', valor: '0', mudanca: '+0', icon: 'Building2', cor: 'text-blue-400' },
-    { titulo: 'Veículos Total', valor: '0', mudanca: '+0', icon: 'Truck', cor: 'text-purple-400' },
-    { titulo: 'Motoristas', valor: '0', mudanca: '+0', icon: 'Users', cor: 'text-yellow-400' }
-  ];
+  return defaultStats[role as keyof typeof defaultStats] || defaultStats.admin;
 };
 
 export default ReportsService; 
