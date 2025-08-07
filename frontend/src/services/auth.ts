@@ -1,4 +1,4 @@
-import api from '@/lib/api';
+import api from '../lib/api';
 
 export interface User {
   id: string;
@@ -98,22 +98,67 @@ const AuthService = {
       console.error('Erro ao renovar token:', error);
       
       // Gerar novo token simulado em caso de falha
+      const newToken = `mock_refresh_${Date.now()}`;
+      const newRefreshToken = `mock_refresh_${Date.now() + 1000}`;
+      
       return {
-        token: 'new_mock_token_' + Date.now(),
-        refreshToken: 'new_mock_refresh_token_' + Date.now()
+        token: newToken,
+        refreshToken: newRefreshToken
       };
     }
   },
 
-  // Atualizar perfil do usuário
-  updateProfile: async (profileData: Partial<User>): Promise<User> => {
+  // Verificar se o token é válido
+  isTokenValid: (token: string): boolean => {
+    if (!token) return false;
+    
     try {
-      const response = await api.put('/auth/profile', profileData);
-      return response.data;
+      // Decodificar o token JWT (sem verificar assinatura)
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Date.now() / 1000;
+      
+      return payload.exp > currentTime;
     } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      throw error;
+      console.error('Erro ao verificar token:', error);
+      return false;
     }
+  },
+
+  // Obter token do localStorage
+  getToken: (): string | null => {
+    return localStorage.getItem('ajh_token');
+  },
+
+  // Definir token no localStorage
+  setToken: (token: string): void => {
+    localStorage.setItem('ajh_token', token);
+  },
+
+  // Obter refresh token do localStorage
+  getRefreshToken: (): string | null => {
+    return localStorage.getItem('ajh_refresh_token');
+  },
+
+  // Definir refresh token no localStorage
+  setRefreshToken: (refreshToken: string): void => {
+    localStorage.setItem('ajh_refresh_token', refreshToken);
+  },
+
+  // Obter tipo de usuário do localStorage
+  getUserType: (): string | null => {
+    return localStorage.getItem('ajh_user_type');
+  },
+
+  // Definir tipo de usuário no localStorage
+  setUserType: (userType: string): void => {
+    localStorage.setItem('ajh_user_type', userType);
+  },
+
+  // Limpar todos os dados de autenticação
+  clearAuth: (): void => {
+    localStorage.removeItem('ajh_token');
+    localStorage.removeItem('ajh_refresh_token');
+    localStorage.removeItem('ajh_user_type');
   }
 };
 
