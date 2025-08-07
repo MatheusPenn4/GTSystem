@@ -3,21 +3,69 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, Car, Users, ParkingCircle, Shield, Clock } from 'lucide-react';
+import logo from '@/assets/logo.png';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-ajh-darker">
-      {/* Header */}
-      <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-ajh-primary/10 via-ajh-secondary/10 to-ajh-accent/10" />
-        
-        <div className="relative z-10 container mx-auto px-4 py-8">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: 'url(/lovable-uploads/831479e3-1ac2-45e0-aa6d-f00ac1d4d24e.png)',
+        }}
+      />
+      
+      {/* Animated Background Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-ajh-dark/80 to-black/95" />
+      
+      {/* Animated Geometric Shapes */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-ajh-primary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-ajh-secondary/10 rounded-full blur-2xl animate-pulse delay-1000" />
+        <div className="absolute bottom-1/4 left-1/3 w-64 h-64 bg-ajh-accent/10 rounded-full blur-xl animate-pulse delay-2000" />
+      </div>
+      
+      {/* Animated Grid Pattern */}
+      <div className="absolute inset-0 opacity-20">
+        <div 
+          className="w-full h-full animate-pulse"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(59, 130, 246, 0.3) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(59, 130, 246, 0.3) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px',
+            animation: 'grid-move 20s linear infinite'
+          }}
+        />
+      </div>
+
+      {/* Floating Particles */}
+      <div className="absolute inset-0">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-2 h-2 bg-ajh-primary/30 rounded-full animate-pulse"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              animationDuration: `${3 + Math.random() * 2}s`
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 w-full">
+        <div className="container mx-auto px-4 py-8">
           <div className="text-center mb-16">
             {/* Logo */}
             <div className="flex justify-center mb-8">
               <div className="relative w-32 h-32 flex items-center justify-center">
                 <img 
-                  src="/lovable-uploads/924cf0eb-5f16-4ed6-b99f-4fd14ee98d4b.png" 
+                  src={logo} 
                   alt="GTSystem Logo" 
                   className="w-28 h-28 object-contain drop-shadow-lg"
                 />
@@ -142,13 +190,23 @@ const Index = () => {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-slate-700/50 mt-16">
+      <div className="absolute bottom-0 left-0 right-0 border-t border-slate-700/50">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center text-slate-400">
             <p>© 2024 GTSystem • Tecnologia Avançada em Estacionamento</p>
           </div>
         </div>
       </div>
+
+      {/* CSS Animations */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(60px, 60px); }
+          }
+        `
+      }} />
     </div>
   );
 };
