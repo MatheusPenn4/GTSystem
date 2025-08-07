@@ -5,7 +5,16 @@
   "installCommand": "npm install",
   "outputDirectory": "dist",
   "ignoreCommand": "git diff --quiet HEAD^ HEAD ./",
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.ts"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
@@ -48,10 +57,5 @@
     }
   ],
   "cleanUrls": true,
-  "trailingSlash": false,
-  "functions": {
-    "app/api/**/*.ts": {
-      "runtime": "nodejs18.x"
-    }
-  }
+  "trailingSlash": false
 } 
