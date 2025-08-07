@@ -1,58 +1,40 @@
-import api from '@/lib/api';
+import api from './api';
 
-export interface NotificationAPI {
+export interface Notification {
   id: string;
-  userId: string;
-  type: 'RESERVATION_CREATED' | 'RESERVATION_CONFIRMED' | 'RESERVATION_STARTED' | 
-        'RESERVATION_COMPLETED' | 'RESERVATION_CANCELLED' | 'PAYMENT_RECEIVED' | 'SYSTEM_ALERT';
-  title: string;
-  message: string;
-  read: boolean;
-  data?: any;
-  createdAt: string;
-  updatedAt: string;
+  titulo: string;
+  mensagem: string;
+  tipo: 'info' | 'success' | 'warning' | 'error';
+  lida: boolean;
+  data: string;
+  userId?: string;
 }
 
 const NotificationService = {
   // Buscar notificações do usuário
-  getMyNotifications: async (): Promise<NotificationAPI[]> => {
+  getNotifications: async (): Promise<Notification[]> => {
     try {
-      console.log('Carregando notificações do backend...');
+      console.log('Tentando buscar notificações...');
       
-      const response = await api.get('/notifications/my-notifications', {
-        timeout: 8000
-      });
+      const response = await api.get('/notifications', { timeout: 8000 });
+      console.log('Notificações obtidas com sucesso!', response.data.length);
       
-      console.log('Notificações carregadas com sucesso!', response.data.length);
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Erro ao buscar notificações:', error);
-      
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de notificações não implementado ainda no backend');
-        return [];
-      }
       throw error;
     }
   },
 
   // Marcar notificação como lida
-  markAsRead: async (notificationId: string): Promise<void> => {
+  markAsRead: async (id: string): Promise<void> => {
     try {
-      console.log('Marcando notificação como lida...', { notificationId });
+      console.log(`Tentando marcar notificação ${id} como lida...`);
       
-      await api.put(`/notifications/${notificationId}/read`, {}, {
-        timeout: 8000
-      });
-      
-      console.log('Notificação marcada como lida com sucesso!');
-    } catch (error: any) {
+      await api.put(`/notifications/${id}/read`, {}, { timeout: 8000 });
+      console.log('Notificação marcada como lida!');
+    } catch (error) {
       console.error('Erro ao marcar notificação como lida:', error);
-      
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de marcar como lida não implementado ainda no backend');
-        return;
-      }
       throw error;
     }
   },
@@ -60,109 +42,40 @@ const NotificationService = {
   // Marcar todas as notificações como lidas
   markAllAsRead: async (): Promise<void> => {
     try {
-      console.log('Marcando todas as notificações como lidas...');
+      console.log('Tentando marcar todas as notificações como lidas...');
       
-      await api.put('/notifications/mark-all-read', {}, {
-        timeout: 8000
-      });
-      
-      console.log('Todas as notificações marcadas como lidas com sucesso!');
-    } catch (error: any) {
+      await api.put('/notifications/read-all', {}, { timeout: 8000 });
+      console.log('Todas as notificações marcadas como lidas!');
+    } catch (error) {
       console.error('Erro ao marcar todas as notificações como lidas:', error);
-      
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de marcar todas como lidas não implementado ainda no backend');
-        return;
-      }
       throw error;
     }
   },
 
-  // Deletar uma notificação
-  deleteNotification: async (notificationId: string): Promise<void> => {
+  // Deletar notificação
+  deleteNotification: async (id: string): Promise<void> => {
     try {
-      console.log('Deletando notificação...', { notificationId });
+      console.log(`Tentando deletar notificação ${id}...`);
       
-      await api.delete(`/notifications/${notificationId}`, {
-        timeout: 8000
-      });
-      
+      await api.delete(`/notifications/${id}`, { timeout: 8000 });
       console.log('Notificação deletada com sucesso!');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Erro ao deletar notificação:', error);
-      
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de deletar notificação não implementado ainda no backend');
-        return;
-      }
       throw error;
     }
   },
 
-  // Deletar todas as notificações
-  clearAllNotifications: async (): Promise<void> => {
-    try {
-      console.log('Deletando todas as notificações...');
-      
-      await api.delete('/notifications/clear-all', {
-        timeout: 8000
-      });
-      
-      console.log('Todas as notificações deletadas com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao deletar todas as notificações:', error);
-      
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de deletar todas não implementado ainda no backend');
-        return;
-      }
-      throw error;
-    }
-  },
-
-  // Configurar preferências de notificação
-  updatePreferences: async (preferences: {
-    emailNotifications: boolean;
-    pushNotifications: boolean;
-    types: string[];
-  }): Promise<void> => {
-    try {
-      console.log('Atualizando preferências de notificação...', preferences);
-      
-      await api.put('/notifications/preferences', preferences, {
-        timeout: 8000
-      });
-      
-      console.log('Preferências de notificação atualizadas com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao atualizar preferências:', error);
-      
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de preferências não implementado ainda no backend');
-        return;
-      }
-      throw error;
-    }
-  },
-
-  // Buscar notificações não lidas
+  // Buscar contagem de notificações não lidas
   getUnreadCount: async (): Promise<number> => {
     try {
-      console.log('Carregando contagem de notificações não lidas...');
+      console.log('Tentando buscar contagem de notificações não lidas...');
       
-      const response = await api.get('/notifications/unread-count', {
-        timeout: 8000
-      });
+      const response = await api.get('/notifications/unread-count', { timeout: 8000 });
+      console.log('Contagem de notificações não lidas obtida!', response.data.count);
       
-      console.log('Contagem de não lidas carregada:', response.data.count);
-      return response.data.count || 0;
-    } catch (error: any) {
-      console.error('Erro ao buscar contagem não lidas:', error);
-      
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de contagem não implementado ainda no backend');
-        return 0;
-      }
+      return response.data.count;
+    } catch (error) {
+      console.error('Erro ao buscar contagem de notificações não lidas:', error);
       throw error;
     }
   }

@@ -1,258 +1,138 @@
-import api from '@/lib/api';
+import api from './api';
 
-export interface Reservation {
+export interface Reserva {
   id: string;
-  parkingLotId: string;
-  companyId: string;
-  vehicleId: string;
-  driverId: string;
-  startTime: string;
-  endTime: string;
-  status: 'PENDING' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-  totalCost: number;
-  paymentStatus: 'PENDING' | 'PAID' | 'CANCELLED';
-  specialRequests?: string;
-  createdAt: string;
-  updatedAt: string;
-  
-  // Dados relacionados para exibição
-  parkingLot?: {
-    id: string;
-    name: string;
-    address: string;
-    pricePerHour: number;
-  };
-  company?: {
-    id: string;
-    name: string;
-    cnpj: string;
-  };
-  vehicle?: {
-    id: string;
-    plate: string;
-    model: string;
-    type: string;
-  };
-  driver?: {
-    id: string;
-    name: string;
-    cnh: string;
-  };
+  estacionamentoId: string;
+  estacionamentoNome?: string;
+  veiculoId: string;
+  veiculoPlaca?: string;
+  motoristaId: string;
+  motoristaNome?: string;
+  dataEntrada: string;
+  dataSaida: string;
+  status: 'pendente' | 'confirmada' | 'ativa' | 'concluida' | 'cancelada';
+  valor: number;
+  observacoes?: string;
 }
 
 const ReservationService = {
-  // Buscar reservas da transportadora atual
-  getMyReservations: async (): Promise<Reservation[]> => {
+  // Buscar todas as reservas
+  getAll: async (): Promise<Reserva[]> => {
     try {
-      console.log('Carregando reservas reais do banco de dados...');
+      console.log('Tentando buscar reservas...');
       
-      const response = await api.get('/reservations/my-reservations', {
-        timeout: 8000
-      });
+      const response = await api.get('/reservations', { timeout: 8000 });
+      console.log('Reservas obtidas com sucesso!', response.data.length);
       
-      console.log('Reservas carregadas com sucesso!', response.data.length);
-      return response.data.map(mapToFrontend);
-    } catch (error: any) {
+      return response.data;
+    } catch (error) {
       console.error('Erro ao buscar reservas:', error);
-      
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de reservas não implementado ainda no backend');
-        return [];
-      }
       throw error;
     }
   },
 
-  // Buscar reservas recebidas pelo estacionamento
-  getReceivedReservations: async (): Promise<Reservation[]> => {
+  // Buscar reserva por ID
+  getById: async (id: string): Promise<Reserva> => {
     try {
-      console.log('Carregando reservas recebidas do banco de dados...');
+      console.log(`Tentando buscar reserva ${id}...`);
       
-      const response = await api.get('/reservations/received', {
-        timeout: 8000
-      });
+      const response = await api.get(`/reservations/${id}`, { timeout: 8000 });
+      console.log('Reserva obtida com sucesso!');
       
-      console.log('Reservas recebidas carregadas com sucesso!', response.data.length);
-      return response.data.map(mapToFrontend);
-    } catch (error: any) {
-      console.error('Erro ao buscar reservas recebidas:', error);
-      
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de reservas recebidas não implementado ainda no backend');
-        return [];
-      }
-      throw error;
-    }
-  },
-
-  // Criar uma nova reserva
-  createReservation: async (reservationData: {
-    parkingLotId: string;
-    vehicleId: string;
-    driverId: string;
-    startTime: string;
-    endTime: string;
-    specialRequests?: string;
-  }): Promise<Reservation> => {
-    try {
-      console.log('Criando nova reserva...', reservationData);
-      
-      const response = await api.post('/reservations', reservationData, {
-        timeout: 8000
-      });
-      
-      console.log('Reserva criada com sucesso!');
-      return mapToFrontend(response.data);
-    } catch (error: any) {
-      console.error('Erro ao criar reserva:', error);
-      
-      if (error.response?.status === 404) {
-        throw new Error('Funcionalidade de criação de reservas ainda não implementada no backend');
-      }
-      throw error;
-    }
-  },
-
-  // Atualizar status de uma reserva
-  updateReservationStatus: async (reservationId: string, newStatus: string): Promise<Reservation> => {
-    try {
-      console.log('Atualizando status da reserva...', { reservationId, newStatus });
-      
-      const response = await api.put(`/reservations/${reservationId}/status`, {
-        status: newStatus
-      }, {
-        timeout: 8000
-      });
-      
-      console.log('Status da reserva atualizado com sucesso!');
-      return mapToFrontend(response.data);
-    } catch (error: any) {
-      console.error('Erro ao atualizar status da reserva:', error);
-      
-      if (error.response?.status === 404) {
-        throw new Error('Funcionalidade de atualização de status ainda não implementada no backend');
-      }
-      throw error;
-    }
-  },
-
-  // Cancelar uma reserva
-  cancelReservation: async (reservationId: string, reason?: string): Promise<void> => {
-    try {
-      console.log('Cancelando reserva...', { reservationId, reason });
-      
-      await api.put(`/reservations/${reservationId}/cancel`, {
-        reason
-      }, {
-        timeout: 8000
-      });
-      
-      console.log('Reserva cancelada com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao cancelar reserva:', error);
-      
-      if (error.response?.status === 404) {
-        throw new Error('Funcionalidade de cancelamento ainda não implementada no backend');
-      }
-      throw error;
-    }
-  },
-
-  // Buscar uma reserva específica
-  getById: async (reservationId: string): Promise<Reservation> => {
-    try {
-      console.log('Carregando dados da reserva...', { reservationId });
-      
-      const response = await api.get(`/reservations/${reservationId}`, {
-        timeout: 8000
-      });
-      
-      console.log('Dados da reserva carregados com sucesso!');
-      return mapToFrontend(response.data);
-    } catch (error: any) {
+      return response.data;
+    } catch (error) {
       console.error('Erro ao buscar reserva:', error);
-      
-      if (error.response?.status === 404) {
-        throw new Error('Reserva não encontrada');
-      }
       throw error;
     }
   },
 
-  // Buscar reservas por filtros
-  getReservationsByFilter: async (filters: {
-    status?: string;
-    startDate?: string;
-    endDate?: string;
-    parkingLotId?: string;
-    companyId?: string;
-  }): Promise<Reservation[]> => {
+  // Criar reserva
+  create: async (reserva: Omit<Reserva, 'id'>): Promise<Reserva> => {
     try {
-      console.log('Carregando reservas filtradas...', filters);
+      console.log('Tentando criar reserva...', reserva);
       
-      const response = await api.get('/reservations/filter', {
-        params: filters,
-        timeout: 8000
-      });
+      const response = await api.post('/reservations', reserva, { timeout: 8000 });
+      console.log('Reserva criada com sucesso!');
       
-      console.log('Reservas filtradas carregadas com sucesso!', response.data.length);
-      return response.data.map(mapToFrontend);
-    } catch (error: any) {
-      console.error('Erro ao buscar reservas filtradas:', error);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao criar reserva:', error);
+      throw error;
+    }
+  },
+
+  // Atualizar reserva
+  update: async (id: string, reserva: Partial<Reserva>): Promise<Reserva> => {
+    try {
+      console.log(`Tentando atualizar reserva ${id}...`, reserva);
       
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de filtros não implementado ainda no backend');
-        return [];
-      }
+      const response = await api.put(`/reservations/${id}`, reserva, { timeout: 8000 });
+      console.log('Reserva atualizada com sucesso!');
+      
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar reserva:', error);
+      throw error;
+    }
+  },
+
+  // Deletar reserva
+  delete: async (id: string): Promise<void> => {
+    try {
+      console.log(`Tentando deletar reserva ${id}...`);
+      
+      await api.delete(`/reservations/${id}`, { timeout: 8000 });
+      console.log('Reserva deletada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao deletar reserva:', error);
+      throw error;
+    }
+  },
+
+  // Buscar reservas por status
+  getByStatus: async (status: string): Promise<Reserva[]> => {
+    try {
+      console.log(`Tentando buscar reservas com status ${status}...`);
+      
+      const response = await api.get(`/reservations/status/${status}`, { timeout: 8000 });
+      console.log('Reservas por status obtidas com sucesso!', response.data.length);
+      
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar reservas por status:', error);
+      throw error;
+    }
+  },
+
+  // Confirmar reserva
+  confirm: async (id: string): Promise<Reserva> => {
+    try {
+      console.log(`Tentando confirmar reserva ${id}...`);
+      
+      const response = await api.put(`/reservations/${id}/confirm`, {}, { timeout: 8000 });
+      console.log('Reserva confirmada com sucesso!');
+      
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao confirmar reserva:', error);
+      throw error;
+    }
+  },
+
+  // Cancelar reserva
+  cancel: async (id: string): Promise<Reserva> => {
+    try {
+      console.log(`Tentando cancelar reserva ${id}...`);
+      
+      const response = await api.put(`/reservations/${id}/cancel`, {}, { timeout: 8000 });
+      console.log('Reserva cancelada com sucesso!');
+      
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao cancelar reserva:', error);
       throw error;
     }
   }
-};
-
-// Função para mapear dados do backend para o formato do frontend
-const mapToFrontend = (reservation: any): Reservation => {
-  return {
-    id: reservation.id,
-    parkingLotId: reservation.parkingLotId,
-    companyId: reservation.companyId,
-    vehicleId: reservation.vehicleId,
-    driverId: reservation.driverId,
-    startTime: reservation.startTime,
-    endTime: reservation.endTime,
-    status: reservation.status,
-    totalCost: reservation.totalCost || 0,
-    paymentStatus: reservation.paymentStatus || 'PENDING',
-    specialRequests: reservation.specialRequests,
-    createdAt: reservation.createdAt,
-    updatedAt: reservation.updatedAt,
-    
-    // Dados relacionados
-    parkingLot: reservation.parkingLot ? {
-      id: reservation.parkingLot.id,
-      name: reservation.parkingLot.name,
-      address: reservation.parkingLot.address,
-      pricePerHour: reservation.parkingLot.pricePerHour || 0
-    } : undefined,
-    
-    company: reservation.company ? {
-      id: reservation.company.id,
-      name: reservation.company.name,
-      cnpj: reservation.company.cnpj
-    } : undefined,
-    
-    vehicle: reservation.vehicle ? {
-      id: reservation.vehicle.id,
-      plate: reservation.vehicle.plate,
-      model: reservation.vehicle.model,
-      type: reservation.vehicle.type
-    } : undefined,
-    
-    driver: reservation.driver ? {
-      id: reservation.driver.id,
-      name: reservation.driver.name,
-      cnh: reservation.driver.cnh
-    } : undefined
-  };
 };
 
 export default ReservationService; 

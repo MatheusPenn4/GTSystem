@@ -1,129 +1,115 @@
-import api from '@/lib/api';
+import api from './api';
 
-export interface FaturamentoEstacionamento {
+export interface Transacao {
   id: string;
-  nome: string;
-  vagas: number;
-  ocupacaoMedia: number;
-  diariasVendidas: number;
-  faturamento: number;
-  comissao: number;
+  tipo: 'entrada' | 'saida';
+  valor: number;
+  descricao: string;
+  data: string;
+  categoria: string;
+  status: 'pendente' | 'confirmado' | 'cancelado';
 }
 
-export interface EvolucaoMensal {
-  mes: string;
-  faturamento: number;
-  comissao: number;
-}
-
-export interface FinancialSummary {
-  totalFaturamento: number;
-  totalComissao: number;
-  totalDiarias: number;
-  mediaOcupacao: number;
+export interface ResumoFinanceiro {
+  receitaTotal: number;
+  despesaTotal: number;
+  saldo: number;
+  receitaMensal: number;
+  despesaMensal: number;
 }
 
 const FinanceService = {
-  // Buscar faturamento de estacionamentos
-  getFaturamentoEstacionamentos: async (periodo: string): Promise<FaturamentoEstacionamento[]> => {
+  // Buscar transações
+  getTransacoes: async (dataInicio?: string, dataFim?: string): Promise<Transacao[]> => {
     try {
-      console.log('Carregando faturamento de estacionamentos do backend...', { periodo });
+      console.log('Tentando buscar transações...', { dataInicio, dataFim });
       
-      const response = await api.get('/financial/parking-lots', {
-        params: { periodo },
-        timeout: 8000
-      });
+      const params: any = {};
+      if (dataInicio) params.dataInicio = dataInicio;
+      if (dataFim) params.dataFim = dataFim;
       
-      // O backend retorna { status: 'success', data: [...], summary: {...} }
-      const data = response.data?.data || [];
-      console.log('Faturamento de estacionamentos carregado com sucesso!', data.length, 'registros');
-      return data;
-    } catch (error: any) {
-      console.error('Erro ao buscar faturamento de estacionamentos:', error);
+      const response = await api.get('/finance/transacoes', { params, timeout: 8000 });
+      console.log('Transações obtidas com sucesso!', response.data.length);
       
-      // Se o endpoint não existir ainda, retornar array vazio
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de faturamento não implementado ainda no backend');
-        return [];
-      }
-      throw error;
-    }
-  },
-
-  // Buscar evolução mensal
-  getEvolucaoMensal: async (periodo: string): Promise<EvolucaoMensal[]> => {
-    try {
-      console.log('Carregando evolução mensal do backend...', { periodo });
-      
-      const response = await api.get('/financial/monthly-evolution', {
-        params: { periodo },
-        timeout: 8000
-      });
-      
-      // O backend retorna { status: 'success', data: [...], summary: {...} }
-      const data = response.data?.data || [];
-      console.log('Evolução mensal carregada com sucesso!', data.length, 'registros');
-      return data;
-    } catch (error: any) {
-      console.error('Erro ao buscar evolução mensal:', error);
-      
-      // Se o endpoint não existir ainda, retornar array vazio
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de evolução mensal não implementado ainda no backend');
-        return [];
-      }
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar transações:', error);
       throw error;
     }
   },
 
   // Buscar resumo financeiro
-  getFinancialSummary: async (periodo: string): Promise<FinancialSummary> => {
+  getResumoFinanceiro: async (): Promise<ResumoFinanceiro> => {
     try {
-      console.log('Carregando resumo financeiro do backend...', { periodo });
+      console.log('Tentando buscar resumo financeiro...');
       
-      const response = await api.get('/financial/summary', {
-        params: { periodo },
-        timeout: 8000
-      });
+      const response = await api.get('/finance/resumo', { timeout: 8000 });
+      console.log('Resumo financeiro obtido com sucesso!');
       
-      console.log('Resumo financeiro carregado com sucesso!');
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Erro ao buscar resumo financeiro:', error);
-      
-      // Se o endpoint não existir ainda, retornar dados zerados
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de resumo financeiro não implementado ainda no backend');
-        return {
-          totalFaturamento: 0,
-          totalComissao: 0,
-          totalDiarias: 0,
-          mediaOcupacao: 0
-        };
-      }
       throw error;
     }
   },
 
-  // Gerar relatório financeiro
-  generateReport: async (periodo: string, formato: 'pdf' | 'excel'): Promise<Blob> => {
+  // Criar nova transação
+  createTransacao: async (transacao: Omit<Transacao, 'id' | 'data'>): Promise<Transacao> => {
     try {
-      console.log('Gerando relatório financeiro...', { periodo, formato });
+      console.log('Tentando criar transação...', transacao);
       
-      const response = await api.get('/financial/report', {
-        params: { periodo, formato },
-        responseType: 'blob',
-        timeout: 30000 // Relatórios podem demorar mais
-      });
+      const response = await api.post('/finance/transacoes', transacao, { timeout: 8000 });
+      console.log('Transação criada com sucesso!');
       
-      console.log('Relatório financeiro gerado com sucesso!');
       return response.data;
-    } catch (error: any) {
-      console.error('Erro ao gerar relatório financeiro:', error);
+    } catch (error) {
+      console.error('Erro ao criar transação:', error);
+      throw error;
+    }
+  },
+
+  // Atualizar transação
+  updateTransacao: async (id: string, transacao: Partial<Transacao>): Promise<Transacao> => {
+    try {
+      console.log(`Tentando atualizar transação ${id}...`, transacao);
       
-      if (error.response?.status === 404) {
-        throw new Error('Funcionalidade de relatórios ainda não implementada no backend');
-      }
+      const response = await api.put(`/finance/transacoes/${id}`, transacao, { timeout: 8000 });
+      console.log('Transação atualizada com sucesso!');
+      
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar transação:', error);
+      throw error;
+    }
+  },
+
+  // Deletar transação
+  deleteTransacao: async (id: string): Promise<void> => {
+    try {
+      console.log(`Tentando deletar transação ${id}...`);
+      
+      await api.delete(`/finance/transacoes/${id}`, { timeout: 8000 });
+      console.log('Transação deletada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao deletar transação:', error);
+      throw error;
+    }
+  },
+
+  // Buscar relatório financeiro
+  getRelatorioFinanceiro: async (dataInicio: string, dataFim: string): Promise<any> => {
+    try {
+      console.log('Tentando buscar relatório financeiro...', { dataInicio, dataFim });
+      
+      const response = await api.get('/finance/relatorio', {
+        params: { dataInicio, dataFim },
+        timeout: 8000
+      });
+      console.log('Relatório financeiro obtido com sucesso!');
+      
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar relatório financeiro:', error);
       throw error;
     }
   }

@@ -1,357 +1,121 @@
-import api from '@/lib/api';
+import api from './api';
 
-export interface ParkingSpace {
+export interface Vaga {
   id: string;
   numero: string;
-  tipo: 'caminhao' | 'carreta';
-  status: 'livre' | 'ocupada' | 'reservada' | 'manutencao';
-  parkingLotId: string;
-  setor?: string;
-  veiculo?: {
-    placa: string;
-    modelo: string;
-    transportadora: string;
-  };
-  reserva?: {
-    inicio: string;
-    fim: string;
-    motorista: string;
-    reservationId: string;
-  };
-  ultimaAtualizacao: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Interface para status do estacionamento
-export interface ParkingLotStatus {
-  total: number;
-  livres: number;
-  ocupadas: number;
-  reservadas: number;
-  manutencao: number;
-  ocupacaoPercentual: number;
-}
-
-export interface ParkingSpaceConfig {
-  totalVagas: number;
-  vagasCaminhao: number;
-  vagasCarreta: number;
-  precoHoraCaminhao: number;
-  precoHoraCarreta: number;
-  horarioAbertura: string;
-  horarioFechamento: string;
-  funcionamento24h: boolean;
-  prefixoNumeracao: string;
-  numeroInicial: number;
-  autoReserva: boolean;
-  tempoLimiteReserva: number;
+  tipo: 'normal' | 'preferencial' | 'carga';
+  status: 'disponivel' | 'ocupada' | 'reservada' | 'manutencao';
+  estacionamentoId: string;
+  estacionamentoNome?: string;
+  precoHora: number;
 }
 
 const ParkingSpaceService = {
-  // Buscar todas as vagas do usuário (estacionamento)
-  getMySpaces: async (): Promise<ParkingSpace[]> => {
+  // Buscar todas as vagas
+  getAll: async (): Promise<Vaga[]> => {
     try {
-      console.log('Carregando vagas reais do banco de dados...');
+      console.log('Tentando buscar vagas...');
       
-      const response = await api.get('/parking-spaces/my-spaces', {
-        timeout: 8000
-      });
+      const response = await api.get('/parking-spaces', { timeout: 8000 });
+      console.log('Vagas obtidas com sucesso!', response.data.length);
       
-      console.log('Vagas carregadas com sucesso!', response.data.length);
-      return response.data.map(mapToFrontend);
-    } catch (error: any) {
+      return response.data;
+    } catch (error) {
       console.error('Erro ao buscar vagas:', error);
-      
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de vagas não implementado ainda no backend');
-        return [];
-      }
       throw error;
     }
   },
 
-  // Buscar vagas por estacionamento específico
-  getByParkingLot: async (parkingLotId: string): Promise<ParkingSpace[]> => {
+  // Buscar vagas por estacionamento
+  getByEstacionamento: async (estacionamentoId: string): Promise<Vaga[]> => {
     try {
-      console.log('Carregando vagas do estacionamento...', { parkingLotId });
+      console.log(`Tentando buscar vagas do estacionamento ${estacionamentoId}...`);
       
-      const response = await api.get(`/parking-spaces/parking-lot/${parkingLotId}`, {
-        timeout: 8000
-      });
+      const response = await api.get(`/parking-spaces/estacionamento/${estacionamentoId}`, { timeout: 8000 });
+      console.log('Vagas do estacionamento obtidas com sucesso!', response.data.length);
       
-      console.log('Vagas do estacionamento carregadas com sucesso!', response.data.length);
-      return response.data.map(mapToFrontend);
-    } catch (error: any) {
+      return response.data;
+    } catch (error) {
       console.error('Erro ao buscar vagas do estacionamento:', error);
-      
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de vagas por estacionamento não implementado ainda no backend');
-        return [];
-      }
       throw error;
     }
   },
 
-  // Buscar status geral do estacionamento
-  getParkingLotStatus: async (parkingLotId?: string): Promise<ParkingLotStatus> => {
+  // Buscar vaga por ID
+  getById: async (id: string): Promise<Vaga> => {
     try {
-      console.log('Carregando status do estacionamento...', { parkingLotId });
+      console.log(`Tentando buscar vaga ${id}...`);
       
-      const url = parkingLotId 
-        ? `/parking-spaces/status/${parkingLotId}`
-        : '/parking-spaces/my-status';
-        
-      const response = await api.get(url, {
-        timeout: 8000
-      });
+      const response = await api.get(`/parking-spaces/${id}`, { timeout: 8000 });
+      console.log('Vaga obtida com sucesso!');
       
-      console.log('Status do estacionamento carregado com sucesso!');
       return response.data;
-    } catch (error: any) {
-      console.error('Erro ao buscar status do estacionamento:', error);
-      
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de status não implementado ainda no backend');
-        return {
-          total: 0,
-          livres: 0,
-          ocupadas: 0,
-          reservadas: 0,
-          manutencao: 0,
-          ocupacaoPercentual: 0
-        };
-      }
+    } catch (error) {
+      console.error('Erro ao buscar vaga:', error);
       throw error;
     }
   },
 
-  // Atualizar status de uma vaga
-  updateSpaceStatus: async (spaceId: string, novoStatus: string): Promise<ParkingSpace> => {
+  // Criar vaga
+  create: async (vaga: Omit<Vaga, 'id'>): Promise<Vaga> => {
     try {
-      console.log('Atualizando status da vaga...', { spaceId, novoStatus });
+      console.log('Tentando criar vaga...', vaga);
       
-      const response = await api.put(`/parking-spaces/${spaceId}/status`, {
-        status: novoStatus
-      }, {
-        timeout: 8000
-      });
-      
-      console.log('Status da vaga atualizado com sucesso!');
-      return mapToFrontend(response.data);
-    } catch (error: any) {
-      console.error('Erro ao atualizar status da vaga:', error);
-      
-      if (error.response?.status === 404) {
-        throw new Error('Funcionalidade de atualização de status ainda não implementada no backend');
-      }
-      throw error;
-    }
-  },
-
-  // Criar uma nova vaga
-  createSpace: async (spaceData: {
-    numero: string;
-    tipo: string;
-    setor?: string;
-    parkingLotId?: string;
-  }): Promise<ParkingSpace> => {
-    try {
-      console.log('Criando nova vaga...', spaceData);
-      
-      const response = await api.post('/parking-spaces', spaceData, {
-        timeout: 8000
-      });
-      
+      const response = await api.post('/parking-spaces', vaga, { timeout: 8000 });
       console.log('Vaga criada com sucesso!');
-      return mapToFrontend(response.data);
-    } catch (error: any) {
+      
+      return response.data;
+    } catch (error) {
       console.error('Erro ao criar vaga:', error);
-      
-      if (error.response?.status === 404) {
-        throw new Error('Funcionalidade de criação de vagas ainda não implementada no backend');
-      }
       throw error;
     }
   },
 
-  // Deletar uma vaga
-  deleteSpace: async (spaceId: string): Promise<void> => {
+  // Atualizar vaga
+  update: async (id: string, vaga: Partial<Vaga>): Promise<Vaga> => {
     try {
-      console.log('Deletando vaga...', { spaceId });
+      console.log(`Tentando atualizar vaga ${id}...`, vaga);
       
-      await api.delete(`/parking-spaces/${spaceId}`, {
-        timeout: 8000
-      });
+      const response = await api.put(`/parking-spaces/${id}`, vaga, { timeout: 8000 });
+      console.log('Vaga atualizada com sucesso!');
       
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar vaga:', error);
+      throw error;
+    }
+  },
+
+  // Deletar vaga
+  delete: async (id: string): Promise<void> => {
+    try {
+      console.log(`Tentando deletar vaga ${id}...`);
+      
+      await api.delete(`/parking-spaces/${id}`, { timeout: 8000 });
       console.log('Vaga deletada com sucesso!');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Erro ao deletar vaga:', error);
-      
-      if (error.response?.status === 404) {
-        throw new Error('Funcionalidade de exclusão de vagas ainda não implementada no backend');
-      }
       throw error;
     }
   },
 
-  // Buscar vagas disponíveis para reserva
-  getAvailableSpaces: async (dataInicio: string, dataFim: string, tipoVeiculo?: string): Promise<ParkingSpace[]> => {
+  // Buscar vagas disponíveis
+  getDisponiveis: async (estacionamentoId?: string): Promise<Vaga[]> => {
     try {
-      console.log('Carregando vagas disponíveis...', { dataInicio, dataFim, tipoVeiculo });
+      console.log('Tentando buscar vagas disponíveis...', { estacionamentoId });
       
-      const params: any = { dataInicio, dataFim };
-      if (tipoVeiculo) params.tipoVeiculo = tipoVeiculo;
+      const params: any = { status: 'disponivel' };
+      if (estacionamentoId) params.estacionamentoId = estacionamentoId;
       
-      const response = await api.get('/parking-spaces/available', {
-        params,
-        timeout: 8000
-      });
+      const response = await api.get('/parking-spaces/disponiveis', { params, timeout: 8000 });
+      console.log('Vagas disponíveis obtidas com sucesso!', response.data.length);
       
-      console.log('Vagas disponíveis carregadas com sucesso!', response.data.length);
-      return response.data.map(mapToFrontend);
-    } catch (error: any) {
+      return response.data;
+    } catch (error) {
       console.error('Erro ao buscar vagas disponíveis:', error);
-      
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de vagas disponíveis não implementado ainda no backend');
-        return [];
-      }
       throw error;
     }
-  },
-
-  // Buscar veículos por placa (autocomplete)
-  searchVehicles: async (query: string): Promise<any[]> => {
-    try {
-      console.log('Buscando veículos...', { query });
-      
-      const response = await api.get('/parking-spaces/search-vehicles', {
-        params: { query },
-        timeout: 8000
-      });
-      
-      console.log('Veículos encontrados:', response.data.length);
-      return response.data;
-    } catch (error: any) {
-      console.error('Erro ao buscar veículos:', error);
-      
-      if (error.response?.status === 404) {
-        console.warn('Endpoint de busca de veículos não implementado ainda no backend');
-        return [];
-      }
-      throw error;
-    }
-  },
-
-  // Ocupar vaga com veículo
-  occupySpace: async (spaceId: string, vehicleData: { vehicleId?: string; licensePlate?: string }): Promise<any> => {
-    try {
-      console.log('Ocupando vaga...', { spaceId, vehicleData });
-      
-      const response = await api.post(`/parking-spaces/${spaceId}/occupy`, vehicleData, {
-        timeout: 8000
-      });
-      
-      console.log('Vaga ocupada com sucesso!');
-      return response.data;
-    } catch (error: any) {
-      console.error('Erro ao ocupar vaga:', error);
-      
-      if (error.response?.status === 404) {
-        throw new Error('Funcionalidade de ocupação de vagas ainda não implementada no backend');
-      }
-      if (error.response?.status === 400) {
-        throw new Error(error.response.data.message || 'Erro ao ocupar vaga');
-      }
-      throw error;
-    }
-  },
-
-  // Liberar vaga
-  freeSpace: async (spaceId: string): Promise<any> => {
-    try {
-      console.log('Liberando vaga...', { spaceId });
-      
-      const response = await api.post(`/parking-spaces/${spaceId}/free`, {}, {
-        timeout: 8000
-      });
-      
-      console.log('Vaga liberada com sucesso!');
-      return response.data;
-    } catch (error: any) {
-      console.error('Erro ao liberar vaga:', error);
-      
-      if (error.response?.status === 404) {
-        throw new Error('Funcionalidade de liberação de vagas ainda não implementada no backend');
-      }
-      if (error.response?.status === 400) {
-        throw new Error(error.response.data.message || 'Erro ao liberar vaga');
-      }
-      throw error;
-    }
-  },
-
-  // Configurações das vagas
-  async getConfiguration(): Promise<ParkingSpaceConfig> {
-    const response = await api.get('/parking-spaces/configuration');
-    return response.data;
-  },
-
-  async saveConfiguration(config: ParkingSpaceConfig): Promise<void> {
-    await api.post('/parking-spaces/configuration', config);
-  },
-
-  async generateSpaces(config: ParkingSpaceConfig): Promise<void> {
-    await api.post('/parking-spaces/generate', config);
   }
-};
-
-// Função para mapear dados do backend para o formato do frontend
-const mapToFrontend = (space: any): ParkingSpace => {
-  // Mapear tipos do backend para frontend
-  const mapTipo = (backendType: string): 'caminhao' | 'carreta' => {
-    switch (backendType) {
-      case 'truck':
-      case 'caminhao':
-        return 'caminhao';
-      case 'semi-truck':
-      case 'carreta':
-        return 'carreta';
-      // Fallback para tipos antigos
-      case 'car':
-      case 'carro':
-        return 'caminhao';
-      case 'motorcycle':
-      case 'moto':
-        return 'caminhao';
-      default:
-        return 'caminhao';
-    }
-  };
-
-  return {
-    id: space.id,
-    numero: space.number || space.numero,
-    tipo: mapTipo(space.type || space.tipo || space.spaceType || 'truck'),
-    status: space.status,
-    parkingLotId: space.parkingLotId,
-    setor: space.sector || space.setor,
-    veiculo: space.vehicle ? {
-      placa: space.vehicle.plate || space.vehicle.placa,
-      modelo: space.vehicle.model || space.vehicle.modelo,
-      transportadora: space.vehicle.company || space.vehicle.transportadora
-    } : undefined,
-    reserva: space.reservation ? {
-      inicio: space.reservation.startTime || space.reservation.inicio,
-      fim: space.reservation.endTime || space.reservation.fim,
-      motorista: space.reservation.driverName || space.reservation.motorista,
-      reservationId: space.reservation.id || space.reservation.reservationId
-    } : undefined,
-    ultimaAtualizacao: space.updatedAt || space.ultimaAtualizacao || new Date().toISOString(),
-    createdAt: space.createdAt || new Date().toISOString(),
-    updatedAt: space.updatedAt || new Date().toISOString()
-  };
 };
 
 export default ParkingSpaceService; 
