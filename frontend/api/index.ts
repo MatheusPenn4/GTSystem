@@ -42,27 +42,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (pathname === '/api/auth/login' && req.method === 'POST') {
       const { email, password } = loginSchema.parse(req.body);
       
-      // Simular usuário para demo
+      // Simular usuário para demo (hashes pré-gerados para consistência)
       const mockUsers = {
         'admin@gtsystem.com': {
           id: 'admin-123',
           name: 'Administrador',
           email: 'admin@gtsystem.com',
-          password: await bcrypt.hash('admin123', 10),
+          password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // admin123
           role: 'admin'
         },
         'usuario@transportadora.com': {
           id: 'transp-123',
           name: 'Transportadora Modelo',
           email: 'usuario@transportadora.com',
-          password: await bcrypt.hash('transp123', 10),
+          password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // transp123
           role: 'transportadora'
         },
         'usuario@estacionamento.com': {
           id: 'estac-123',
           name: 'Estacionamento Seguro',
           email: 'usuario@estacionamento.com',
-          password: await bcrypt.hash('estac123', 10),
+          password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // estac123
           role: 'estacionamento'
         }
       };
