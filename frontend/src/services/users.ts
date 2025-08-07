@@ -1,4 +1,4 @@
-import api from '@/lib/api';
+import api from './api';
 
 export interface User {
   id: string;
@@ -99,80 +99,176 @@ const UserService = {
           throw new Error(`Dados inválidos: ${errorMessages}`);
         }
         
-        const errorMessage = error.response.data?.message || 'Erro ao criar usuário';
-        throw new Error(errorMessage);
-      } else if (error.request) {
-        // A requisição foi feita mas não houve resposta
-        console.error('Request sem resposta:', error.request);
-        throw new Error('Servidor não respondeu. Verifique sua conexão.');
-      } else {
-        // Outros erros
-        console.error('Erro de configuração:', error.message);
-        throw error;
+        // Se houver uma mensagem de erro geral
+        if (error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
+        }
+        
+        // Se não houver mensagem específica, usar o status
+        throw new Error(`Erro ${error.response.status}: ${error.response.statusText}`);
       }
+      
+      // Se não houver resposta do servidor
+      if (error.request) {
+        throw new Error('Servidor não está respondendo. Verifique sua conexão.');
+      }
+      
+      // Se for um erro de rede ou timeout
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Tempo limite excedido. Tente novamente.');
+      }
+      
+      // Erro genérico
+      throw new Error('Erro inesperado ao criar usuário.');
     }
   },
 
-  // Atualizar um usuário existente
-  update: async (id: string, user: Partial<User>): Promise<User> => {
+  // Atualizar um usuário existente (apenas admin)
+  update: async (id: string, user: Partial<Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'emailVerified'>>): Promise<User> => {
     try {
       console.log(`Tentando atualizar usuário ${id} no backend...`, user);
       
       // Mapear dados do frontend para o formato do backend
-      const backendData: any = {};
+      const backendData = {
+        name: user.name,
+        email: user.email,
+        role: user.role?.toUpperCase(), // Converter para uppercase se fornecido
+        companyId: user.companyId || null,
+        avatarUrl: user.avatar || null,
+        isActive: user.isActive,
+      };
       
-      if (user.name) backendData.name = user.name;
-      if (user.email) backendData.email = user.email;
-      if (user.avatar) backendData.avatarUrl = user.avatar;
-      if (user.companyId) backendData.companyId = user.companyId;
-      if (user.isActive !== undefined) backendData.isActive = user.isActive;
+      console.log('Dados enviados para o backend:', backendData);
       
       const response = await api.put(`/users/${id}`, backendData, { timeout: 8000 });
-      console.log('Usuário atualizado com sucesso no backend!');
+      console.log('Usuário atualizado com sucesso no backend!', response.data);
       
       // Mapear resposta do backend para o formato do frontend
       return mapToFrontend(response.data);
-    } catch (error) {
-      console.error(`Erro ao atualizar usuário com ID ${id}:`, error);
-      throw error;
-    }
-  },
-
-  // Alterar o status de um usuário
-  changeStatus: async (id: string, isActive: boolean): Promise<void> => {
-    try {
-      console.log(`Tentando alterar status do usuário ${id} no backend para ${isActive ? 'ativo' : 'inativo'}...`);
+    } catch (error: any) {
+      console.error(`Erro ao atualizar usuário ${id}:`, error);
       
-      await api.put(`/users/${id}`, { isActive }, { timeout: 8000 });
-      console.log('Status do usuário alterado com sucesso no backend!');
-    } catch (error) {
-      console.error(`Erro ao alterar status do usuário com ID ${id}:`, error);
-      throw error;
+      // Mostrar detalhes mais específicos sobre o erro
+      if (error.response) {
+        console.error('Resposta de erro:', error.response.data);
+        
+        if (error.response.data && error.response.data.errors) {
+          const errors = error.response.data.errors;
+          const errorMessages = errors.map((err: any) => err.message || err).join(', ');
+          throw new Error(`Dados inválidos: ${errorMessages}`);
+        }
+        
+        if (error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
+        }
+        
+        throw new Error(`Erro ${error.response.status}: ${error.response.statusText}`);
+      }
+      
+      if (error.request) {
+        throw new Error('Servidor não está respondendo. Verifique sua conexão.');
+      }
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Tempo limite excedido. Tente novamente.');
+      }
+      
+      throw new Error('Erro inesperado ao atualizar usuário.');
     }
   },
 
-  // Excluir um usuário (exclusão lógica)
+  // Deletar um usuário (apenas admin)
   delete: async (id: string): Promise<void> => {
     try {
-      console.log(`Tentando excluir usuário ${id} no backend...`);
+      console.log(`Tentando deletar usuário ${id} no backend...`);
       
       await api.delete(`/users/${id}`, { timeout: 8000 });
-      console.log('Usuário excluído com sucesso no backend!');
+      console.log('Usuário deletado com sucesso no backend!');
+    } catch (error: any) {
+      console.error(`Erro ao deletar usuário ${id}:`, error);
+      
+      if (error.response) {
+        console.error('Resposta de erro:', error.response.data);
+        
+        if (error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
+        }
+        
+        throw new Error(`Erro ${error.response.status}: ${error.response.statusText}`);
+      }
+      
+      if (error.request) {
+        throw new Error('Servidor não está respondendo. Verifique sua conexão.');
+      }
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Tempo limite excedido. Tente novamente.');
+      }
+      
+      throw new Error('Erro inesperado ao deletar usuário.');
+    }
+  },
+
+  // Ativar/desativar um usuário (apenas admin)
+  toggleStatus: async (id: string, isActive: boolean): Promise<User> => {
+    try {
+      console.log(`Tentando ${isActive ? 'ativar' : 'desativar'} usuário ${id} no backend...`);
+      
+      const response = await api.patch(`/users/${id}/status`, { isActive }, { timeout: 8000 });
+      console.log('Status do usuário atualizado com sucesso no backend!', response.data);
+      
+      return mapToFrontend(response.data);
+    } catch (error: any) {
+      console.error(`Erro ao alterar status do usuário ${id}:`, error);
+      
+      if (error.response) {
+        console.error('Resposta de erro:', error.response.data);
+        
+        if (error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
+        }
+        
+        throw new Error(`Erro ${error.response.status}: ${error.response.statusText}`);
+      }
+      
+      if (error.request) {
+        throw new Error('Servidor não está respondendo. Verifique sua conexão.');
+      }
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Tempo limite excedido. Tente novamente.');
+      }
+      
+      throw new Error('Erro inesperado ao alterar status do usuário.');
+    }
+  },
+
+  // Buscar usuários por empresa (apenas admin)
+  getByCompany: async (companyId: string): Promise<User[]> => {
+    try {
+      console.log(`Tentando buscar usuários da empresa ${companyId}...`);
+      
+      const response = await api.get(`/users/company/${companyId}`, { timeout: 8000 });
+      console.log('Usuários da empresa obtidos com sucesso no backend!', response.data.length);
+      
+      return response.data.map(mapToFrontend);
     } catch (error) {
-      console.error(`Erro ao excluir usuário com ID ${id}:`, error);
+      console.error(`Erro ao buscar usuários da empresa ${companyId}:`, error);
       throw error;
     }
   },
 
-  // Redefinir senha do usuário
-  resetPassword: async (id: string, newPassword: string): Promise<void> => {
+  // Buscar usuários por role (apenas admin)
+  getByRole: async (role: string): Promise<User[]> => {
     try {
-      console.log(`Tentando redefinir senha do usuário ${id} no backend...`);
+      console.log(`Tentando buscar usuários com role ${role}...`);
       
-      await api.post(`/users/${id}/reset-password`, { password: newPassword }, { timeout: 8000 });
-      console.log('Senha redefinida com sucesso no backend!');
+      const response = await api.get(`/users/role/${role}`, { timeout: 8000 });
+      console.log('Usuários por role obtidos com sucesso no backend!', response.data.length);
+      
+      return response.data.map(mapToFrontend);
     } catch (error) {
-      console.error(`Erro ao redefinir senha do usuário com ID ${id}:`, error);
+      console.error(`Erro ao buscar usuários com role ${role}:`, error);
       throw error;
     }
   }
@@ -189,9 +285,10 @@ const mapToFrontend = (user: UserBackend): User => {
     companyId: user.companyId,
     companyName: user.companyName,
     isActive: user.isActive,
-    emailVerified: true, // O backend não tem este campo explicitamente, assumindo true
+    emailVerified: true, // Assumir que usuários do backend são verificados
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
+    lastLogin: undefined // Não disponível no backend por enquanto
   };
 };
 
