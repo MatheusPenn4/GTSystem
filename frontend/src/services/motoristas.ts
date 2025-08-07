@@ -1,4 +1,4 @@
-import api from '@/lib/api';
+import api from './api';
 
 export interface Motorista {
   id: string;
@@ -99,30 +99,29 @@ const MotoristaService = {
       
       // Verificar se CPF tem pelo menos 11 dígitos após remover formatação
       const cpfDigits = motorista.cpf.replace(/\D/g, '');
-      if (cpfDigits.length !== 11) {
-        throw new Error('CPF deve conter 11 dígitos numéricos');
+      if (cpfDigits.length < 11) {
+        throw new Error('CPF inválido. Deve ter pelo menos 11 dígitos.');
       }
       
-      // Verificar se CNH tem pelo menos 9 dígitos
+      // Verificar se CNH tem pelo menos 9 dígitos após remover formatação
       const cnhDigits = motorista.cnh.replace(/\D/g, '');
-      if (cnhDigits.length < 9 || cnhDigits.length > 11) {
-        throw new Error('CNH deve conter entre 9 e 11 dígitos');
+      if (cnhDigits.length < 9) {
+        throw new Error('CNH inválida. Deve ter pelo menos 9 dígitos.');
       }
       
       // Mapear dados do frontend para o formato do backend
       const backendData = {
         name: motorista.nome,
-        cpf: cpfDigits, // Envia apenas os dígitos
-        cnh: cnhDigits, // Envia apenas os dígitos
-        phone: motorista.telefone || '',
-        email: motorista.email || '',
+        cpf: motorista.cpf.replace(/\D/g, ''), // Remover formatação
+        cnh: motorista.cnh.replace(/\D/g, ''), // Remover formatação
+        phone: motorista.telefone.replace(/\D/g, ''), // Remover formatação
+        email: motorista.email,
         companyId: motorista.empresaId,
-        isActive: motorista.status === 'ativo' || true
       };
       
       console.log('Dados enviados para o backend:', backendData);
       
-      const response = await api.post('/motoristas', backendData, { timeout: 8000 });
+      const response = await api.post('/motoristas', backendData, { timeout: 5000 });
       console.log('Motorista criado com sucesso no backend!', response.data);
       
       // Mapear resposta do backend para o formato do frontend
@@ -130,34 +129,37 @@ const MotoristaService = {
     } catch (error: any) {
       console.error('Erro ao criar motorista:', error);
       
-      // Melhor tratamento de erros
+      // Mostrar detalhes mais específicos sobre o erro
       if (error.response) {
-        // O servidor respondeu com um status diferente de 2xx
         console.error('Resposta de erro:', error.response.data);
         
-        // Se houver mensagens de erro específicas, exibi-las
         if (error.response.data && error.response.data.errors) {
           const errors = error.response.data.errors;
           const errorMessages = errors.map((err: any) => err.message || err).join(', ');
           throw new Error(`Dados inválidos: ${errorMessages}`);
         }
         
-        const errorMessage = error.response.data?.message || 'Erro ao criar motorista';
-        throw new Error(errorMessage);
-      } else if (error.request) {
-        // A requisição foi feita mas não houve resposta
-        console.error('Request sem resposta:', error.request);
-        throw new Error('Servidor não respondeu. Verifique sua conexão.');
-      } else {
-        // Outros erros
-        console.error('Erro:', error.message);
-        throw error;
+        if (error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
+        }
+        
+        throw new Error(`Erro ${error.response.status}: ${error.response.statusText}`);
       }
+      
+      if (error.request) {
+        throw new Error('Servidor não está respondendo. Verifique sua conexão.');
+      }
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Tempo limite excedido. Tente novamente.');
+      }
+      
+      throw new Error('Erro inesperado ao criar motorista.');
     }
   },
 
   // Atualizar um motorista existente
-  update: async (id: string, motorista: Partial<Motorista>): Promise<Motorista> => {
+  update: async (id: string, motorista: Partial<Omit<Motorista, 'id' | 'dataCadastro' | 'empresaNome'>>): Promise<Motorista> => {
     try {
       console.log(`Tentando atualizar motorista ${id} no backend...`, motorista);
       
@@ -171,37 +173,55 @@ const MotoristaService = {
       const backendData: any = {};
       
       if (motorista.nome) backendData.name = motorista.nome;
-      if (motorista.telefone) backendData.phone = motorista.telefone;
+      if (motorista.cpf) backendData.cpf = motorista.cpf.replace(/\D/g, '');
+      if (motorista.cnh) backendData.cnh = motorista.cnh.replace(/\D/g, '');
+      if (motorista.telefone) backendData.phone = motorista.telefone.replace(/\D/g, '');
       if (motorista.email) backendData.email = motorista.email;
-      if (motorista.status) backendData.isActive = motorista.status === 'ativo';
+      if (motorista.empresaId) backendData.companyId = motorista.empresaId;
+      if (motorista.status !== undefined) backendData.isActive = motorista.status === 'ativo';
+      
+      console.log('Dados enviados para o backend:', backendData);
       
       const response = await api.put(`/motoristas/${id}`, backendData, { timeout: 5000 });
-      console.log('Motorista atualizado com sucesso no backend!');
+      console.log('Motorista atualizado com sucesso no backend!', response.data);
       
       // Mapear resposta do backend para o formato do frontend
       return mapToFrontend(response.data);
     } catch (error: any) {
-      console.error(`Erro ao atualizar motorista com ID ${id}:`, error);
+      console.error(`Erro ao atualizar motorista ${id}:`, error);
       
-      // Melhor tratamento de erros
       if (error.response) {
-        // O servidor respondeu com um status diferente de 2xx
-        const errorMessage = error.response.data?.message || 'Erro ao atualizar motorista';
-        throw new Error(errorMessage);
-      } else if (error.request) {
-        // A requisição foi feita mas não houve resposta
-        throw new Error('Servidor não respondeu. Verifique sua conexão.');
-      } else {
-        // Outros erros
-        throw error;
+        console.error('Resposta de erro:', error.response.data);
+        
+        if (error.response.data && error.response.data.errors) {
+          const errors = error.response.data.errors;
+          const errorMessages = errors.map((err: any) => err.message || err).join(', ');
+          throw new Error(`Dados inválidos: ${errorMessages}`);
+        }
+        
+        if (error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
+        }
+        
+        throw new Error(`Erro ${error.response.status}: ${error.response.statusText}`);
       }
+      
+      if (error.request) {
+        throw new Error('Servidor não está respondendo. Verifique sua conexão.');
+      }
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Tempo limite excedido. Tente novamente.');
+      }
+      
+      throw new Error('Erro inesperado ao atualizar motorista.');
     }
   },
 
-  // Excluir um motorista
+  // Deletar um motorista
   delete: async (id: string): Promise<void> => {
     try {
-      console.log(`Tentando excluir motorista ${id} no backend...`);
+      console.log(`Tentando deletar motorista ${id} no backend...`);
       
       // Verificar se o servidor está disponível
       const isServerAvailable = await checkServerAvailability();
@@ -210,57 +230,124 @@ const MotoristaService = {
       }
       
       await api.delete(`/motoristas/${id}`, { timeout: 5000 });
-      console.log('Motorista excluído com sucesso no backend!');
+      console.log('Motorista deletado com sucesso no backend!');
     } catch (error: any) {
-      console.error(`Erro ao excluir motorista com ID ${id}:`, error);
+      console.error(`Erro ao deletar motorista ${id}:`, error);
       
-      // Melhor tratamento de erros
       if (error.response) {
-        // O servidor respondeu com um status diferente de 2xx
-        const errorMessage = error.response.data?.message || 'Erro ao excluir motorista';
-        throw new Error(errorMessage);
-      } else if (error.request) {
-        // A requisição foi feita mas não houve resposta
-        throw new Error('Servidor não respondeu. Verifique sua conexão.');
-      } else {
-        // Outros erros
-        throw error;
+        console.error('Resposta de erro:', error.response.data);
+        
+        if (error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
+        }
+        
+        throw new Error(`Erro ${error.response.status}: ${error.response.statusText}`);
       }
+      
+      if (error.request) {
+        throw new Error('Servidor não está respondendo. Verifique sua conexão.');
+      }
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Tempo limite excedido. Tente novamente.');
+      }
+      
+      throw new Error('Erro inesperado ao deletar motorista.');
+    }
+  },
+
+  // Buscar motoristas por empresa
+  getByCompany: async (companyId: string): Promise<Motorista[]> => {
+    try {
+      console.log(`Tentando buscar motoristas da empresa ${companyId}...`);
+      
+      // Verificar se o servidor está disponível
+      const isServerAvailable = await checkServerAvailability();
+      if (!isServerAvailable) {
+        throw new Error('Servidor indisponível');
+      }
+      
+      const response = await api.get(`/motoristas/company/${companyId}`, { timeout: 5000 });
+      console.log('Motoristas da empresa obtidos com sucesso no backend!', response.data.length);
+      
+      return response.data.map((driver: DriverBackend) => mapToFrontend(driver));
+    } catch (error) {
+      console.error(`Erro ao buscar motoristas da empresa ${companyId}:`, error);
+      throw error;
+    }
+  },
+
+  // Ativar/desativar um motorista
+  toggleStatus: async (id: string, isActive: boolean): Promise<Motorista> => {
+    try {
+      console.log(`Tentando ${isActive ? 'ativar' : 'desativar'} motorista ${id} no backend...`);
+      
+      // Verificar se o servidor está disponível
+      const isServerAvailable = await checkServerAvailability();
+      if (!isServerAvailable) {
+        throw new Error('Servidor indisponível');
+      }
+      
+      const response = await api.patch(`/motoristas/${id}/status`, { isActive }, { timeout: 5000 });
+      console.log('Status do motorista atualizado com sucesso no backend!', response.data);
+      
+      return mapToFrontend(response.data);
+    } catch (error: any) {
+      console.error(`Erro ao alterar status do motorista ${id}:`, error);
+      
+      if (error.response) {
+        console.error('Resposta de erro:', error.response.data);
+        
+        if (error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
+        }
+        
+        throw new Error(`Erro ${error.response.status}: ${error.response.statusText}`);
+      }
+      
+      if (error.request) {
+        throw new Error('Servidor não está respondendo. Verifique sua conexão.');
+      }
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Tempo limite excedido. Tente novamente.');
+      }
+      
+      throw new Error('Erro inesperado ao alterar status do motorista.');
     }
   }
 };
 
-// Função auxiliar para verificar se o servidor está disponível
+// Função para verificar se o servidor está disponível
 const checkServerAvailability = async (): Promise<boolean> => {
   try {
-    await api.get('/health', { timeout: 3000 });
-    return true;
+    const response = await api.get('/health', { timeout: 3000 });
+    return response.status === 200;
   } catch (error) {
-    console.warn('Servidor backend indisponível:', error);
+    console.error('Servidor não está respondendo:', error);
     return false;
   }
 };
 
 // Função para mapear dados do backend para o formato do frontend
 const mapToFrontend = (driver: DriverBackend): Motorista => {
-  // Determinar status baseado no isActive
-  const status = driver.isActive ? 'ativo' : 'inativo';
-  
   return {
-    id: driver.id || '',
-    nome: driver.name || '',
-    cpf: driver.cpf || '',
-    cnh: driver.cnh || '',
-    telefone: driver.phone || '',
-    email: driver.email || '',
-    empresaId: driver.companyId || '',
-    empresaNome: driver.company?.name || '',
-    status: status,
-    dataCadastro: driver.createdAt || new Date().toISOString()
+    id: driver.id,
+    nome: driver.name,
+    cpf: driver.cpf,
+    cnh: driver.cnh,
+    telefone: driver.phone,
+    email: driver.email,
+    empresaId: driver.companyId,
+    empresaNome: driver.company?.name,
+    status: driver.isActive ? 'ativo' : 'inativo',
+    dataCadastro: driver.createdAt,
+    categoria: undefined, // Não disponível no backend
+    validadeCnh: undefined // Não disponível no backend
   };
 };
 
-// Função para retornar dados mockados consistentes
+// Dados mockados para fallback (não usado mais)
 const getMockMotoristas = (): Motorista[] => {
   return [
     {
@@ -268,42 +355,28 @@ const getMockMotoristas = (): Motorista[] => {
       nome: 'João Silva',
       cpf: '123.456.789-00',
       cnh: '12345678901',
-      categoria: 'D',
-      validadeCnh: '2025-12-15',
+      categoria: 'E',
+      validadeCnh: '2025-12-31',
       telefone: '(11) 99999-9999',
-      email: 'joao@email.com',
+      email: 'joao.silva@email.com',
       empresaId: '1',
-      empresaNome: 'Transportadora ABC',
+      empresaNome: 'Transportadora Modelo LTDA',
       status: 'ativo',
-      dataCadastro: '2023-01-10'
+      dataCadastro: '2024-01-01T00:00:00Z'
     },
     {
       id: '2',
       nome: 'Maria Santos',
       cpf: '987.654.321-00',
-      cnh: '10987654321',
-      categoria: 'C',
-      validadeCnh: '2024-08-20',
+      cnh: '98765432109',
+      categoria: 'E',
+      validadeCnh: '2025-06-30',
       telefone: '(11) 88888-8888',
-      email: 'maria@email.com',
+      email: 'maria.santos@email.com',
       empresaId: '1',
-      empresaNome: 'Transportadora ABC',
+      empresaNome: 'Transportadora Modelo LTDA',
       status: 'ativo',
-      dataCadastro: '2023-02-15'
-    },
-    {
-      id: '3',
-      nome: 'Carlos Oliveira',
-      cpf: '456.789.123-00',
-      cnh: '56789012345',
-      categoria: 'C',
-      validadeCnh: '2024-03-10',
-      telefone: '(11) 77777-7777',
-      email: 'carlos@email.com',
-      empresaId: '2',
-      empresaNome: 'LogisTech Express',
-      status: 'inativo',
-      dataCadastro: '2023-03-01'
+      dataCadastro: '2024-01-02T00:00:00Z'
     }
   ];
 };
