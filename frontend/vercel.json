@@ -65,8 +65,5 @@
     }
   ],
   "cleanUrls": true,
-  "trailingSlash": false,
-  "domains": [
-    "gt-system.vercel.app"
-  ]
+  "trailingSlash": false
 } 
