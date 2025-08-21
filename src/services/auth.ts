@@ -20,7 +20,7 @@ const AuthService = {
   // Login de usuário
   login: async (email: string, password: string): Promise<LoginResponse> => {
     try {
-      const response = await api.post('/login', { email, password });
+      const response = await api.post('/api/login', { email, password });
       return response.data;
     } catch (error) {
       console.error('Erro ao fazer login:', error);
@@ -31,7 +31,7 @@ const AuthService = {
   // Logout de usuário
   logout: async (): Promise<void> => {
     try {
-      await api.post('/auth/logout');
+      await api.post('/api/logout');
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
       // Continuar com o logout mesmo com erro
@@ -45,7 +45,7 @@ const AuthService = {
   // Obter dados do usuário atual
   getCurrentUser: async (): Promise<User> => {
     try {
-      const response = await api.get('/auth/me');
+      const response = await api.get('/api/me');
       return response.data;
     } catch (error) {
       console.error('Erro ao obter dados do usuário:', error);
@@ -56,7 +56,7 @@ const AuthService = {
   // Renovar token
   refreshToken: async (refreshToken: string): Promise<{ token: string; refreshToken: string }> => {
     try {
-      const response = await api.post('/auth/refresh-token', { refreshToken });
+      const response = await api.post('/api/refresh-token', { refreshToken });
       return response.data;
     } catch (error) {
       console.error('Erro ao renovar token:', error);
