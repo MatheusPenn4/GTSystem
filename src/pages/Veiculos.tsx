@@ -1,6 +1,5 @@
-
-import React, { useState } from 'react';
-import { Plus, Search, Car, Truck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, Car, Truck, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,143 +9,225 @@ import TableActions from '@/components/TableActions';
 import ViewModal from '@/components/modals/ViewModal';
 import EditModal from '@/components/modals/EditModal';
 import DeleteModal from '@/components/modals/DeleteModal';
+import CadastroVeiculoModal from '@/components/modals/CadastroVeiculoModal';
+import VeiculoService, { Veiculo } from '@/services/veiculos';
+import { useToast } from '@/components/ui/use-toast';
 
 const Veiculos: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedVeiculo, setSelectedVeiculo] = useState<any>(null);
+  const [selectedVeiculo, setSelectedVeiculo] = useState<Veiculo | null>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { toast } = useToast();
 
-  // Mock data - ajustado conforme o tipo de usuário
-  const getVeiculosData = () => {
-    if (user?.role === 'transportadora') {
-      return [
-        {
-          id: 1,
-          placa: 'ABC-1234',
-          modelo: 'Mercedes Sprinter',
-          marca: 'Mercedes',
-          ano: 2020,
-          cor: 'Branco',
-          tipo: 'Van',
-          empresa: user.companyName || 'Minha Empresa',
-          motorista: 'João Silva',
-          status: 'Ativo',
-          chassi: '9BFZF12345678901'
-        },
-        {
-          id: 2,
-          placa: 'DEF-5678',
-          modelo: 'Iveco Daily',
-          marca: 'Iveco',
-          ano: 2019,
-          cor: 'Azul',
-          tipo: 'Caminhão',
-          empresa: user.companyName || 'Minha Empresa',
-          motorista: 'Maria Santos',
-          status: 'Ativo',
-          chassi: '9BFZF12345678902'
-        }
-      ];
-    } else {
-      return [
-        {
-          id: 1,
-          placa: 'ABC-1234',
-          modelo: 'Mercedes Sprinter',
-          marca: 'Mercedes',
-          ano: 2020,
-          cor: 'Branco',
-          tipo: 'Van',
-          empresa: 'TechCorp Ltda',
-          motorista: 'João Silva',
-          status: 'Ativo',
-          chassi: '9BFZF12345678901'
-        },
-        {
-          id: 2,
-          placa: 'DEF-5678',
-          modelo: 'Iveco Daily',
-          marca: 'Iveco',
-          ano: 2019,
-          cor: 'Azul',
-          tipo: 'Caminhão',
-          empresa: 'LogiMaster S.A.',
-          motorista: 'Maria Santos',
-          status: 'Ativo',
-          chassi: '9BFZF12345678902'
-        },
-        {
-          id: 3,
-          placa: 'GHI-9012',
-          modelo: 'Ford Transit',
-          marca: 'Ford',
-          ano: 2021,
-          cor: 'Prata',
-          tipo: 'Van',
-          empresa: 'TransBrasil Express',
-          motorista: 'Carlos Oliveira',
-          status: 'Manutenção',
-          chassi: '9BFZF12345678903'
-        }
-      ];
-    }
-  };
+  // Carregar dados de veículos
+  useEffect(() => {
+    const fetchVeiculos = async () => {
+      try {
+        setLoading(true);
+        const data = await VeiculoService.getAll();
+        setVeiculos(data);
+      } catch (error) {
+        console.error('Erro ao carregar veículos:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar a lista de veículos.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const veiculos = getVeiculosData();
+    fetchVeiculos();
+  }, [toast]);
 
+  // Filtrar veículos com base no termo de busca
   const filteredVeiculos = veiculos.filter(veiculo =>
     veiculo.placa.toLowerCase().includes(searchTerm.toLowerCase()) ||
     veiculo.modelo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    veiculo.empresa.toLowerCase().includes(searchTerm.toLowerCase())
+    (veiculo.empresaNome && veiculo.empresaNome.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const handleView = (veiculo: any) => {
+  // Filtrar veículos por empresa (caso seja uma transportadora)
+  const filteredByRoleVeiculos = user?.role === 'transportadora' && user?.companyId
+    ? filteredVeiculos.filter(veiculo => veiculo.empresaId === user.companyId)
+    : filteredVeiculos;
+
+  const handleView = (veiculo: Veiculo) => {
     setSelectedVeiculo(veiculo);
     setViewModalOpen(true);
   };
 
-  const handleEdit = (veiculo: any) => {
+  const handleEdit = (veiculo: Veiculo) => {
     setSelectedVeiculo(veiculo);
     setEditModalOpen(true);
   };
 
-  const handleDelete = (veiculo: any) => {
+  const handleDelete = (veiculo: Veiculo) => {
     setSelectedVeiculo(veiculo);
     setDeleteModalOpen(true);
   };
 
-  const handleSave = (data: any) => {
-    console.log('Salvando veículo:', data);
-    // Aqui você implementaria a lógica de salvamento
+  const handleSave = async (data: Partial<Veiculo>) => {
+    try {
+      setLoading(true);
+      
+      if (selectedVeiculo) {
+        // Atualização de veículo existente
+        const updatedVeiculo = await VeiculoService.update(selectedVeiculo.id, data);
+        setVeiculos(veiculos.map(v => v.id === updatedVeiculo.id ? updatedVeiculo : v));
+        toast({
+          title: 'Sucesso',
+          description: 'Veículo atualizado com sucesso!',
+        });
+        setEditModalOpen(false);
+      } else {
+        // Criação de novo veículo
+        console.log('Criando veículo com dados:', data);
+        
+        // Verificar se os dados já contêm um empresaId válido (vindo do modal)
+        if (data.empresaId && data.empresaId !== 'none' && data.empresaId !== 'placeholder') {
+          console.log('Usando empresaId fornecido pelo modal:', data.empresaId);
+          const newVeiculo = await VeiculoService.create(data as Omit<Veiculo, 'id' | 'dataCadastro' | 'empresaNome'>);
+          setVeiculos([...veiculos, newVeiculo]);
+          toast({
+            title: 'Sucesso',
+            description: 'Veículo criado com sucesso!',
+          });
+          setCadastroModalOpen(false);
+        } else if (user?.companyId) {
+          // Fallback para o companyId do usuário, se disponível
+          console.log('Usando companyId do usuário:', user.companyId);
+          const newVeiculo = await VeiculoService.create({
+            ...data as Omit<Veiculo, 'id' | 'dataCadastro' | 'empresaNome'>,
+            empresaId: user.companyId
+          });
+          setVeiculos([...veiculos, newVeiculo]);
+          toast({
+            title: 'Sucesso',
+            description: 'Veículo criado com sucesso!',
+          });
+          setCadastroModalOpen(false);
+        } else {
+          // Apenas para admin sem empresaId no formulário (situação que não deveria ocorrer)
+          toast({
+            title: 'Erro',
+            description: 'Selecione uma empresa para o veículo',
+            variant: 'destructive',
+          });
+          return; // Não fechamos o modal para permitir correção
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao salvar veículo:', error);
+      toast({
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Não foi possível salvar o veículo.',
+        variant: 'destructive',
+      });
+      // Não fechamos o modal em caso de erro para permitir correções
+      return;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleConfirmDelete = () => {
-    console.log('Excluindo veículo:', selectedVeiculo);
-    // Aqui você implementaria a lógica de exclusão
+  const handleConfirmDelete = async () => {
+    if (!selectedVeiculo) return;
+    
+    try {
+      setLoading(true);
+      await VeiculoService.delete(selectedVeiculo.id);
+      setVeiculos(veiculos.filter(v => v.id !== selectedVeiculo.id));
+      setDeleteModalOpen(false);
+      toast({
+        title: 'Sucesso',
+        description: 'Veículo excluído com sucesso!',
+      });
+    } catch (error) {
+      console.error('Erro ao excluir veículo:', error);
+      toast({
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Não foi possível excluir o veículo.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getStatsForRole = () => {
+  // Calcular estatísticas com base nos dados reais
+  const getStats = () => {
+    const veiculosFiltrados = user?.role === 'transportadora' && user?.companyId
+      ? veiculos.filter(veiculo => veiculo.empresaId === user.companyId)
+      : veiculos;
+    
+    const total = veiculosFiltrados.length;
+    const ativos = veiculosFiltrados.filter(v => v.status === 'ativo').length;
+    const manutencao = veiculosFiltrados.filter(v => v.status === 'manutencao').length;
+    const inativos = veiculosFiltrados.filter(v => v.status === 'inativo').length;
+    
+    // Calcular média de idade dos veículos
+    const anoAtual = new Date().getFullYear();
+    const somaIdades = veiculosFiltrados.reduce((soma, veiculo) => soma + (anoAtual - veiculo.ano), 0);
+    const mediaIdade = total > 0 ? (somaIdades / total).toFixed(1) : '0';
+    
     if (user?.role === 'transportadora') {
       return [
-        { label: 'Meus Veículos', value: '12', icon: Car, color: 'text-ajh-primary' },
-        { label: 'Ativos', value: '10', icon: Car, color: 'text-green-400' },
-        { label: 'Manutenção', value: '2', icon: Car, color: 'text-yellow-400' },
-        { label: 'Média Idade', value: '3.2 anos', icon: Car, color: 'text-blue-400' }
+        { label: 'Meus Veículos', value: total.toString(), icon: Car, color: 'text-ajh-primary' },
+        { label: 'Ativos', value: ativos.toString(), icon: Car, color: 'text-green-400' },
+        { label: 'Manutenção', value: manutencao.toString(), icon: Car, color: 'text-yellow-400' },
+        { label: 'Média Idade', value: `${mediaIdade} anos`, icon: Car, color: 'text-blue-400' }
       ];
     } else {
       return [
-        { label: 'Total Veículos', value: '156', icon: Car, color: 'text-ajh-primary' },
-        { label: 'Ativos', value: '142', icon: Car, color: 'text-green-400' },
-        { label: 'Manutenção', value: '8', icon: Car, color: 'text-yellow-400' },
-        { label: 'Inativos', value: '6', icon: Car, color: 'text-red-400' }
+        { label: 'Total Veículos', value: total.toString(), icon: Car, color: 'text-ajh-primary' },
+        { label: 'Ativos', value: ativos.toString(), icon: Car, color: 'text-green-400' },
+        { label: 'Manutenção', value: manutencao.toString(), icon: Car, color: 'text-yellow-400' },
+        { label: 'Inativos', value: inativos.toString(), icon: Car, color: 'text-red-400' }
       ];
     }
   };
 
-  const stats = getStatsForRole();
+  const stats = getStats();
+
+  const [cadastroModalOpen, setCadastroModalOpen] = useState(false);
+
+  const handleCreateNew = () => {
+    // Para usuários transportadora, verificamos a empresa associada
+    if (user?.role === 'transportadora' && !user?.companyId) {
+      toast({
+        title: 'Erro',
+        description: 'Sua conta não está associada a nenhuma empresa. Contate o administrador.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    console.log('Abrindo modal de cadastro com companyId:', user?.companyId);
+    
+    // Abrir o modal para qualquer tipo de usuário (inclusive admin)
+    setCadastroModalOpen(true);
+  };
+
+  // Função para mapear o status do backend para a exibição no frontend
+  const mapStatusToDisplay = (status: string) => {
+    switch (status) {
+      case 'ativo':
+        return 'Ativo';
+      case 'inativo':
+        return 'Inativo';
+      case 'manutencao':
+        return 'Manutenção';
+      default:
+        return status;
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -163,7 +244,7 @@ const Veiculos: React.FC = () => {
             }
           </p>
         </div>
-        <Button className="ajh-button-primary">
+        <Button className="ajh-button-primary" onClick={handleCreateNew} disabled={loading}>
           <Plus className="w-4 h-4 mr-2" />
           Novo Veículo
         </Button>
@@ -213,101 +294,125 @@ const Veiculos: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-white">Lista de Veículos</CardTitle>
           <CardDescription className="text-slate-400">
-            {filteredVeiculos.length} veículo(s) encontrado(s)
+            {filteredByRoleVeiculos.length} veículo(s) encontrado(s)
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-700">
-                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Veículo</th>
-                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Placa</th>
-                  {user?.role !== 'transportadora' && (
-                    <th className="text-left py-3 px-2 text-slate-300 font-medium">Empresa</th>
-                  )}
-                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Motorista</th>
-                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Status</th>
-                  <th className="text-center py-3 px-2 text-slate-300 font-medium">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredVeiculos.map((veiculo) => (
-                  <tr key={veiculo.id} className="border-b border-slate-700/50 hover:bg-slate-800/50">
-                    <td className="py-4 px-2">
-                      <div className="flex items-center space-x-3">
-                        {veiculo.tipo === 'Van' ? (
-                          <Car className="w-8 h-8 text-ajh-primary" />
-                        ) : (
-                          <Truck className="w-8 h-8 text-ajh-secondary" />
-                        )}
-                        <div>
-                          <p className="text-white font-medium">{veiculo.modelo}</p>
-                          <p className="text-sm text-slate-400">{veiculo.marca} - {veiculo.ano}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-2">
-                      <span className="text-white font-mono bg-slate-800 px-2 py-1 rounded">
-                        {veiculo.placa}
-                      </span>
-                    </td>
+          {loading ? (
+            <div className="flex justify-center items-center p-8">
+              <Loader2 className="w-8 h-8 text-ajh-primary animate-spin" />
+              <span className="ml-2 text-slate-400">Carregando veículos...</span>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-700">
+                    <th className="text-left py-3 px-2 text-slate-300 font-medium">Veículo</th>
+                    <th className="text-left py-3 px-2 text-slate-300 font-medium">Placa</th>
                     {user?.role !== 'transportadora' && (
-                      <td className="py-4 px-2 text-slate-300">{veiculo.empresa}</td>
+                      <th className="text-left py-3 px-2 text-slate-300 font-medium">Empresa</th>
                     )}
-                    <td className="py-4 px-2 text-slate-300">{veiculo.motorista}</td>
-                    <td className="py-4 px-2">
-                      <Badge 
-                        className={
-                          veiculo.status === 'Ativo' 
-                            ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                            : veiculo.status === 'Manutenção'
-                            ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-                            : 'bg-red-500/20 text-red-400 border-red-500/30'
-                        }
-                      >
-                        {veiculo.status}
-                      </Badge>
-                    </td>
-                    <td className="py-4 px-2">
-                      <div className="flex justify-center">
-                        <TableActions
-                          onView={() => handleView(veiculo)}
-                          onEdit={() => handleEdit(veiculo)}
-                          onDelete={() => handleDelete(veiculo)}
-                        />
-                      </div>
-                    </td>
+                    <th className="text-left py-3 px-2 text-slate-300 font-medium">Status</th>
+                    <th className="text-center py-3 px-2 text-slate-300 font-medium">Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredByRoleVeiculos.length === 0 ? (
+                    <tr>
+                      <td colSpan={user?.role !== 'transportadora' ? 5 : 4} className="text-center py-8 text-slate-400">
+                        Nenhum veículo encontrado
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredByRoleVeiculos.map((veiculo) => (
+                      <tr key={veiculo.id} className="border-b border-slate-700/50 hover:bg-slate-800/50">
+                        <td className="py-4 px-2">
+                          <div className="flex items-center space-x-3">
+                            {veiculo.tipo === 'VAN' || veiculo.tipo === 'CAR' ? (
+                              <Car className="w-8 h-8 text-ajh-primary" />
+                            ) : (
+                              <Truck className="w-8 h-8 text-ajh-secondary" />
+                            )}
+                            <div>
+                              <p className="text-white font-medium">{veiculo.modelo}</p>
+                              <p className="text-sm text-slate-400">{veiculo.marca} - {veiculo.ano}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-2">
+                          <span className="text-white font-mono bg-slate-800 px-2 py-1 rounded">
+                            {veiculo.placa}
+                          </span>
+                        </td>
+                        {user?.role !== 'transportadora' && (
+                          <td className="py-4 px-2 text-slate-300">{veiculo.empresaNome || 'N/A'}</td>
+                        )}
+                        <td className="py-4 px-2">
+                          <Badge 
+                            className={
+                              veiculo.status === 'ativo' 
+                                ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                                : veiculo.status === 'manutencao'
+                                ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                                : 'bg-red-500/20 text-red-400 border-red-500/30'
+                            }
+                          >
+                            {mapStatusToDisplay(veiculo.status)}
+                          </Badge>
+                        </td>
+                        <td className="py-4 px-2">
+                          <div className="flex justify-center">
+                            <TableActions
+                              onView={() => handleView(veiculo)}
+                              onEdit={() => handleEdit(veiculo)}
+                              onDelete={() => handleDelete(veiculo)}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Modals */}
-      <ViewModal
-        isOpen={viewModalOpen}
-        onClose={() => setViewModalOpen(false)}
-        title="Detalhes do Veículo"
-        data={selectedVeiculo || {}}
-      />
-
-      <EditModal
-        isOpen={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        title="Editar Veículo"
-        data={selectedVeiculo || {}}
-        onSave={handleSave}
-      />
-
+      {selectedVeiculo && (
+        <ViewModal
+          isOpen={viewModalOpen}
+          onClose={() => setViewModalOpen(false)}
+          title="Detalhes do Veículo"
+          data={selectedVeiculo}
+        />
+      )}
+      
+      {selectedVeiculo && (
+        <EditModal
+          isOpen={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          onSave={handleSave}
+          title="Editar Veículo"
+          data={selectedVeiculo}
+        />
+      )}
+      
       <DeleteModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
-        title="Excluir Veículo"
-        description={`Tem certeza que deseja excluir o veículo "${selectedVeiculo?.placa}"?`}
         onConfirm={handleConfirmDelete}
+        title="Excluir Veículo"
+        description={`Tem certeza que deseja excluir o veículo ${selectedVeiculo?.placa || ''}? Esta ação não pode ser desfeita.`}
+      />
+      
+      <CadastroVeiculoModal
+        isOpen={cadastroModalOpen}
+        onClose={() => setCadastroModalOpen(false)}
+        onSave={handleSave}
+        empresaId={user?.role === 'transportadora' ? user?.companyId : undefined}
       />
     </div>
   );

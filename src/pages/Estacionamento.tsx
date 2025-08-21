@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ParkingCircle, Search, Filter, Car, Clock, CheckCircle, Download } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,24 +26,44 @@ const Estacionamento: React.FC = () => {
   const [selectedVaga, setSelectedVaga] = useState<Vaga | null>(null);
   const { toast } = useToast();
 
-  // Mock data - 50 vagas divididas em setores
-  const vagas: Vaga[] = Array.from({ length: 50 }, (_, i) => {
-    const numero = (i + 1).toString().padStart(2, '0');
-    const setores = ['A', 'B', 'C'];
-    const setor = setores[Math.floor(i / 17)];
-    const statuses: Vaga['status'][] = ['livre', 'ocupada', 'reservada', 'manutencao'];
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-    
-    return {
-      id: `vaga-${i + 1}`,
-      numero: `${setor}${numero}`,
-      setor,
-      status,
-      veiculo: status === 'ocupada' ? `ABC-${1000 + i}` : undefined,
-      motorista: status === 'ocupada' ? `Motorista ${i + 1}` : undefined,
-      entrada: status === 'ocupada' ? new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toLocaleTimeString() : undefined,
-    };
-  });
+  // Estado para vagas reais do banco de dados
+  const [vagas, setVagas] = useState<Vaga[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadVagas();
+  }, []);
+
+  const loadVagas = async () => {
+    try {
+      setIsLoading(true);
+      console.log('Carregando vagas reais do banco de dados...');
+      
+      // Importar e usar o ParkingSpaceService
+      const ParkingSpaceService = (await import('@/services/parkingSpaces')).default;
+      const vagasFromAPI = await ParkingSpaceService.getMySpaces();
+      
+      // Mapear para o formato local da interface Vaga
+      const vagasMapeadas: Vaga[] = vagasFromAPI.map(space => ({
+        id: space.id,
+        numero: space.numero,
+        setor: space.setor || 'A', // Valor padrão se não tiver setor
+        status: space.status,
+        veiculo: space.veiculo?.placa,
+        motorista: space.veiculo?.transportadora || space.reserva?.motorista,
+        entrada: space.reserva?.inicio ? new Date(space.reserva.inicio).toLocaleTimeString() : undefined,
+      }));
+      
+      setVagas(vagasMapeadas);
+      console.log('Vagas carregadas:', vagasMapeadas.length);
+      
+    } catch (error: any) {
+      console.error('Erro ao carregar vagas:', error);
+      setVagas([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredVagas = vagas.filter(vaga => {
     const matchesSearch = vaga.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||

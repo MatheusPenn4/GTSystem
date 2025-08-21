@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Car, User, Search, CheckCircle, XCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,115 +7,75 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-
-interface ReservaRecebida {
-  id: string;
-  transportadora: string;
-  veiculo: string;
-  motorista: string;
-  vaga: string;
-  dataReserva: string;
-  horaInicio: string;
-  horaFim: string;
-  valor: number;
-  status: 'pendente' | 'confirmada' | 'em_uso' | 'finalizada' | 'cancelada';
-  observacoes?: string;
-  telefoneMotorista: string;
-}
+import StatusControlButtons from '@/components/StatusControlButtons';
+import { 
+  Reservation, 
+  ReservationStatus, 
+  PaymentStatus,
+  VehicleType,
+  StatusLabels,
+  formatCurrency,
+  formatDate,
+  formatTime
+} from '@/types/reserva';
 
 const ReservasRecebidas: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  // Estado para armazenar reservas reais do banco de dados
+  const [reservas, setReservas] = useState<Reservation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Carregar reservas reais ao montar o componente
+  useEffect(() => {
+    loadReservas();
+  }, []);
+
+  const loadReservas = async () => {
+    try {
+      setIsLoading(true);
+      console.log('Carregando reservas recebidas do banco de dados...');
+      
+      // Importar e usar o ReservationService
+      const ReservationService = (await import('@/services/reservations')).default;
+      const reservasFromAPI = await ReservationService.getReceivedReservations();
+      
+      // Por enquanto manter lista vazia mas preparar para o service
+      // setReservas(reservasFromAPI);
+      setReservas([]);
+      console.log('Reservas recebidas carregadas:', reservasFromAPI.length);
+      
+    } catch (error: any) {
+      console.error('Erro ao carregar reservas recebidas:', error);
+      setReservas([]); // Garantir lista vazia em caso de erro
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   const { toast } = useToast();
 
-  // Mock data
-  const reservas: ReservaRecebida[] = [
-    {
-      id: '1',
-      transportadora: 'Transportadora ABC',
-      veiculo: 'ABC-1234',
-      motorista: 'João Silva',
-      vaga: 'A-15',
-      dataReserva: '2024-06-10',
-      horaInicio: '08:00',
-      horaFim: '18:00',
-      valor: 85.00,
-      status: 'pendente',
-      observacoes: 'Entrega de mercadorias',
-      telefoneMotorista: '(11) 9999-8888'
-    },
-    {
-      id: '2',
-      transportadora: 'Logística XYZ',
-      veiculo: 'DEF-5678',
-      motorista: 'Maria Santos',
-      vaga: 'B-22',
-      dataReserva: '2024-06-11',
-      horaInicio: '09:00',
-      horaFim: '17:00',
-      valor: 96.00,
-      status: 'confirmada',
-      observacoes: 'Coleta de produtos',
-      telefoneMotorista: '(11) 8888-7777'
-    },
-    {
-      id: '3',
-      transportadora: 'Express Transportes',
-      veiculo: 'GHI-9012',
-      motorista: 'Carlos Oliveira',
-      vaga: 'C-08',
-      dataReserva: '2024-06-12',
-      horaInicio: '07:00',
-      horaFim: '19:00',
-      valor: 180.00,
-      status: 'em_uso',
-      telefoneMotorista: '(11) 7777-6666'
-    }
-  ];
-
   const filteredReservas = reservas.filter(reserva => {
-    const matchesSearch = reserva.transportadora.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         reserva.veiculo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         reserva.motorista.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = reserva.company?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         reserva.vehicle?.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         reserva.driver?.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || reserva.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusBadge = (status: ReservaRecebida['status']) => {
-    switch (status) {
-      case 'pendente':
-        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Pendente</Badge>;
-      case 'confirmada':
-        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Confirmada</Badge>;
-      case 'em_uso':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Em Uso</Badge>;
-      case 'finalizada':
-        return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">Finalizada</Badge>;
-      case 'cancelada':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Cancelada</Badge>;
-      default:
-        return <Badge variant="secondary">Desconhecido</Badge>;
-    }
+  const handleStatusChange = (reservationId: string, newStatus: ReservationStatus) => {
+    setReservas(prev => 
+      prev.map(reserva => 
+        reserva.id === reservationId 
+          ? { ...reserva, status: newStatus, updatedAt: new Date().toISOString() }
+          : reserva
+      )
+    );
   };
 
-  const handleConfirmarReserva = (reserva: ReservaRecebida) => {
-    toast({
-      title: "Reserva Confirmada",
-      description: `A reserva de ${reserva.transportadora} foi confirmada.`,
-    });
-  };
-
-  const handleRejeitarReserva = (reserva: ReservaRecebida) => {
-    toast({
-      title: "Reserva Rejeitada",
-      description: `A reserva de ${reserva.transportadora} foi rejeitada.`,
-      variant: "destructive"
-    });
-  };
-
-  const reservasPendentes = reservas.filter(r => r.status === 'pendente').length;
-  const reservasConfirmadas = reservas.filter(r => r.status === 'confirmada').length;
-  const receitaTotal = reservas.filter(r => r.status === 'finalizada').reduce((acc, r) => acc + r.valor, 0);
+  const reservasPendentes = reservas.filter(r => r.status === ReservationStatus.PENDING).length;
+  const reservasConfirmadas = reservas.filter(r => r.status === ReservationStatus.CONFIRMED).length;
+  const receitaTotal = reservas.filter(r => r.status === ReservationStatus.COMPLETED).reduce((acc, r) => acc + (r.totalCost || 0), 0);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -179,7 +139,7 @@ const ReservasRecebidas: React.FC = () => {
               </div>
               <div>
                 <p className="text-slate-400 text-xs">Receita</p>
-                <p className="text-xl font-bold text-white">R$ {receitaTotal.toFixed(2)}</p>
+                <p className="text-xl font-bold text-white">{formatCurrency(receitaTotal)}</p>
               </div>
             </div>
           </CardContent>
@@ -214,10 +174,11 @@ const ReservasRecebidas: React.FC = () => {
                 Todas
               </Button>
               {[
-                { key: 'pendente', label: 'Pendentes' },
-                { key: 'confirmada', label: 'Confirmadas' },
-                { key: 'em_uso', label: 'Em Uso' },
-                { key: 'finalizada', label: 'Finalizadas' }
+                { key: ReservationStatus.PENDING, label: 'Pendentes' },
+                { key: ReservationStatus.CONFIRMED, label: 'Confirmadas' },
+                { key: ReservationStatus.IN_PROGRESS, label: 'Em Andamento' },
+                { key: ReservationStatus.COMPLETED, label: 'Finalizadas' },
+                { key: ReservationStatus.CANCELLED, label: 'Canceladas' }
               ].map(status => (
                 <Button
                   key={status.key}
@@ -251,8 +212,7 @@ const ReservasRecebidas: React.FC = () => {
                 <TableHead className="text-slate-300">Vaga</TableHead>
                 <TableHead className="text-slate-300">Data/Horário</TableHead>
                 <TableHead className="text-slate-300">Valor</TableHead>
-                <TableHead className="text-slate-300">Status</TableHead>
-                <TableHead className="text-slate-300">Ações</TableHead>
+                <TableHead className="text-slate-300">Status & Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -260,58 +220,39 @@ const ReservasRecebidas: React.FC = () => {
                 <TableRow key={reserva.id} className="border-slate-700 hover:bg-slate-800/50">
                   <TableCell>
                     <div>
-                      <p className="text-white font-medium">{reserva.transportadora}</p>
-                      {reserva.observacoes && (
-                        <p className="text-slate-400 text-sm">{reserva.observacoes}</p>
+                      <p className="text-white font-medium">{reserva.company?.name}</p>
+                      {reserva.specialRequests && (
+                        <p className="text-slate-400 text-sm">{reserva.specialRequests}</p>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div>
-                      <p className="text-white text-sm">{reserva.veiculo}</p>
-                      <p className="text-slate-400 text-xs">{reserva.motorista}</p>
-                      <p className="text-slate-500 text-xs">{reserva.telefoneMotorista}</p>
+                      <p className="text-white text-sm">{reserva.vehicle?.licensePlate}</p>
+                      <p className="text-slate-400 text-xs">{reserva.driver?.name}</p>
+                      <p className="text-slate-500 text-xs">{reserva.driver?.phone}</p>
                     </div>
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className="border-slate-600 text-slate-300">
-                      {reserva.vaga}
+                      {reserva.parkingSpace?.spaceNumber || 'N/A'}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <div>
-                      <p className="text-white text-sm">{new Date(reserva.dataReserva).toLocaleDateString()}</p>
-                      <p className="text-slate-400 text-xs">{reserva.horaInicio} - {reserva.horaFim}</p>
+                      <p className="text-white text-sm">{formatDate(reserva.startTime)}</p>
+                      <p className="text-slate-400 text-xs">{formatTime(reserva.startTime)} - {formatTime(reserva.endTime)}</p>
                     </div>
                   </TableCell>
                   <TableCell className="text-white">
-                    R$ {reserva.valor.toFixed(2)}
+                    {formatCurrency(reserva.totalCost || 0)}
                   </TableCell>
                   <TableCell>
-                    {getStatusBadge(reserva.status)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      {reserva.status === 'pendente' && (
-                        <>
-                          <Button
-                            size="sm"
-                            className="ajh-button-primary"
-                            onClick={() => handleConfirmarReserva(reserva)}
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-red-400 border-red-500/30 hover:bg-red-500/10"
-                            onClick={() => handleRejeitarReserva(reserva)}
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
+                    <StatusControlButtons
+                      reservation={reserva}
+                      userRole="ESTACIONAMENTO"
+                      onStatusChange={handleStatusChange}
+                    />
                   </TableCell>
                 </TableRow>
               ))}

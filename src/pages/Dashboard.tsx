@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Building2, 
   Car, 
@@ -17,134 +17,34 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import DashboardService, { DashboardData } from '@/services/dashboard';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const getStatsForRole = () => {
-    switch (user?.role) {
-      case 'admin':
-        return [
-          {
-            title: 'Empresas Ativas',
-            value: '24',
-            change: '+12%',
-            trend: 'up',
-            icon: Building2,
-            color: 'text-ajh-primary',
-            bgColor: 'bg-ajh-primary/10'
-          },
-          {
-            title: 'Veículos Cadastrados',
-            value: '156',
-            change: '+8%',
-            trend: 'up',
-            icon: Car,
-            color: 'text-ajh-secondary',
-            bgColor: 'bg-ajh-secondary/10'
-          },
-          {
-            title: 'Motoristas Ativos',
-            value: '89',
-            change: '+5%',
-            trend: 'up',
-            icon: Users,
-            color: 'text-ajh-accent',
-            bgColor: 'bg-ajh-accent/10'
-          },
-          {
-            title: 'Vagas Ocupadas',
-            value: '67/120',
-            change: '56%',
-            trend: 'neutral',
-            icon: ParkingCircle,
-            color: 'text-ajh-success',
-            bgColor: 'bg-ajh-success/10'
-          }
-        ];
+  useEffect(() => {
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
 
-      case 'transportadora':
-        return [
-          {
-            title: 'Meus Veículos',
-            value: '12',
-            change: '+2',
-            trend: 'up',
-            icon: Car,
-            color: 'text-ajh-primary',
-            bgColor: 'bg-ajh-primary/10'
-          },
-          {
-            title: 'Motoristas',
-            value: '8',
-            change: '+1',
-            trend: 'up',
-            icon: Users,
-            color: 'text-ajh-secondary',
-            bgColor: 'bg-ajh-secondary/10'
-          },
-          {
-            title: 'Reservas Ativas',
-            value: '5',
-            change: '+3',
-            trend: 'up',
-            icon: Calendar,
-            color: 'text-ajh-accent',
-            bgColor: 'bg-ajh-accent/10'
-          },
-          {
-            title: 'Gastos do Mês',
-            value: 'R$ 2.340',
-            change: '-5%',
-            trend: 'up',
-            icon: TrendingUp,
-            color: 'text-ajh-success',
-            bgColor: 'bg-ajh-success/10'
-          }
-        ];
-
-      case 'estacionamento':
-        return [
-          {
-            title: 'Vagas Totais',
-            value: '120',
-            change: '+10',
-            trend: 'up',
-            icon: ParkingCircle,
-            color: 'text-ajh-primary',
-            bgColor: 'bg-ajh-primary/10'
-          },
-          {
-            title: 'Ocupação Atual',
-            value: '67',
-            change: '56%',
-            trend: 'neutral',
-            icon: Car,
-            color: 'text-ajh-secondary',
-            bgColor: 'bg-ajh-secondary/10'
-          },
-          {
-            title: 'Reservas Hoje',
-            value: '15',
-            change: '+8',
-            trend: 'up',
-            icon: Calendar,
-            color: 'text-ajh-accent',
-            bgColor: 'bg-ajh-accent/10'
-          },
-          {
-            title: 'Receita do Mês',
-            value: 'R$ 8.750',
-            change: '+12%',
-            trend: 'up',
-            icon: TrendingUp,
-            color: 'text-ajh-success',
-            bgColor: 'bg-ajh-success/10'
-          }
-        ];
-
-      default:
-        return [];
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      const data = await DashboardService.getDashboardData();
+      
+      if (data) {
+        setDashboardData(data);
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('Erro ao buscar dados do dashboard:', error);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -179,110 +79,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const getRecentActivityForRole = () => {
-    switch (user?.role) {
-      case 'transportadora':
-        return [
-          {
-            id: 1,
-            type: 'vehicle',
-            message: 'Veículo ABC-1234 saiu do Estacionamento Central',
-            time: '15 min atrás',
-            status: 'success'
-          },
-          {
-            id: 2,
-            type: 'reservation',
-            message: 'Nova reserva confirmada para amanhã às 14h',
-            time: '1 hora atrás',
-            status: 'info'
-          },
-          {
-            id: 3,
-            type: 'driver',
-            message: 'João Silva completou a entrega',
-            time: '2 horas atrás',
-            status: 'success'
-          }
-        ];
-
-      case 'estacionamento':
-        return [
-          {
-            id: 1,
-            type: 'reservation',
-            message: 'Nova reserva da TechCorp para vaga 15',
-            time: '5 min atrás',
-            status: 'info'
-          },
-          {
-            id: 2,
-            type: 'vehicle',
-            message: 'Veículo DEF-5678 entrou na vaga 8',
-            time: '30 min atrás',
-            status: 'success'
-          },
-          {
-            id: 3,
-            type: 'payment',
-            message: 'Pagamento de R$ 25,00 recebido',
-            time: '1 hora atrás',
-            status: 'success'
-          }
-        ];
-
-      default:
-        return [
-          {
-            id: 1,
-            type: 'vehicle',
-            message: 'Novo veículo cadastrado - Placa ABC-1234',
-            time: '2 min atrás',
-            status: 'success'
-          },
-          {
-            id: 2,
-            type: 'driver',
-            message: 'CNH do motorista João Silva expira em 15 dias',
-            time: '1 hora atrás',
-            status: 'warning'
-          },
-          {
-            id: 3,
-            type: 'company',
-            message: 'Empresa TechCorp Ltd. foi atualizada',
-            time: '2 horas atrás',
-            status: 'info'
-          }
-        ];
-    }
-  };
-
-  const stats = getStatsForRole();
   const quickActions = getQuickActionsForRole();
-  const recentActivity = getRecentActivityForRole();
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'success':
-        return <CheckCircle className="w-4 h-4 text-green-400" />;
-      case 'warning':
-        return <AlertTriangle className="w-4 h-4 text-yellow-400" />;
-      default:
-        return <Clock className="w-4 h-4 text-blue-400" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'success':
-        return 'border-l-green-400';
-      case 'warning':
-        return 'border-l-yellow-400';
-      default:
-        return 'border-l-blue-400';
-    }
-  };
 
   const getTitleForRole = () => {
     switch (user?.role) {
@@ -308,70 +105,232 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={index} className="ajh-card hover-scale">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <p className="text-slate-400 text-sm font-medium">
-                      {stat.title}
-                    </p>
-                    <p className="text-2xl font-bold text-white">
-                      {stat.value}
-                    </p>
-                    <div className="flex items-center space-x-2">
-                      <Badge 
-                        variant="secondary" 
-                        className={`${stat.bgColor} ${stat.color} border-0`}
-                      >
-                        {stat.change}
-                      </Badge>
-                      {stat.trend === 'up' && (
-                        <TrendingUp className="w-4 h-4 text-green-400" />
-                      )}
-                    </div>
-                  </div>
-                  <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                    <Icon className={`w-6 h-6 ${stat.color}`} />
-                  </div>
+      {user?.role === 'estacionamento' ? (
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {/* Total de Vagas */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <p className="text-sm text-slate-400">Total de Vagas</p>
+                <p className="text-3xl font-bold text-white">{dashboardData?.vagasOcupadas?.capacidade || 0}</p>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Vagas Ocupadas */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <p className="text-sm text-slate-400">Vagas Ocupadas</p>
+                <p className="text-3xl font-bold text-red-400">{dashboardData?.vagasOcupadas?.total || 0}</p>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Vagas Livres */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <p className="text-sm text-slate-400">Vagas Livres</p>
+                <p className="text-3xl font-bold text-green-400">{(dashboardData?.vagasOcupadas?.capacidade || 0) - (dashboardData?.vagasOcupadas?.total || 0)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Reservadas (placeholder, pode ser ajustado se backend retornar) */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <p className="text-sm text-slate-400">Reservadas</p>
+                <p className="text-3xl font-bold text-yellow-400">-</p>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Taxa de Ocupação */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <p className="text-sm text-slate-400">Taxa de Ocupação</p>
+                <p className="text-3xl font-bold text-blue-400">{dashboardData?.vagasOcupadas?.percentual || 0}%</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          {/* Empresas Ativas */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-slate-400">Empresas Ativas</p>
+                  <h3 className="text-3xl font-bold text-white mt-2">
+                    {dashboardData?.empresasAtivas || 0}
+                  </h3>
+                  <p className="text-sm text-slate-400 flex items-center mt-1">
+                    {dashboardData?.empresasAtivas ? 'Dados do banco' : 'Nenhuma empresa cadastrada'}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                <div className="bg-ajh-primary/10 p-3 rounded-full">
+                  <Building2 className="h-6 w-6 text-ajh-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Veículos Cadastrados */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-slate-400">Veículos Cadastrados</p>
+                  <h3 className="text-3xl font-bold text-white mt-2">
+                    {dashboardData?.veiculosCadastrados || 0}
+                  </h3>
+                  <p className="text-sm text-slate-400 flex items-center mt-1">
+                    {dashboardData?.veiculosCadastrados ? 'Dados do banco' : 'Nenhum veículo cadastrado'}
+                  </p>
+                </div>
+                <div className="bg-ajh-secondary/10 p-3 rounded-full">
+                  <Car className="h-6 w-6 text-ajh-secondary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Motoristas Ativos */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-slate-400">Motoristas Ativos</p>
+                  <h3 className="text-3xl font-bold text-white mt-2">
+                    {dashboardData?.motoristasAtivos || 0}
+                  </h3>
+                  <p className="text-sm text-slate-400 flex items-center mt-1">
+                    {dashboardData?.motoristasAtivos ? 'Dados do banco' : 'Nenhum motorista cadastrado'}
+                  </p>
+                </div>
+                <div className="bg-ajh-accent/10 p-3 rounded-full">
+                  <Users className="h-6 w-6 text-ajh-accent" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Vagas Ocupadas */}
+          <Card className="ajh-card">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-slate-400">Vagas Ocupadas</p>
+                  <h3 className="text-3xl font-bold text-white mt-2">
+                    {dashboardData?.vagasOcupadas ? 
+                      `${dashboardData.vagasOcupadas.total}/${dashboardData.vagasOcupadas.capacidade}` : 
+                      '0/0'
+                    }
+                  </h3>
+                  <p className="text-sm text-slate-400 flex items-center mt-1">
+                    {dashboardData?.vagasOcupadas ? 
+                      `${dashboardData.vagasOcupadas.percentual}%` : 
+                      'Nenhuma vaga cadastrada'
+                    }
+                  </p>
+                </div>
+                <div className="bg-ajh-success/10 p-3 rounded-full">
+                  <ParkingCircle className="h-6 w-6 text-ajh-success" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Content Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Recent Activity */}
-        <Card className="ajh-card xl:col-span-2">
+        <Card className="ajh-card col-span-1 md:col-span-2">
           <CardHeader>
-            <CardTitle className="text-white">Atividade Recente</CardTitle>
+            <CardTitle className="text-white">Atividades Recentes</CardTitle>
             <CardDescription className="text-slate-400">
-              Últimas atualizações no sistema
+              {dashboardData?.atividadesRecentes?.length || 0} atividades nas últimas 24 horas
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div 
-                  key={activity.id}
-                  className={`flex items-start space-x-3 p-3 rounded-lg bg-slate-800/30 border-l-2 ${getStatusColor(activity.status)}`}
-                >
-                  {getStatusIcon(activity.status)}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-medium">
-                      {activity.message}
-                    </p>
-                    <p className="text-slate-400 text-xs mt-1">
-                      {activity.time}
+              {isLoading ? (
+                // Esqueletos para atividades recentes
+                Array(3).fill(0).map((_, i) => (
+                  <div key={i} className="flex items-start space-x-3">
+                    <Skeleton className="h-8 w-8 rounded-full bg-slate-700" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-full bg-slate-700" />
+                      <Skeleton className="h-3 w-24 bg-slate-700" />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                // Mostrar atividades reais do banco ou mensagem de vazio
+                dashboardData?.atividadesRecentes && dashboardData.atividadesRecentes.length > 0 ? (
+                  dashboardData.atividadesRecentes.map((atividade, i) => {
+                    const dataAtividade = new Date(atividade.data);
+                    const agora = new Date();
+                    const diffMs = agora.getTime() - dataAtividade.getTime();
+                    
+                    let time;
+                    if (diffMs < 60000) {
+                      time = 'Agora';
+                    } else if (diffMs < 3600000) {
+                      const minutes = Math.floor(diffMs / 60000);
+                      time = `${minutes} min atrás`;
+                    } else if (diffMs < 86400000) {
+                      const hours = Math.floor(diffMs / 3600000);
+                      time = `${hours} hora${hours > 1 ? 's' : ''} atrás`;
+                    } else {
+                      const days = Math.floor(diffMs / 86400000);
+                      time = `${days} dia${days > 1 ? 's' : ''} atrás`;
+                    }
+
+                    let icon;
+                    let borderClass;
+
+                    switch (atividade.tipo) {
+                      case 'veiculo':
+                        icon = <Car className="w-4 h-4 text-green-400" />;
+                        borderClass = 'border-l-green-400';
+                        break;
+                      case 'motorista':
+                        icon = <Users className="w-4 h-4 text-blue-400" />;
+                        borderClass = 'border-l-blue-400';
+                        break;
+                      case 'alerta':
+                        icon = <AlertTriangle className="w-4 h-4 text-yellow-400" />;
+                        borderClass = 'border-l-yellow-400';
+                        break;
+                      default:
+                        icon = <Clock className="w-4 h-4 text-blue-400" />;
+                        borderClass = 'border-l-blue-400';
+                    }
+
+                    return (
+                      <div key={i} className={`pl-4 border-l-2 ${borderClass}`}>
+                        <div className="flex justify-between items-start">
+                          <p className="text-white font-medium">{atividade.descricao}</p>
+                          <div className="ml-4 flex items-center text-xs text-slate-400">
+                            {icon}
+                            <span className="ml-1">{time}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-8">
+                    <Clock className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                    <p className="text-slate-400 text-sm">Nenhuma atividade recente encontrada</p>
+                    <p className="text-slate-500 text-xs mt-1">
+                      As atividades aparecerão aqui conforme você usar o sistema
                     </p>
                   </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
           </CardContent>
         </Card>
@@ -413,11 +372,18 @@ const Dashboard: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400">Vagas Livres</span>
-                  <Badge className="bg-green-500/20 text-green-400">53</Badge>
+                  <Badge className="bg-green-500/20 text-green-400">
+                    {dashboardData?.vagasOcupadas ? 
+                      dashboardData.vagasOcupadas.capacidade - dashboardData.vagasOcupadas.total : 
+                      0
+                    }
+                  </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400">Vagas Ocupadas</span>
-                  <Badge className="bg-red-500/20 text-red-400">67</Badge>
+                  <Badge className="bg-red-500/20 text-red-400">
+                    {dashboardData?.vagasOcupadas?.total || 0}
+                  </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400">Em Manutenção</span>
@@ -426,7 +392,11 @@ const Dashboard: React.FC = () => {
                 <div className="w-full bg-slate-700 rounded-full h-2 mt-4">
                   <div 
                     className="bg-gradient-to-r from-ajh-primary to-ajh-secondary h-2 rounded-full"
-                    style={{ width: '56%' }}
+                    style={{ 
+                      width: dashboardData?.vagasOcupadas?.percentual 
+                        ? `${dashboardData.vagasOcupadas.percentual}%` 
+                        : '0%' 
+                    }}
                   ></div>
                 </div>
               </div>
@@ -438,21 +408,12 @@ const Dashboard: React.FC = () => {
               <CardTitle className="text-white">Alertas Importantes</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-start space-x-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5" />
-                  <div>
-                    <p className="text-white text-sm font-medium">5 reservas pendentes</p>
-                    <p className="text-yellow-400 text-xs">Confirmar reservas</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                  <Clock className="w-5 h-5 text-blue-400 mt-0.5" />
-                  <div>
-                    <p className="text-white text-sm font-medium">Vaga 15 livre há 2h</p>
-                    <p className="text-blue-400 text-xs">Considerar limpeza</p>
-                  </div>
-                </div>
+              <div className="text-center py-8">
+                <AlertTriangle className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                <p className="text-slate-400 text-sm">Nenhum alerta no momento</p>
+                <p className="text-slate-500 text-xs mt-1">
+                  Alertas importantes aparecerão aqui
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -468,15 +429,19 @@ const Dashboard: React.FC = () => {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Veículos em Rota</span>
-                  <Badge className="bg-blue-500/20 text-blue-400">8</Badge>
+                  <span className="text-slate-400">Veículos Cadastrados</span>
+                  <Badge className="bg-blue-500/20 text-blue-400">
+                    {dashboardData?.veiculosCadastrados || 0}
+                  </Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Veículos Estacionados</span>
-                  <Badge className="bg-green-500/20 text-green-400">4</Badge>
+                  <span className="text-slate-400">Motoristas Ativos</span>
+                  <Badge className="bg-green-500/20 text-green-400">
+                    {dashboardData?.motoristasAtivos || 0}
+                  </Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Em Manutenção</span>
+                  <span className="text-slate-400">Reservas Ativas</span>
                   <Badge className="bg-yellow-500/20 text-yellow-400">0</Badge>
                 </div>
               </div>
@@ -488,21 +453,12 @@ const Dashboard: React.FC = () => {
               <CardTitle className="text-white">Próximas Reservas</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-start space-x-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                  <Calendar className="w-5 h-5 text-blue-400 mt-0.5" />
-                  <div>
-                    <p className="text-white text-sm font-medium">Estacionamento Central</p>
-                    <p className="text-blue-400 text-xs">Hoje às 14:00</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5" />
-                  <div>
-                    <p className="text-white text-sm font-medium">Shopping Norte</p>
-                    <p className="text-green-400 text-xs">Amanhã às 09:00</p>
-                  </div>
-                </div>
+              <div className="text-center py-8">
+                <Calendar className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                <p className="text-slate-400 text-sm">Nenhuma reserva agendada</p>
+                <p className="text-slate-500 text-xs mt-1">
+                  Suas próximas reservas aparecerão aqui
+                </p>
               </div>
             </CardContent>
           </Card>

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ParkingCircle, Search, MapPin, Clock, Car, Building2, Calendar } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import ReservaModal from '@/components/modals/ReservaModal';
 
 interface Estacionamento {
   id: string;
@@ -13,68 +14,165 @@ interface Estacionamento {
   cidade: string;
   vagasDisponiveis: number;
   totalVagas: number;
-  valorDiaria: number;
+  valorPorHora: number;
   distancia: string;
   horarioFuncionamento: string;
   status: 'disponivel' | 'cheio' | 'manutencao';
+  amenities?: string[];
 }
+
+// Dados de demonstração para fallback
+const demoEstacionamentos: Estacionamento[] = [
+  {
+    id: 'pl-001',
+    nome: 'Estacionamento Central Plaza',
+    endereco: 'Rua das Flores, 123 - Centro, São Paulo',
+    cidade: 'São Paulo',
+    vagasDisponiveis: 12,
+    totalVagas: 50,
+    valorPorHora: 15.00,
+    distancia: '1.2 km',
+    horarioFuncionamento: '24h',
+    status: 'disponivel',
+    amenities: ['Câmeras', 'Coberto', 'Acessível']
+  },
+  {
+    id: 'pl-002',
+    nome: 'Pátio Logístico Norte',
+    endereco: 'Av. Industrial, 456 - Distrito Industrial, Guarulhos',
+    cidade: 'Guarulhos',
+    vagasDisponiveis: 0,
+    totalVagas: 100,
+    valorPorHora: 20.00,
+    distancia: '5.8 km',
+    horarioFuncionamento: '06:00 - 22:00',
+    status: 'cheio',
+    amenities: ['Câmeras', 'Descoberto']
+  },
+  {
+    id: 'pl-003',
+    nome: 'Estacionamento Sul',
+    endereco: 'Av. Brasil, 789 - Centro, Santo André',
+    cidade: 'Santo André',
+    vagasDisponiveis: 3,
+    totalVagas: 30,
+    valorPorHora: 12.00,
+    distancia: '3.4 km',
+    horarioFuncionamento: '24h',
+    status: 'disponivel',
+    amenities: ['Coberto', 'Acessível']
+  },
+  {
+    id: 'pl-004',
+    nome: 'Estacionamento Oeste',
+    endereco: 'Rua das Palmeiras, 321 - Jardim, Osasco',
+    cidade: 'Osasco',
+    vagasDisponiveis: 0,
+    totalVagas: 40,
+    valorPorHora: 18.00,
+    distancia: '7.1 km',
+    horarioFuncionamento: '07:00 - 20:00',
+    status: 'manutencao',
+    amenities: ['Câmeras', 'Coberto']
+  }
+];
 
 const ReservaVagas: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [cidadeFilter, setCidadeFilter] = useState<string>('all');
+  const [selectedEstacionamento, setSelectedEstacionamento] = useState<Estacionamento | null>(null);
+  const [reservaModalOpen, setReservaModalOpen] = useState(false);
+  const [estacionamentos, setEstacionamentos] = useState<Estacionamento[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDemo, setIsDemo] = useState(false);
   const { toast } = useToast();
 
-  // Mock data - estacionamentos disponíveis
-  const estacionamentos: Estacionamento[] = [
-    {
-      id: '1',
-      nome: 'Estacionamento Central',
-      endereco: 'Rua das Flores, 123',
-      cidade: 'São Paulo',
-      vagasDisponiveis: 45,
-      totalVagas: 100,
-      valorDiaria: 120.00,
-      distancia: '2.3 km',
-      horarioFuncionamento: '24h',
-      status: 'disponivel'
-    },
-    {
-      id: '2',
-      nome: 'Parking Plaza Shopping',
-      endereco: 'Av. Paulista, 456',
-      cidade: 'São Paulo',
-      vagasDisponiveis: 12,
-      totalVagas: 80,
-      valorDiaria: 120.00,
-      distancia: '5.7 km',
-      horarioFuncionamento: '06:00 - 22:00',
-      status: 'disponivel'
-    },
-    {
-      id: '3',
-      nome: 'Porto Seguro Parking',
-      endereco: 'Rua Augusta, 789',
-      cidade: 'Rio de Janeiro',
-      vagasDisponiveis: 0,
-      totalVagas: 60,
-      valorDiaria: 120.00,
-      distancia: '1.2 km',
-      horarioFuncionamento: '24h',
-      status: 'cheio'
-    },
-    {
-      id: '4',
-      nome: 'Green Park',
-      endereco: 'Av. Brasil, 321',
-      cidade: 'Belo Horizonte',
-      vagasDisponiveis: 28,
-      totalVagas: 150,
-      valorDiaria: 120.00,
-      distancia: '3.1 km',
-      horarioFuncionamento: '05:00 - 23:00',
-      status: 'disponivel'
+  useEffect(() => {
+    loadEstacionamentos();
+  }, []);
+
+  const loadEstacionamentos = async () => {
+    try {
+      setIsLoading(true);
+      setIsDemo(false);
+      console.log('Carregando estacionamentos reais da API...');
+      
+      // Buscar estacionamentos via API
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/estacionamentos`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('ajh_token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      // Mapear dados do backend para o formato do frontend
+      const estacionamentosMapeados = data.map((est: any) => ({
+        id: est.id,
+        nome: est.name,
+        endereco: est.address,
+        cidade: extrairCidade(est.address),
+        vagasDisponiveis: est.availableSpaces || 0,
+        totalVagas: est.totalSpaces || 0,
+        valorPorHora: est.pricePerHour || 0,
+        distancia: 'Calculando...',
+        horarioFuncionamento: formatarHorario(est.operatingHours),
+        status: determinarStatus(est.availableSpaces, est.totalSpaces, est.isActive),
+        amenities: est.amenities || []
+      }));
+      setEstacionamentos(estacionamentosMapeados);
+      console.log('Estacionamentos carregados:', estacionamentosMapeados.length);
+      
+    } catch (error: any) {
+      console.error('Erro ao carregar estacionamentos:', error);
+      setEstacionamentos(demoEstacionamentos);
+      setIsDemo(true);
+      toast({
+        title: "Modo Demonstração",
+        description: "Backend não disponível. Exibindo estacionamentos de exemplo.",
+        variant: "default",
+      });
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  };
+
+  // Função para extrair cidade do endereço
+  const extrairCidade = (endereco: string): string => {
+    const partes = endereco.split(',');
+    return partes.length >= 2 ? partes[partes.length - 2].trim() : 'Não informado';
+  };
+
+  // Função para formatar horário de funcionamento
+  const formatarHorario = (operatingHours: any): string => {
+    if (!operatingHours || typeof operatingHours !== 'object') {
+      return '24h';
+    }
+    
+    // Verificar se funciona 24h (todos os dias com mesmo horário)
+    const monday = operatingHours.monday;
+    if (monday && monday.open === '00:00' && monday.close === '23:59') {
+      return '24h';
+    }
+    
+    // Retornar horário padrão
+    if (monday) {
+      return `${monday.open} - ${monday.close}`;
+    }
+    
+    return '24h';
+  };
+
+  // Função para determinar status do estacionamento
+  const determinarStatus = (vagasDisponiveis: number, totalVagas: number, isActive: boolean): 'disponivel' | 'cheio' | 'manutencao' => {
+    if (!isActive) return 'manutencao';
+    if (vagasDisponiveis === 0) return 'cheio';
+    return 'disponivel';
+  };
 
   const filteredEstacionamentos = estacionamentos.filter(estacionamento => {
     const matchesSearch = estacionamento.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -106,9 +204,15 @@ const ReservaVagas: React.FC = () => {
       return;
     }
 
+    setSelectedEstacionamento(estacionamento);
+    setReservaModalOpen(true);
+  };
+
+  const handleReservaSuccess = () => {
+    // Atualizar lista de estacionamentos aqui se necessário
     toast({
-      title: "Reserva Confirmada!",
-      description: `Vaga reservada no ${estacionamento.nome}. Você tem 30 minutos para chegar.`,
+      title: "Sucesso!",
+      description: "Sua reserva foi criada e está pendente de aprovação.",
     });
   };
 
@@ -253,7 +357,7 @@ const ReservaVagas: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <Car className="w-4 h-4 text-slate-400" />
-                  <span className="text-slate-300">R$ {estacionamento.valorDiaria.toFixed(2)}/dia</span>
+                  <span className="text-slate-300">R$ {typeof estacionamento.valorPorHora === 'number' && !isNaN(estacionamento.valorPorHora) ? estacionamento.valorPorHora.toFixed(2) : 'N/A'}/hora</span>
                 </div>
               </div>
               
@@ -277,6 +381,14 @@ const ReservaVagas: React.FC = () => {
           </Card>
         ))}
       </div>
+
+      {/* Modal de Reserva */}
+      <ReservaModal
+        isOpen={reservaModalOpen}
+        onClose={() => setReservaModalOpen(false)}
+        estacionamento={selectedEstacionamento}
+        onSuccess={handleReservaSuccess}
+      />
     </div>
   );
 };

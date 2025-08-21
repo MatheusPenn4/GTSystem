@@ -1,73 +1,157 @@
-# Welcome to your Lovable project
+# GTSystem Frontend
 
-## Project info
+Interface moderna e responsiva para o sistema de gestão de estacionamento GTSystem.
 
-**URL**: https://lovable.dev/projects/107553ed-7bc1-4229-b94d-62c350dd1399
+## 🚀 Tecnologias
 
-## How can I edit this code?
+- **React 18** com TypeScript
+- **Vite** como bundler
+- **Tailwind CSS** para estilização
+- **Shadcn/UI** para componentes
+- **React Query** para gerenciamento de estado
+- **React Router** para navegação
+- **React Hook Form** + **Zod** para formulários
 
-There are several ways of editing your application.
+## 📦 Instalação
 
-**Use Lovable**
+```bash
+npm install
+```
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/107553ed-7bc1-4229-b94d-62c350dd1399) and start prompting.
+## 🔧 Desenvolvimento
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 🏗️ Build
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm run build
+```
 
-**Use GitHub Codespaces**
+## 🚀 Deploy no Vercel
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Passo 1: Configurar o projeto
+1. Importe o repositório no Vercel
+2. Configure a pasta `frontend` como root directory
+3. Framework: `Vite`
+4. Build Command: `npm run build`
+5. Install Command: `npm install`
+6. Output Directory: `dist`
 
-## What technologies are used for this project?
+### Passo 2: Variáveis de ambiente
+Configure as seguintes variáveis no Vercel:
 
-This project is built with:
+```
+VITE_API_URL=https://sua-api-backend.vercel.app
+VITE_APP_NAME=GTSystem
+VITE_ENVIRONMENT=production
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Passo 3: Configuração automática
+O arquivo `vercel.json` já está configurado para:
+- Reescrever rotas para SPA
+- Configurar headers de segurança
+- Otimizar para produção
 
-## How can I deploy this project?
+## 📁 Estrutura
 
-Simply open [Lovable](https://lovable.dev/projects/107553ed-7bc1-4229-b94d-62c350dd1399) and click on Share -> Publish.
+```
+src/
+├── components/         # Componentes reutilizáveis
+│   ├── ui/            # Componentes base (Shadcn/UI)
+│   └── modals/        # Modais do sistema
+├── contexts/          # Context API
+├── hooks/             # Custom hooks
+├── pages/             # Páginas da aplicação
+├── services/          # Serviços de API
+├── types/             # Tipos TypeScript
+└── utils/             # Utilitários
+```
 
-## Can I connect a custom domain to my Lovable project?
+## 🔒 Autenticação
 
-Yes, you can!
+O sistema utiliza JWT tokens para autenticação com:
+- Access tokens de curta duração
+- Refresh tokens para renovação
+- Logout automático em caso de token expirado
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 📱 Responsividade
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+O sistema é totalmente responsivo e otimizado para:
+- Desktop (1920x1080+)
+- Tablet (768px+)
+- Mobile (375px+)
+
+## 🔧 Configuração de Ambiente
+
+### Desenvolvimento
+```env
+VITE_API_URL=http://localhost:3000
+VITE_APP_NAME=GTSystem
+VITE_ENVIRONMENT=development
+```
+
+### Produção
+```env
+VITE_API_URL=https://sua-api-backend.vercel.app
+VITE_APP_NAME=GTSystem
+VITE_ENVIRONMENT=production
+```
+
+## 🧪 Testes
+
+```bash
+npm run test
+```
+
+## 📊 Performance
+
+- Lazy loading de componentes
+- Code splitting otimizado
+- Chunking estratégico de vendor packages
+- Otimizações de build com Vite
+- Minificação com esbuild
+
+## 🐛 Troubleshooting
+
+### Problemas comuns de deploy:
+
+1. **Erro de build**: Verificar se todas as dependências estão instaladas
+2. **Rotas não funcionam**: Verificar se o `vercel.json` está configurado
+3. **API não conecta**: Verificar variáveis de ambiente
+4. **Erro de memória**: Otimizar imports e lazy loading
+
+### Logs úteis:
+
+```bash
+# Verificar build localmente
+npm run build
+
+# Testar build localmente
+npm run preview
+
+# Verificar bundle size
+npm run analyze
+```
+
+## 🔄 CI/CD
+
+O projeto está configurado para:
+- Build automático no push para main
+- Verificação de tipos TypeScript
+- Linting automático
+- Testes unitários
+
+## 📝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Push para a branch
+5. Abra um Pull Request
+
+---
+
+**Desenvolvido com ❤️ para o GTSystem**

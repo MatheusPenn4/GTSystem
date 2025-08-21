@@ -143,7 +143,7 @@ const ControleManualModal: React.FC<ControleManualModalProps> = ({ isOpen, onClo
                   id="placa"
                   value={placa}
                   onChange={(e) => setPlaca(e.target.value)}
-                  placeholder="ABC-1234"
+                  placeholder="Ex: XYZ-1234"
                   className="ajh-input"
                   required
                 />

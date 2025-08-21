@@ -4,14 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/contexts/AuthContext';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import logo from '@/assets/logo.png';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -92,7 +93,7 @@ const Login: React.FC = () => {
               {/* Logo - Much larger size with minimal spacing */}
               <div className="relative w-40 h-40 mx-auto mb-0 flex items-center justify-center">
                 <img 
-                  src="/lovable-uploads/924cf0eb-5f16-4ed6-b99f-4fd14ee98d4b.png" 
+                  src={logo} 
                   alt="GTSystem Logo" 
                   className="w-36 h-36 object-contain drop-shadow-lg"
                 />

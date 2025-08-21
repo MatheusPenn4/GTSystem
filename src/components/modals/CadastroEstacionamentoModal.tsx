@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,11 +37,45 @@ const CadastroEstacionamentoModal: React.FC<CadastroEstacionamentoModalProps> = 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validação básica
-    if (!formData.nome || !formData.endereco || !formData.totalVagas) {
+    // Validação mais completa
+    const camposObrigatorios = [
+      { campo: 'nome', label: 'Nome do Estacionamento' },
+      { campo: 'endereco', label: 'Endereço' },
+      { campo: 'cidade', label: 'Cidade' },
+      { campo: 'estado', label: 'Estado' },
+      { campo: 'cep', label: 'CEP' },
+      { campo: 'responsavel', label: 'Responsável' },
+      { campo: 'totalVagas', label: 'Total de Vagas' },
+      { campo: 'valorHora', label: 'Valor por Hora' }
+    ];
+    
+    const camposFaltantes = camposObrigatorios
+      .filter(c => !formData[c.campo as keyof typeof formData])
+      .map(c => c.label);
+      
+    if (camposFaltantes.length > 0) {
       toast({
-        title: "Erro no cadastro",
-        description: "Preencha todos os campos obrigatórios.",
+        title: "Campos obrigatórios",
+        description: `Preencha os seguintes campos: ${camposFaltantes.join(', ')}`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validação numérica
+    if (isNaN(parseFloat(formData.valorHora)) || parseFloat(formData.valorHora) <= 0) {
+      toast({
+        title: "Valor inválido",
+        description: "O valor por hora deve ser um número positivo",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (isNaN(parseInt(formData.totalVagas)) || parseInt(formData.totalVagas) <= 0) {
+      toast({
+        title: "Valor inválido",
+        description: "O total de vagas deve ser um número positivo",
         variant: "destructive",
       });
       return;
@@ -52,24 +85,13 @@ const CadastroEstacionamentoModal: React.FC<CadastroEstacionamentoModalProps> = 
       ...formData,
       totalVagas: parseInt(formData.totalVagas),
       valorHora: parseFloat(formData.valorHora),
+      valorDiaria: parseFloat(formData.valorHora) * 24, // Calculando diária com base no valor/hora
       vagasDisponiveis: parseInt(formData.totalVagas), // Inicialmente todas disponíveis
       dataCredenciamento: new Date().toISOString().split('T')[0]
     });
     
-    // Reset form
-    setFormData({
-      nome: '',
-      endereco: '',
-      cidade: '',
-      estado: '',
-      cep: '',
-      totalVagas: '',
-      valorHora: '',
-      telefone: '',
-      email: '',
-      responsavel: '',
-      status: 'ativo'
-    });
+    // Fechar o modal após salvar
+    onClose();
   };
 
   const handleChange = (key: string, value: string) => {
@@ -112,7 +134,7 @@ const CadastroEstacionamentoModal: React.FC<CadastroEstacionamentoModalProps> = 
                   value={formData.nome}
                   onChange={(e) => handleChange('nome', e.target.value)}
                   className="ajh-input"
-                  placeholder="Ex: Estacionamento Central"
+                  placeholder="Ex: Meu Estacionamento"
                 />
               </div>
               <div className="space-y-2">
@@ -169,12 +191,33 @@ const CadastroEstacionamentoModal: React.FC<CadastroEstacionamentoModalProps> = 
                     <SelectValue placeholder="Selecione o estado" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="SP">São Paulo</SelectItem>
-                    <SelectItem value="RJ">Rio de Janeiro</SelectItem>
+                    <SelectItem value="AC">Acre</SelectItem>
+                    <SelectItem value="AL">Alagoas</SelectItem>
+                    <SelectItem value="AP">Amapá</SelectItem>
+                    <SelectItem value="AM">Amazonas</SelectItem>
+                    <SelectItem value="BA">Bahia</SelectItem>
+                    <SelectItem value="CE">Ceará</SelectItem>
+                    <SelectItem value="DF">Distrito Federal</SelectItem>
+                    <SelectItem value="ES">Espírito Santo</SelectItem>
+                    <SelectItem value="GO">Goiás</SelectItem>
+                    <SelectItem value="MA">Maranhão</SelectItem>
+                    <SelectItem value="MT">Mato Grosso</SelectItem>
+                    <SelectItem value="MS">Mato Grosso do Sul</SelectItem>
                     <SelectItem value="MG">Minas Gerais</SelectItem>
-                    <SelectItem value="RS">Rio Grande do Sul</SelectItem>
+                    <SelectItem value="PA">Pará</SelectItem>
+                    <SelectItem value="PB">Paraíba</SelectItem>
                     <SelectItem value="PR">Paraná</SelectItem>
+                    <SelectItem value="PE">Pernambuco</SelectItem>
+                    <SelectItem value="PI">Piauí</SelectItem>
+                    <SelectItem value="RJ">Rio de Janeiro</SelectItem>
+                    <SelectItem value="RN">Rio Grande do Norte</SelectItem>
+                    <SelectItem value="RS">Rio Grande do Sul</SelectItem>
+                    <SelectItem value="RO">Rondônia</SelectItem>
+                    <SelectItem value="RR">Roraima</SelectItem>
                     <SelectItem value="SC">Santa Catarina</SelectItem>
+                    <SelectItem value="SP">São Paulo</SelectItem>
+                    <SelectItem value="SE">Sergipe</SelectItem>
+                    <SelectItem value="TO">Tocantins</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

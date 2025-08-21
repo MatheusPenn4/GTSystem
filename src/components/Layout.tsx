@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import SystemProgressStatus from './SystemProgressStatus';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -27,6 +28,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </main>
       </div>
+      
+      {/* Componente de progresso para desenvolvimento */}
+      <SystemProgressStatus />
     </div>
   );
 };

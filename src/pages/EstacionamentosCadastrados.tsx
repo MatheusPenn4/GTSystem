@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Building2, MapPin, Users, Car, Plus, Edit, Trash2, Eye, Search } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,23 +12,10 @@ import ViewModal from '@/components/modals/ViewModal';
 import EditModal from '@/components/modals/EditModal';
 import DeleteModal from '@/components/modals/DeleteModal';
 import CadastroEstacionamentoModal from '@/components/modals/CadastroEstacionamentoModal';
+import EstacionamentoService, { Estacionamento } from '@/services/estacionamentos';
 
-interface EstacionamentoCadastrado {
-  id: string;
-  nome: string;
-  endereco: string;
-  cidade: string;
-  estado: string;
-  cep: string;
-  totalVagas: number;
-  vagasDisponiveis: number;
-  valorDiaria: number;
-  telefone: string;
-  email: string;
-  responsavel: string;
-  status: 'ativo' | 'inativo' | 'manutencao';
-  dataCredenciamento: string;
-}
+// Usando a interface do serviço
+type EstacionamentoCadastrado = Estacionamento;
 
 const EstacionamentosCadastrados: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,68 +25,42 @@ const EstacionamentosCadastrados: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [cadastroModalOpen, setCadastroModalOpen] = useState(false);
   const [selectedEstacionamento, setSelectedEstacionamento] = useState<EstacionamentoCadastrado | null>(null);
+  const [estacionamentos, setEstacionamentos] = useState<EstacionamentoCadastrado[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Mock data
-  const estacionamentos: EstacionamentoCadastrado[] = [
-    {
-      id: '1',
-      nome: 'Estacionamento Central',
-      endereco: 'Rua das Flores, 123',
-      cidade: 'São Paulo',
-      estado: 'SP',
-      cep: '01234-567',
-      totalVagas: 50,
-      vagasDisponiveis: 12,
-      valorDiaria: 120.00,
-      telefone: '(11) 9999-8888',
-      email: 'contato@central.com',
-      responsavel: 'João Silva',
-      status: 'ativo',
-      dataCredenciamento: '2024-01-15'
-    },
-    {
-      id: '2',
-      nome: 'Park Shopping Norte',
-      endereco: 'Av. Principal, 456',
-      cidade: 'São Paulo',
-      estado: 'SP',
-      cep: '02345-678',
-      totalVagas: 80,
-      vagasDisponiveis: 25,
-      valorDiaria: 120.00,
-      telefone: '(11) 8888-7777',
-      email: 'admin@parknorte.com',
-      responsavel: 'Maria Santos',
-      status: 'ativo',
-      dataCredenciamento: '2024-02-10'
-    },
-    {
-      id: '3',
-      nome: 'Estacionamento Vila Madalena',
-      endereco: 'Rua Augusta, 789',
-      cidade: 'São Paulo',
-      estado: 'SP',
-      cep: '03456-789',
-      totalVagas: 30,
-      vagasDisponiveis: 0,
-      valorDiaria: 120.00,
-      telefone: '(11) 7777-6666',
-      email: 'contato@vilamadalena.com',
-      responsavel: 'Carlos Oliveira',
-      status: 'manutencao',
-      dataCredenciamento: '2024-03-05'
+  // Carregar dados do backend
+  useEffect(() => {
+    fetchEstacionamentos();
+  }, []);
+
+  const fetchEstacionamentos = async () => {
+    try {
+      setIsLoading(true);
+      const data = await EstacionamentoService.getAll();
+      setEstacionamentos(data);
+    } catch (error) {
+      console.error('Erro ao carregar estacionamentos:', error);
+      toast({
+        title: "Erro ao carregar dados",
+        description: "Não foi possível obter a lista de estacionamentos.",
+        variant: "destructive",
+      });
+      setEstacionamentos([]); // Lista vazia em caso de erro
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  };
 
   const filteredEstacionamentos = estacionamentos.filter(est => {
-    const matchesSearch = est.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         est.endereco.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         est.cidade.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = searchTerm && est?.nome && 
+                         ((est.nome.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (est.endereco?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (est.cidade?.toLowerCase().includes(searchTerm.toLowerCase())));
     const matchesStatus = statusFilter === 'all' || est.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    return (matchesSearch || searchTerm === '') && matchesStatus;
   });
 
   const getStatusBadge = (status: EstacionamentoCadastrado['status']) => {
@@ -130,31 +91,76 @@ const EstacionamentosCadastrados: React.FC = () => {
     setDeleteModalOpen(true);
   };
 
-  const handleSave = (data: Record<string, any>) => {
-    console.log('Salvando estacionamento:', data);
-    toast({
-      title: "Estacionamento Atualizado",
-      description: "As alterações foram salvas com sucesso.",
-    });
-    setEditModalOpen(false);
+  const handleSave = async (data: Partial<EstacionamentoCadastrado>) => {
+    try {
+      if (selectedEstacionamento) {
+        await EstacionamentoService.update(selectedEstacionamento.id, data);
+        toast({
+          title: "Estacionamento Atualizado",
+          description: "As alterações foram salvas com sucesso.",
+        });
+        fetchEstacionamentos(); // Recarregar dados
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar estacionamento:', error);
+      toast({
+        title: "Erro na atualização",
+        description: "Não foi possível atualizar o estacionamento.",
+        variant: "destructive",
+      });
+    } finally {
+      setEditModalOpen(false);
+    }
   };
 
-  const handleConfirmDelete = () => {
-    console.log('Excluindo estacionamento:', selectedEstacionamento?.id);
-    toast({
-      title: "Estacionamento Excluído",
-      description: "O estacionamento foi removido com sucesso.",
-    });
-    setDeleteModalOpen(false);
+  const handleConfirmDelete = async () => {
+    try {
+      if (selectedEstacionamento) {
+        await EstacionamentoService.delete(selectedEstacionamento.id);
+        toast({
+          title: "Estacionamento Excluído",
+          description: "O estacionamento foi removido com sucesso.",
+        });
+        fetchEstacionamentos(); // Recarregar dados
+      }
+    } catch (error) {
+      console.error('Erro ao excluir estacionamento:', error);
+      toast({
+        title: "Erro na exclusão",
+        description: "Não foi possível excluir o estacionamento.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteModalOpen(false);
+    }
   };
 
-  const handleCadastroSave = (data: Record<string, any>) => {
-    console.log('Cadastrando novo estacionamento:', data);
+  const handleCadastroSave = async (data: Omit<EstacionamentoCadastrado, 'id'>) => {
+    try {
+      await EstacionamentoService.create(data);
+      toast({
+        title: "Estacionamento Cadastrado",
+        description: "O novo estacionamento foi cadastrado com sucesso.",
+      });
+      fetchEstacionamentos(); // Recarregar dados
+    } catch (error: any) {
+      console.error('Erro ao cadastrar estacionamento:', error);
+      
+      // Mensagem de erro mais específica
+      const errorMessage = error.message || "Não foi possível cadastrar o estacionamento.";
+      
+      toast({
+        title: "Erro no cadastro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      
+      // Manter o modal aberto apenas em caso de erro
+      return;
+    }
+    
+    // Fechar o modal apenas se o cadastro for bem-sucedido
     setCadastroModalOpen(false);
-    toast({
-      title: "Estacionamento Cadastrado",
-      description: "O novo estacionamento foi cadastrado com sucesso.",
-    });
   };
 
   const handleGerenciarVagas = (estacionamento: EstacionamentoCadastrado) => {

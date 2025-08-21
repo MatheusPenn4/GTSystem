@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Building2, Calculator, Receipt, PieChart } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,29 +11,60 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 const Financeiro: React.FC = () => {
   const [periodoSelecionado, setPeriodoSelecionado] = useState('mes');
 
-  // Mock data - Faturamento dos estacionamentos
-  const faturamentoEstacionamentos = [
-    { id: 1, nome: 'Estacionamento Central', vagas: 50, ocupacaoMedia: 85, diariasVendidas: 1275, faturamento: 153000, comissao: 3060 },
-    { id: 2, nome: 'Pátio Norte Shopping', vagas: 80, ocupacaoMedia: 78, diariasVendidas: 1872, faturamento: 224640, comissao: 4493 },
-    { id: 3, nome: 'Terminal Rodoviário', vagas: 120, ocupacaoMedia: 92, diariasVendidas: 3312, faturamento: 397440, comissao: 7949 },
-    { id: 4, nome: 'Porto Seco', vagas: 200, ocupacaoMedia: 88, diariasVendidas: 5280, faturamento: 633600, comissao: 12672 },
-    { id: 5, nome: 'Aeroporto Cargo', vagas: 90, ocupacaoMedia: 95, faturamento: 307800, diariasVendidas: 2565, comissao: 6156 }
-  ];
+  // Estado para dados financeiros reais
+  const [faturamentoEstacionamentos, setFaturamentoEstacionamentos] = useState<any[]>([]);
+  const [evolucaoMensal, setEvolucaoMensal] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock data - Evolução mensal
-  const evolucaoMensal = [
-    { mes: 'Jan', faturamento: 1450000, comissao: 29000 },
-    { mes: 'Fev', faturamento: 1580000, comissao: 31600 },
-    { mes: 'Mar', faturamento: 1720000, comissao: 34400 },
-    { mes: 'Abr', faturamento: 1890000, comissao: 37800 },
-    { mes: 'Mai', faturamento: 1650000, comissao: 33000 },
-    { mes: 'Jun', faturamento: 1716480, comissao: 34330 }
-  ];
+  useEffect(() => {
+    loadFinancialData();
+  }, [periodoSelecionado]);
 
-  const totalFaturamento = faturamentoEstacionamentos.reduce((acc, est) => acc + est.faturamento, 0);
-  const totalComissao = faturamentoEstacionamentos.reduce((acc, est) => acc + est.comissao, 0);
-  const totalDiarias = faturamentoEstacionamentos.reduce((acc, est) => acc + est.diariasVendidas, 0);
-  const mediaOcupacao = faturamentoEstacionamentos.reduce((acc, est) => acc + est.ocupacaoMedia, 0) / faturamentoEstacionamentos.length;
+  const loadFinancialData = async () => {
+    try {
+      setIsLoading(true);
+      console.log('Carregando dados financeiros reais do banco de dados...');
+      
+      // Importar e usar o FinanceService
+      const FinanceService = (await import('@/services/finance')).default;
+      
+      const [faturamentoData, evolucaoData] = await Promise.all([
+        FinanceService.getFaturamentoEstacionamentos(periodoSelecionado),
+        FinanceService.getEvolucaoMensal(periodoSelecionado)
+      ]);
+      
+      setFaturamentoEstacionamentos(faturamentoData || []);
+      setEvolucaoMensal(evolucaoData || []);
+      console.log('Dados financeiros carregados:', { 
+        faturamento: faturamentoData?.length || 0, 
+        evolucao: evolucaoData?.length || 0 
+      });
+      
+    } catch (error: any) {
+      console.error('Erro ao carregar dados financeiros:', error);
+      setFaturamentoEstacionamentos([]);
+      setEvolucaoMensal([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Cálculos defensivos para evitar erros quando não há dados
+  const totalFaturamento = Array.isArray(faturamentoEstacionamentos) 
+    ? faturamentoEstacionamentos.reduce((acc, est) => acc + (est.faturamento || 0), 0) 
+    : 0;
+  
+  const totalComissao = Array.isArray(faturamentoEstacionamentos) 
+    ? faturamentoEstacionamentos.reduce((acc, est) => acc + (est.comissao || 0), 0) 
+    : 0;
+  
+  const totalDiarias = Array.isArray(faturamentoEstacionamentos) 
+    ? faturamentoEstacionamentos.reduce((acc, est) => acc + (est.diariasVendidas || 0), 0) 
+    : 0;
+  
+  const mediaOcupacao = Array.isArray(faturamentoEstacionamentos) && faturamentoEstacionamentos.length > 0
+    ? faturamentoEstacionamentos.reduce((acc, est) => acc + (est.ocupacaoMedia || 0), 0) / faturamentoEstacionamentos.length
+    : 0;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -41,6 +72,18 @@ const Financeiro: React.FC = () => {
       currency: 'BRL'
     }).format(value);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-ajh-darker flex items-center justify-center">
+        <div className="glass-effect p-8 rounded-xl text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-ajh-primary border-t-transparent mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-white mb-2">Carregando dados financeiros</h2>
+          <p className="text-slate-400">Aguarde enquanto buscamos os dados no banco...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -166,7 +209,7 @@ const Financeiro: React.FC = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={evolucaoMensal}>
+              <LineChart data={Array.isArray(evolucaoMensal) ? evolucaoMensal : []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="mes" stroke="#9CA3AF" />
                 <YAxis stroke="#9CA3AF" />
@@ -207,7 +250,7 @@ const Financeiro: React.FC = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={faturamentoEstacionamentos.slice(0, 5)}>
+              <BarChart data={Array.isArray(faturamentoEstacionamentos) ? faturamentoEstacionamentos.slice(0, 5) : []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="nome" stroke="#9CA3AF" tick={false} />
                 <YAxis stroke="#9CA3AF" />
@@ -248,39 +291,47 @@ const Financeiro: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {faturamentoEstacionamentos.map((estacionamento) => (
-                  <TableRow key={estacionamento.id} className="border-slate-700 hover:bg-slate-800/50">
-                    <TableCell className="text-white font-medium">
-                      {estacionamento.nome}
-                    </TableCell>
-                    <TableCell className="text-slate-300">
-                      {estacionamento.vagas}
-                    </TableCell>
-                    <TableCell className="text-slate-300">
-                      <Badge 
-                        variant="secondary" 
-                        className={`${
-                          estacionamento.ocupacaoMedia >= 90 
-                            ? 'bg-green-500/20 text-green-400' 
-                            : estacionamento.ocupacaoMedia >= 75 
-                            ? 'bg-yellow-500/20 text-yellow-400'
-                            : 'bg-red-500/20 text-red-400'
-                        }`}
-                      >
-                        {estacionamento.ocupacaoMedia}%
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-slate-300">
-                      {estacionamento.diariasVendidas.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-white font-semibold">
-                      {formatCurrency(estacionamento.faturamento)}
-                    </TableCell>
-                    <TableCell className="text-green-400 font-semibold">
-                      {formatCurrency(estacionamento.comissao)}
+                {Array.isArray(faturamentoEstacionamentos) && faturamentoEstacionamentos.length > 0 ? (
+                  faturamentoEstacionamentos.map((estacionamento) => (
+                    <TableRow key={estacionamento.id} className="border-slate-700 hover:bg-slate-800/50">
+                      <TableCell className="text-white font-medium">
+                        {estacionamento.nome}
+                      </TableCell>
+                      <TableCell className="text-slate-300">
+                        {estacionamento.vagas}
+                      </TableCell>
+                      <TableCell className="text-slate-300">
+                        <Badge 
+                          variant="secondary" 
+                          className={`${
+                            estacionamento.ocupacaoMedia >= 90 
+                              ? 'bg-green-500/20 text-green-400' 
+                              : estacionamento.ocupacaoMedia >= 75 
+                              ? 'bg-yellow-500/20 text-yellow-400'
+                              : 'bg-red-500/20 text-red-400'
+                          }`}
+                        >
+                          {estacionamento.ocupacaoMedia}%
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-slate-300">
+                        {estacionamento.diariasVendidas.toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-white font-semibold">
+                        {formatCurrency(estacionamento.faturamento)}
+                      </TableCell>
+                      <TableCell className="text-green-400 font-semibold">
+                        {formatCurrency(estacionamento.comissao)}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-slate-400">
+                      {isLoading ? 'Carregando dados financeiros...' : 'Nenhum dado financeiro encontrado para o período selecionado'}
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </div>

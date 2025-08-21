@@ -25,11 +25,6 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
 
   const handleConfirm = () => {
     onConfirm();
-    toast({
-      title: "Registro Excluído",
-      description: "O item foi removido com sucesso.",
-      variant: "destructive"
-    });
     onClose();
   };
 

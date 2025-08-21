@@ -1,6 +1,5 @@
-
-import React, { useState } from 'react';
-import { Plus, Search, Users, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, Users, AlertTriangle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,101 +9,58 @@ import TableActions from '@/components/TableActions';
 import ViewModal from '@/components/modals/ViewModal';
 import EditModal from '@/components/modals/EditModal';
 import DeleteModal from '@/components/modals/DeleteModal';
+import CadastroMotoristaModal from '@/components/modals/CadastroMotoristaModal';
+import MotoristaService, { Motorista } from '@/services/motoristas';
+import { useToast } from '@/components/ui/use-toast';
 
 const Motoristas: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMotorista, setSelectedMotorista] = useState<any>(null);
+  const [selectedMotorista, setSelectedMotorista] = useState<Motorista | null>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [motoristas, setMotoristas] = useState<Motorista[]>([]);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { toast } = useToast();
 
-  // Mock data - ajustado conforme o tipo de usuário
-  const getMotoristasData = () => {
-    if (user?.role === 'transportadora') {
-      return [
-        {
-          id: 1,
-          nome: 'João Silva',
-          cpf: '123.456.789-00',
-          cnh: '12345678901',
-          categoria: 'D',
-          validadeCnh: '2025-12-15',
-          telefone: '(11) 99999-9999',
-          email: 'joao@email.com',
-          empresa: user.companyName || 'Minha Empresa',
-          veiculo: 'ABC-1234',
-          status: 'Ativo'
-        },
-        {
-          id: 2,
-          nome: 'Maria Santos',
-          cpf: '987.654.321-00',
-          cnh: '10987654321',
-          categoria: 'C',
-          validadeCnh: '2024-08-20',
-          telefone: '(11) 88888-8888',
-          email: 'maria@email.com',
-          empresa: user.companyName || 'Minha Empresa',
-          veiculo: 'DEF-5678',
-          status: 'Ativo'
-        }
-      ];
-    } else {
-      return [
-        {
-          id: 1,
-          nome: 'João Silva',
-          cpf: '123.456.789-00',
-          cnh: '12345678901',
-          categoria: 'D',
-          validadeCnh: '2025-12-15',
-          telefone: '(11) 99999-9999',
-          email: 'joao@email.com',
-          empresa: 'TechCorp Ltda',
-          veiculo: 'ABC-1234',
-          status: 'Ativo'
-        },
-        {
-          id: 2,
-          nome: 'Maria Santos',
-          cpf: '987.654.321-00',
-          cnh: '10987654321',
-          categoria: 'C',
-          validadeCnh: '2024-08-20',
-          telefone: '(11) 88888-8888',
-          email: 'maria@email.com',
-          empresa: 'LogiMaster S.A.',
-          veiculo: 'DEF-5678',
-          status: 'Ativo'
-        },
-        {
-          id: 3,
-          nome: 'Carlos Oliveira',
-          cpf: '456.789.123-00',
-          cnh: '56789012345',
-          categoria: 'C',
-          validadeCnh: '2024-03-10',
-          telefone: '(11) 77777-7777',
-          email: 'carlos@email.com',
-          empresa: 'TransBrasil Express',
-          veiculo: 'GHI-9012',
-          status: 'Inativo'
-        }
-      ];
-    }
-  };
+  // Carregar dados de motoristas
+  useEffect(() => {
+    const fetchMotoristas = async () => {
+      try {
+        setLoading(true);
+        const data = await MotoristaService.getAll();
+        setMotoristas(data);
+      } catch (error) {
+        console.error('Erro ao carregar motoristas:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar a lista de motoristas.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const motoristas = getMotoristasData();
+    fetchMotoristas();
+  }, [toast]);
 
+  // Filtrar motoristas com base no termo de busca
   const filteredMotoristas = motoristas.filter(motorista =>
     motorista.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
     motorista.cpf.includes(searchTerm) ||
     motorista.cnh.includes(searchTerm) ||
-    motorista.empresa.toLowerCase().includes(searchTerm.toLowerCase())
+    (motorista.empresaNome && motorista.empresaNome.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const isValidadePerto = (validade: string) => {
+  // Filtrar motoristas por empresa (caso seja uma transportadora)
+  const filteredByRoleMotoristas = user?.role === 'transportadora' && user?.companyId
+    ? filteredMotoristas.filter(motorista => motorista.empresaId === user.companyId)
+    : filteredMotoristas;
+
+  const isValidadePerto = (validade?: string) => {
+    if (!validade) return false;
     const hoje = new Date();
     const dataValidade = new Date(validade);
     const diffTime = dataValidade.getTime() - hoje.getTime();
@@ -112,56 +68,143 @@ const Motoristas: React.FC = () => {
     return diffDays <= 30 && diffDays > 0;
   };
 
-  const isValidadeVencida = (validade: string) => {
+  const isValidadeVencida = (validade?: string) => {
+    if (!validade) return false;
     const hoje = new Date();
     const dataValidade = new Date(validade);
     return dataValidade < hoje;
   };
 
-  const handleView = (motorista: any) => {
+  const handleView = (motorista: Motorista) => {
     setSelectedMotorista(motorista);
     setViewModalOpen(true);
   };
 
-  const handleEdit = (motorista: any) => {
+  const handleEdit = (motorista: Motorista) => {
     setSelectedMotorista(motorista);
     setEditModalOpen(true);
   };
 
-  const handleDelete = (motorista: any) => {
+  const handleDelete = (motorista: Motorista) => {
     setSelectedMotorista(motorista);
     setDeleteModalOpen(true);
   };
 
-  const handleSave = (data: any) => {
-    console.log('Salvando motorista:', data);
-    // Aqui você implementaria a lógica de salvamento
+  const handleSave = async (data: Partial<Motorista>) => {
+    try {
+      setLoading(true);
+      
+      if (selectedMotorista) {
+        // Atualização de motorista existente
+        const updatedMotorista = await MotoristaService.update(selectedMotorista.id, data);
+        setMotoristas(motoristas.map(m => m.id === updatedMotorista.id ? updatedMotorista : m));
+        toast({
+          title: 'Sucesso',
+          description: 'Motorista atualizado com sucesso!',
+        });
+        setEditModalOpen(false);
+      } else {
+        // Criação de novo motorista
+        if (user?.companyId) {
+          const newMotorista = await MotoristaService.create({
+            ...data as Omit<Motorista, 'id' | 'dataCadastro' | 'empresaNome'>,
+            empresaId: user.companyId
+          });
+          setMotoristas([...motoristas, newMotorista]);
+          toast({
+            title: 'Sucesso',
+            description: 'Motorista criado com sucesso!',
+          });
+          setCadastroModalOpen(false); // Fechar o modal apenas em caso de sucesso
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao salvar motorista:', error);
+      toast({
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Não foi possível salvar o motorista.',
+        variant: 'destructive',
+      });
+      // Não fechamos o modal em caso de erro para permitir correções
+      return;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleConfirmDelete = () => {
-    console.log('Excluindo motorista:', selectedMotorista);
-    // Aqui você implementaria a lógica de exclusão
+  const handleConfirmDelete = async () => {
+    if (!selectedMotorista) return;
+    
+    try {
+      setLoading(true);
+      await MotoristaService.delete(selectedMotorista.id);
+      setMotoristas(motoristas.filter(m => m.id !== selectedMotorista.id));
+      setDeleteModalOpen(false);
+      toast({
+        title: 'Sucesso',
+        description: 'Motorista excluído com sucesso!',
+      });
+    } catch (error) {
+      console.error('Erro ao excluir motorista:', error);
+      toast({
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Não foi possível excluir o motorista.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getStatsForRole = () => {
+  // Calcular estatísticas com base nos dados reais
+  const getStats = () => {
+    const motoristasFiltrados = user?.role === 'transportadora' && user?.companyId
+      ? motoristas.filter(motorista => motorista.empresaId === user.companyId)
+      : motoristas;
+    
+    const total = motoristasFiltrados.length;
+    const ativos = motoristasFiltrados.filter(m => m.status === 'ativo').length;
+    
+    // Contar CNHs próximas do vencimento e vencidas
+    const cnhVencer = motoristasFiltrados.filter(m => isValidadePerto(m.validadeCnh)).length;
+    const inativos = motoristasFiltrados.filter(m => m.status === 'inativo').length;
+    
     if (user?.role === 'transportadora') {
       return [
-        { label: 'Meus Motoristas', value: '8', icon: Users, color: 'text-ajh-primary' },
-        { label: 'Ativos', value: '7', icon: Users, color: 'text-green-400' },
-        { label: 'CNH a Vencer', value: '1', icon: AlertTriangle, color: 'text-yellow-400' },
-        { label: 'Inativos', value: '1', icon: Users, color: 'text-red-400' }
+        { label: 'Meus Motoristas', value: total.toString(), icon: Users, color: 'text-ajh-primary' },
+        { label: 'Ativos', value: ativos.toString(), icon: Users, color: 'text-green-400' },
+        { label: 'CNH a Vencer', value: cnhVencer.toString(), icon: AlertTriangle, color: 'text-yellow-400' },
+        { label: 'Inativos', value: inativos.toString(), icon: Users, color: 'text-red-400' }
       ];
     } else {
       return [
-        { label: 'Total Motoristas', value: '89', icon: Users, color: 'text-ajh-primary' },
-        { label: 'Ativos', value: '78', icon: Users, color: 'text-green-400' },
-        { label: 'CNH a Vencer', value: '6', icon: AlertTriangle, color: 'text-yellow-400' },
-        { label: 'Inativos', value: '11', icon: Users, color: 'text-red-400' }
+        { label: 'Total Motoristas', value: total.toString(), icon: Users, color: 'text-ajh-primary' },
+        { label: 'Ativos', value: ativos.toString(), icon: Users, color: 'text-green-400' },
+        { label: 'CNH a Vencer', value: cnhVencer.toString(), icon: AlertTriangle, color: 'text-yellow-400' },
+        { label: 'Inativos', value: inativos.toString(), icon: Users, color: 'text-red-400' }
       ];
     }
   };
 
-  const stats = getStatsForRole();
+  const stats = getStats();
+
+  const [cadastroModalOpen, setCadastroModalOpen] = useState(false);
+
+  const handleCreateNew = () => {
+    setCadastroModalOpen(true);
+  };
+
+  // Função para mapear o status do backend para a exibição no frontend
+  const mapStatusToDisplay = (status: string) => {
+    switch (status) {
+      case 'ativo':
+        return 'Ativo';
+      case 'inativo':
+        return 'Inativo';
+      default:
+        return status;
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -178,7 +221,7 @@ const Motoristas: React.FC = () => {
             }
           </p>
         </div>
-        <Button className="ajh-button-primary">
+        <Button className="ajh-button-primary" onClick={handleCreateNew} disabled={loading}>
           <Plus className="w-4 h-4 mr-2" />
           Novo Motorista
         </Button>
@@ -228,87 +271,104 @@ const Motoristas: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-white">Lista de Motoristas</CardTitle>
           <CardDescription className="text-slate-400">
-            {filteredMotoristas.length} motorista(s) encontrado(s)
+            {filteredByRoleMotoristas.length} motorista(s) encontrado(s)
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-700">
-                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Motorista</th>
-                  <th className="text-left py-3 px-2 text-slate-300 font-medium">CNH</th>
-                  {user?.role !== 'transportadora' && (
-                    <th className="text-left py-3 px-2 text-slate-300 font-medium">Empresa</th>
-                  )}
-                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Veículo</th>
-                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Validade CNH</th>
-                  <th className="text-left py-3 px-2 text-slate-300 font-medium">Status</th>
-                  <th className="text-center py-3 px-2 text-slate-300 font-medium">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredMotoristas.map((motorista) => (
-                  <tr key={motorista.id} className="border-b border-slate-700/50 hover:bg-slate-800/50">
-                    <td className="py-4 px-2">
-                      <div>
-                        <p className="text-white font-medium">{motorista.nome}</p>
-                        <p className="text-sm text-slate-400">{motorista.cpf}</p>
-                      </div>
-                    </td>
-                    <td className="py-4 px-2">
-                      <div>
-                        <span className="text-white font-mono bg-slate-800 px-2 py-1 rounded text-sm">
-                          {motorista.cnh}
-                        </span>
-                        <p className="text-sm text-slate-400 mt-1">Cat. {motorista.categoria}</p>
-                      </div>
-                    </td>
+          {loading ? (
+            <div className="flex justify-center items-center p-8">
+              <Loader2 className="w-8 h-8 text-ajh-primary animate-spin" />
+              <span className="ml-2 text-slate-400">Carregando motoristas...</span>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-700">
+                    <th className="text-left py-3 px-2 text-slate-300 font-medium">Motorista</th>
+                    <th className="text-left py-3 px-2 text-slate-300 font-medium">CNH</th>
                     {user?.role !== 'transportadora' && (
-                      <td className="py-4 px-2 text-slate-300">{motorista.empresa}</td>
+                      <th className="text-left py-3 px-2 text-slate-300 font-medium">Empresa</th>
                     )}
-                    <td className="py-4 px-2">
-                      <span className="text-white font-mono bg-slate-800 px-2 py-1 rounded text-sm">
-                        {motorista.veiculo}
-                      </span>
-                    </td>
-                    <td className="py-4 px-2">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-white text-sm">
-                          {new Date(motorista.validadeCnh).toLocaleDateString('pt-BR')}
-                        </span>
-                        {isValidadeVencida(motorista.validadeCnh) && (
-                          <AlertTriangle className="w-4 h-4 text-red-400" />
-                        )}
-                        {isValidadePerto(motorista.validadeCnh) && (
-                          <AlertTriangle className="w-4 h-4 text-yellow-400" />
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-4 px-2">
-                      <Badge 
-                        className={motorista.status === 'Ativo' 
-                          ? 'bg-green-500/20 text-green-400 border-green-500/30' 
-                          : 'bg-red-500/20 text-red-400 border-red-500/30'
-                        }
-                      >
-                        {motorista.status}
-                      </Badge>
-                    </td>
-                    <td className="py-4 px-2">
-                      <div className="flex justify-center">
-                        <TableActions
-                          onView={() => handleView(motorista)}
-                          onEdit={() => handleEdit(motorista)}
-                          onDelete={() => handleDelete(motorista)}
-                        />
-                      </div>
-                    </td>
+                    <th className="text-left py-3 px-2 text-slate-300 font-medium">Contato</th>
+                    <th className="text-left py-3 px-2 text-slate-300 font-medium">Status</th>
+                    <th className="text-center py-3 px-2 text-slate-300 font-medium">Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredByRoleMotoristas.length === 0 ? (
+                    <tr>
+                      <td colSpan={user?.role !== 'transportadora' ? 6 : 5} className="text-center py-8 text-slate-400">
+                        Nenhum motorista encontrado
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredByRoleMotoristas.map((motorista) => (
+                      <tr key={motorista.id} className="border-b border-slate-700/50 hover:bg-slate-800/50">
+                        <td className="py-4 px-2">
+                          <div>
+                            <p className="text-white font-medium">{motorista.nome}</p>
+                            <p className="text-sm text-slate-400">{motorista.cpf}</p>
+                          </div>
+                        </td>
+                        <td className="py-4 px-2">
+                          <div>
+                            <span className="text-white font-mono bg-slate-800 px-2 py-1 rounded text-sm">
+                              {motorista.cnh}
+                            </span>
+                            {motorista.categoria && (
+                              <p className="text-sm text-slate-400 mt-1">Cat. {motorista.categoria}</p>
+                            )}
+                            {motorista.validadeCnh && (
+                              <div className="flex items-center space-x-2 mt-1">
+                                <span className="text-white text-sm">
+                                  {new Date(motorista.validadeCnh).toLocaleDateString('pt-BR')}
+                                </span>
+                                {isValidadeVencida(motorista.validadeCnh) && (
+                                  <AlertTriangle className="w-4 h-4 text-red-400" />
+                                )}
+                                {isValidadePerto(motorista.validadeCnh) && (
+                                  <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        {user?.role !== 'transportadora' && (
+                          <td className="py-4 px-2 text-slate-300">{motorista.empresaNome || 'N/A'}</td>
+                        )}
+                        <td className="py-4 px-2">
+                          <div>
+                            <p className="text-slate-300">{motorista.telefone}</p>
+                            <p className="text-sm text-slate-400">{motorista.email}</p>
+                          </div>
+                        </td>
+                        <td className="py-4 px-2">
+                          <Badge 
+                            className={motorista.status === 'ativo' 
+                              ? 'bg-green-500/20 text-green-400 border-green-500/30' 
+                              : 'bg-red-500/20 text-red-400 border-red-500/30'
+                            }
+                          >
+                            {mapStatusToDisplay(motorista.status)}
+                          </Badge>
+                        </td>
+                        <td className="py-4 px-2">
+                          <div className="flex justify-center">
+                            <TableActions
+                              onView={() => handleView(motorista)}
+                              onEdit={() => handleEdit(motorista)}
+                              onDelete={() => handleDelete(motorista)}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -326,6 +386,13 @@ const Motoristas: React.FC = () => {
         title="Editar Motorista"
         data={selectedMotorista || {}}
         onSave={handleSave}
+      />
+
+      <CadastroMotoristaModal
+        isOpen={cadastroModalOpen}
+        onClose={() => setCadastroModalOpen(false)}
+        onSave={handleSave}
+        empresaId={user?.role === 'transportadora' ? user?.companyId : undefined}
       />
 
       <DeleteModal
