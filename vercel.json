@@ -3,20 +3,23 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/auth/login.ts": {
+    "pages/api/auth/login.ts": {
       "maxDuration": 30
     },
-    "api/health.ts": {
+    "pages/api/health.ts": {
       "maxDuration": 30
     }
   },
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/pages/api/$1"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
   "version": 2,
-  "ignoreCommand": "exit 0",
   "cleanUrls": true
 } 

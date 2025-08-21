@@ -1,6 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default function handler(req: VercelRequest, res: VercelResponse) {
   // Configurar CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -17,8 +17,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     return res.status(200).json({ 
       status: 'success', 
-      message: 'API is running',
-      timestamp: new Date().toISOString() 
+      message: 'API is running - NEW STRUCTURE',
+      timestamp: new Date().toISOString(),
+      version: '2.0.0'
     });
   } catch (error) {
     console.error('Health check error:', error);

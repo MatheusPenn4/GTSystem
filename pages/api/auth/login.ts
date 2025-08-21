@@ -42,17 +42,7 @@ const generateMockToken = (payload: any): string => {
   return `${header}.${payloadEncoded}.${signature}`;
 };
 
-// Validação básica
-const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
-const validatePassword = (password: string): boolean => {
-  return password.length >= 6;
-};
-
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default function handler(req: VercelRequest, res: VercelResponse) {
   // Configurar CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -72,8 +62,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { email, password } = req.body;
     
     // Validação básica
-    if (!validateEmail(email) || !validatePassword(password)) {
-      return res.status(400).json({ error: 'Dados inválidos' });
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email e senha são obrigatórios' });
     }
     
     const user = mockUsers[email as keyof typeof mockUsers];
