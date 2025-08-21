@@ -1,4 +1,5 @@
 import api from './api';
+import { MockAuthService } from './mockAuth';
 
 export interface User {
   id: string;
@@ -20,8 +21,13 @@ const AuthService = {
   // Login de usuário
   login: async (email: string, password: string): Promise<LoginResponse> => {
     try {
-      const response = await api.post('/api/login', { email, password });
-      return response.data;
+      // USAR MOCK ENQUANTO SERVERLESS NÃO FUNCIONA
+      console.log('🔄 Usando serviço mockado para login');
+      return await MockAuthService.login(email, password);
+      
+      // Código original (desabilitado temporariamente)
+      // const response = await api.post('/api/login', { email, password });
+      // return response.data;
     } catch (error) {
       console.error('Erro ao fazer login:', error);
       throw error;
@@ -31,7 +37,9 @@ const AuthService = {
   // Logout de usuário
   logout: async (): Promise<void> => {
     try {
-      await api.post('/api/logout');
+      // USAR MOCK ENQUANTO SERVERLESS NÃO FUNCIONA
+      console.log('🔄 Usando serviço mockado para logout');
+      await MockAuthService.logout();
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
       // Continuar com o logout mesmo com erro
@@ -45,8 +53,13 @@ const AuthService = {
   // Obter dados do usuário atual
   getCurrentUser: async (): Promise<User> => {
     try {
-      const response = await api.get('/api/me');
-      return response.data;
+      // USAR MOCK ENQUANTO SERVERLESS NÃO FUNCIONA
+      console.log('🔄 Usando serviço mockado para getCurrentUser');
+      return await MockAuthService.getCurrentUser();
+      
+      // Código original (desabilitado temporariamente)
+      // const response = await api.get('/api/me');
+      // return response.data;
     } catch (error) {
       console.error('Erro ao obter dados do usuário:', error);
       throw error;
@@ -56,8 +69,13 @@ const AuthService = {
   // Renovar token
   refreshToken: async (refreshToken: string): Promise<{ token: string; refreshToken: string }> => {
     try {
-      const response = await api.post('/api/refresh-token', { refreshToken });
-      return response.data;
+      // USAR MOCK ENQUANTO SERVERLESS NÃO FUNCIONA
+      console.log('🔄 Usando serviço mockado para refreshToken');
+      return await MockAuthService.refreshToken(refreshToken);
+      
+      // Código original (desabilitado temporariamente)
+      // const response = await api.post('/api/refresh-token', { refreshToken });
+      // return response.data;
     } catch (error) {
       console.error('Erro ao renovar token:', error);
       throw error;
