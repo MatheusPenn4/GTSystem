@@ -18,10 +18,23 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   const users: Record<string, any> = {
     'admin@gtsystem.com': {
       id: 'admin-123',
-      name: 'Admin',
+      name: 'Administrador',
       email: 'admin@gtsystem.com',
       password: 'admin123',
-      role: 'admin'
+      role: 'admin',
+      avatar: null,
+      companyId: null,
+      companyName: null
+    },
+    'usuario@transportadoramodelo.com.br': {
+      id: 'transp-123',
+      name: 'Transportadora Modelo',
+      email: 'usuario@transportadoramodelo.com.br',
+      password: 'trans123',
+      role: 'transportadora',
+      avatar: null,
+      companyId: 'comp-transp-123',
+      companyName: 'Transportadora Modelo LTDA'
     }
   };
 
@@ -46,7 +59,10 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        avatar: user.avatar,
+        companyId: user.companyId,
+        companyName: user.companyName
       },
       token,
       refreshToken: 'refresh-' + Date.now()
