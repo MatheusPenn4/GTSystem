@@ -20,7 +20,7 @@ const AuthService = {
   // Login de usuário
   login: async (email: string, password: string): Promise<LoginResponse> => {
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/login', { email, password });
       return response.data;
     } catch (error) {
       console.error('Erro ao fazer login:', error);
