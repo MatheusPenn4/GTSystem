@@ -1,11 +1,6 @@
 import * as React from "react"
 import * as TooltipPrimitive from "@radix-ui/react-tooltip"
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
+import { cn } from "@/lib/utils"
 
 const TooltipProvider = TooltipPrimitive.Provider
 

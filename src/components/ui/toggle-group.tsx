@@ -1,10 +1,5 @@
 import * as React from "react"
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
+import { cn } from "@/lib/utils"
 import * as ToggleGroupPrimitive from "@radix-ui/react-toggle-group"
 import { type VariantProps } from "class-variance-authority"
 
