@@ -8,6 +8,10 @@ yarn-error.log*
 dist/
 build/
 
+# Cache do Vercel - FORÇAR REBUILD
+.vercel/
+.next/
+
 # Arquivos de desenvolvimento
 .env.local
 .env.development.local
